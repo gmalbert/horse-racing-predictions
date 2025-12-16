@@ -95,6 +95,22 @@ python examples/api_example.py
 python examples/odds_api_example.py
 ```
 
+## Streamlit Predictions UI
+
+A simple Streamlit app is included to explore the processed dataset and run placeholder predictions.
+
+- App file: `predictions.py` (run from the repository root)
+- Data source: `data/processed/uk_horse_races.csv` (loaded and cached by the app)
+- Logo: `data/logo.png` is shown at the top of the app if present
+- Sidebar filters: year, course, horse name (contains), finish position
+- Main page: choose number of results to display (25, 50, 75, 100, All) and view the top results sorted by `Date` (descending)
+
+Run the app:
+
+```bash
+streamlit run predictions.py
+```
+
 ## Development
 
 - Follow PEP 8 style guidelines
