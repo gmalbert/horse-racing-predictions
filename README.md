@@ -1,6 +1,20 @@
 # Horse Racing Predictions
 
-Machine learning project for predicting horse racing outcomes using data from The Racing API.
+![Project Logo](data/logo.png)
+
+Machine learning project and interactive Streamlit app for predicting horse racing outcomes using data from The Racing API.
+
+Predictions app overview
+
+- Purpose: provide an interactive UI to explore historical UK race results, compute simple summary statistics, and serve as a place to plug in prediction models.
+- How it works: the app loads `data/processed/uk_horse_races.csv`, caches it for performance, exposes sidebar filters (Year, Course, Horse name, Finish Position) and a main-page results limiter. Summary tabs compute aggregated statistics from the full set of filtered data (wins, place, show, total prize, races per course, jockey stats, etc.).
+- Where to look: the app source is `predictions.py` (root). Example API usage is in `examples/api_example.py` and `examples/odds_api_example.py`.
+
+Run the app locally:
+
+```bash
+streamlit run predictions.py
+```
 
 ## Setup
 
@@ -102,8 +116,9 @@ A simple Streamlit app is included to explore the processed dataset and run plac
 - App file: `predictions.py` (run from the repository root)
 - Data source: `data/processed/uk_horse_races.csv` (loaded and cached by the app)
 - Logo: `data/logo.png` is shown at the top of the app if present
-- Sidebar filters: year, course, horse name (contains), finish position
+- Sidebar filters: Year, Course, Horse Name (contains), Finish Position
 - Main page: choose number of results to display (25, 50, 75, 100, All) and view the top results sorted by `Date` (descending)
+- Summary tabs: Horse performance (wins/place/show, avg finish, total prize), Course statistics (races per course), Jockey performance, and Overall statistics (totals and distributions). All summaries respond to filters.
 
 Run the app:
 
@@ -117,13 +132,3 @@ streamlit run predictions.py
 - Write tests for new functionality
 - Keep data collection separate from model training
 - Document API rate limits and implement throttling
-
-## Testing
-
-```bash
-pytest tests/
-```
-
-## License
-
-[Add license information]
