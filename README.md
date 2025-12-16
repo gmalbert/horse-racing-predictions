@@ -1,7 +1,8 @@
 # Horse Racing Predictions
 
-![Project Logo](data/logo.png)
-
+<p align="left">
+  <img src="data/logo.png" alt="Equine Edge" width="300" />
+</p>
 Machine learning project and interactive Streamlit app for predicting horse racing outcomes using data from The Racing API.
 
 Predictions app overview
