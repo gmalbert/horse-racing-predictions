@@ -10,92 +10,70 @@ This is a **horse racing predictions** project using Python. Data is sourced fro
 - **Activation**: 
   - Windows PowerShell: `.venv\Scripts\Activate.ps1`
   - Windows CMD: `.venv\Scripts\activate.bat`
-  - Unix/macOS: `source .venv/bin/activate`
+# AI Agent Instructions — Horse Racing Predictions
 
-## API Configuration
+This file contains concise, actionable guidance for AI coding agents working in this repo.
 
-### The Racing API
-**Documentation**: https://api.theracingapi.com/documentation
-- **Authentication**: HTTP Basic Auth
-- **Username**: Store in environment variable `RACING_API_USERNAME`
-- **Password**: Store in environment variable `RACING_API_PASSWORD`
-- **Rate Limit**: 500 calls per month
-- **CRITICAL**: Never commit credentials to git. Use `.env` file (add to `.gitignore`) or environment variables
+## Quick context
+- Purpose: ML project to predict horse racing outcomes using The Racing API and The Odds API.
+- Repo layout: `examples/`, `data/{raw,processed}`, `models/`, `src/`, `notebooks/`, `tests/`.
 
-### The Odds API
-**Documentation**: https://the-odds-api.com/liveapi/guides/v4/
-- **Authentication**: API Key (query parameter)
-- **API Key**: Store in environment variable `ODDS_API_KEY`
-- **Rate Limit**: 500 calls per month
-- **Limitation**: No historical data available (live odds only)
-- **Use Case**: Complement racing predictions with current betting odds
-- **CRITICAL**: Never commit credentials to git. Use `.env` file (add to `.gitignore`) or environment variables
+## Environment & setup (explicit)
+- Use a virtualenv at `.venv/` and add any new deps to `requirements.txt`.
+- Windows PowerShell activation: `.venv\Scripts\Activate.ps1` (use this for CI-local steps).
+- Install deps: `pip install -r requirements.txt`.
+- Use `python-dotenv` and `.env` for secrets; update `.env.example` if adding new env vars.
 
-## Project Conventions
+## API integration (concrete)
+- The Racing API: HTTP Basic Auth. Credentials stored in `RACING_API_USERNAME` and `RACING_API_PASSWORD`.
+- The Odds API: API key stored in `ODDS_API_KEY` and passed as a query param.
+- Rate limits: BOTH APIs are limited to ~500 calls/month — do not run live calls recklessly.
+- Examples: inspect `examples/api_example.py` (Racing API usage) and `examples/odds_api_example.py` (Odds API usage).
 
-### When Adding New Code
+## Important constraints & patterns for edits
+- Never commit credentials. `.env` must be gitignored; add new vars to `.env.example`.
+- Prefer offline / cached data for development: store raw API responses in `data/raw/` and read from them in tests.
+- Do not make live API calls in unit tests. Use recorded responses or fixtures under `tests/` or `data/raw/`.
+- When adding network code, follow the existing `requests` pattern: Racing API uses `auth=(username, password)`; Odds API uses `params={'apiKey': key}`.
 
-1. **Python Version**: Verify Python version requirements before adding dependencies
-2. **Dependencies**: Add all new packages to `requirements.txt` (create if missing)
-3. **Environment Variables**: Use `python-dotenv` to load `.env` file for API credentials
-4. **API Calls**: 
-   - Racing API: Use `requests` with basic auth: `auth=(username, password)`
-   - Odds API: Use `requests` with API key as query parameter: `params={'apiKey': api_key}`
-5. **Data Files**: Keep training data, race data, and models in appropriate directories (e.g., `data/`, `models/`)
-6. **Notebooks**: If using Jupyter notebooks for exploration, place in `notebooks/` directory
-7. **Rate Limiting**: **CRITICAL** - Both APIs limited to 500 calls/month. Implement:
-   - Call counting/tracking mechanism
-   - Caching of API responses
-   - Batch requests when possible
-   - Avoid redundant API calls
+## Architecture notes (what to look for)
+- Data collection vs model training: keep `src/data/` code for collection/preprocessing and `src/models/` for training/inference.
+- Models and artifacts belong in `models/` (gitignored); processed datasets belong in `data/processed/`.
+- Feature engineering logic typically lives in `src/features/` — prefer pure functions for easier testing.
 
-### Machine Learning Patterns (Expected)
+## Developer workflows (commands you can run)
+- Run examples to verify API access:
+   - `python examples/api_example.py`
+   - `python examples/odds_api_example.py`
+- Run unit tests: `pytest tests/`
+- Add dependencies: edit `requirements.txt`, then `pip install -r requirements.txt` locally.
 
-- **Data Pipeline**: Separate data collection, preprocessing, and feature engineering
-- **Model Training**: Keep training scripts separate from prediction/inference code
-- **Configuration**: Use configuration files (JSON/YAML) for hyperparameters and model settings
-- **Evaluation**: Include separate evaluation/validation scripts with metrics
+- Run the Streamlit UI: `streamlit run predictions.py` (app loads `data/processed/uk_horse_races.csv` and `data/logo.png`)
 
-### Code Organization (Recommended)
+## Testing and safety
+- Use `pytest` and place new tests in `tests/` alongside any fixtures.
+- Avoid direct network calls in tests; use fixtures or save responses to `data/raw/` for deterministic tests.
 
-```
-horse-racing-predictions/
-├── data/              # Raw and processed data
-├── models/            # Saved model files
-├── notebooks/         # Exploratory analysis
-├── src/               # Source code
-│   ├── data/          # Data collection and preprocessing
-│   ├── features/      # Feature engineering
-│   ├── models/        # Model definitions and training
+Notes about test fixtures added:
+- `tests/fixtures/race_sample.json` contains a saved API response used by `tests/conftest.py`.
+- `tests/conftest.py` includes `mock_requests_get` which monkeypatches `requests.get` to return saved JSON — prefer this pattern for deterministic tests.
+
+## When you change code
+- Update `requirements.txt` for new packages.
+- Update `.env.example` for new env vars.
+- If you add long-running scripts (data pulls), document expected cost and API call counts in the script header and README.
+
+## Files to consult first
+- Implementation patterns: `examples/api_example.py`, `examples/odds_api_example.py`
+- Project conventions and setup: `README.md`, `.env.example`, `requirements.txt`
+- Data layout: `data/raw/` and `data/processed/`
+
+- Streamlit UI: `predictions.py` (root) — shows filters: Year, Course, Horse (contains), Finish Position; main page number-of-results dropdown; uses cached CSV and `data/logo.png`.
+- Note: the raw CSV column `pos` is exposed in the app as `Finish Position`. The app normalises date display to `YYYY-MM-DD` when time is 00:00:00.
+
+## Final note
+Be conservative with external API usage (caching, batching, call counters). If unsure about a change that triggers API calls, ask the repo owner before running live pulls.
+
+---
+If any part of this is unclear or you'd like more detail (e.g., suggested caching helpers, test fixtures, or CI steps), tell me which area and I will expand.
 │   └── utils/         # Utility functions
-├── tests/             # Unit and integration tests
-└── requirements.txt   # Python dependencies
-```
-
-## Key Commands
-
-**Install Dependencies** (create requirements.txt first if missing):
-```bash
-pip install -r requirements.txt
-```
-
-**Common ML Libraries** for horse racing predictions typically include:
-- requests (API calls)
-- python-dotenv (environment variables)
-- pandas, numpy (data manipulation)
-- scikit-learn (ML models)
-- xgboost/lightgbm (gradient boosting)
-- matplotlib/seaborn (visualization)
-
-## Testing
-
-- Place tests in `tests/` directory
-- Use `pytest` as the testing framework
-- Run tests: `pytest tests/`
-
-## Notes for AI Agents
-
-- This project is in **initial setup phase** - establish foundational structure first
-- Focus on **data quality** and **feature engineering** for racing predictions
-- Consider **time-series aspects** of racing data (historical performance)
-- Handle **missing data** appropriately (horses without full racing history)
