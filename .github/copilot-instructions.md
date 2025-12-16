@@ -99,3 +99,23 @@ pip install -r requirements.txt
 - Focus on **data quality** and **feature engineering** for racing predictions
 - Consider **time-series aspects** of racing data (historical performance)
 - Handle **missing data** appropriately (horses without full racing history)
+
+## Streamlit API changes (Dec 2025)
+
+- The Streamlit parameter `use_container_width` will be removed after 2025-12-31.
+- Replacement mapping:
+   - `use_container_width=True` -> `width='stretch'`
+   - `use_container_width=False` -> `width='content'`
+- Action: Search the repo for `use_container_width` and update `st.dataframe`, `st.table`, or other components accordingly. Prefer `width='stretch'` for full-width tables in the app and `width='content'` when fixed sizing is desired.
+- After updating, run a quick smoke test: `streamlit run predictions.py` to confirm the UI renders.
+
+## Developer tip: pre-compile Python to catch syntax errors
+
+- Before running the app or tests, pre-compile changed Python files to catch syntax errors early. This avoids runtime Streamlit failures caused by simple syntax mistakes.
+- Examples:
+   - Pre-compile a single file: `python -m py_compile predictions.py`
+   - Pre-compile all files (POSIX shell): `python -m py_compile $(git ls-files '*.py')`
+   - Or run a small Python one-liner to compile recursively:
+      `python -c "import py_compile,glob; [py_compile.compile(p, doraise=True) for p in glob.glob('**/*.py', recursive=True)]"`
+
+Add `py_compile` as a quick local check in your workflow or CI to reduce simple syntax-related errors.
