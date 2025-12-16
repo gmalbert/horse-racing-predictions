@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+horse-racing-predictions.code-workspace
 
 # Virtual Environment
 .venv/
@@ -36,7 +37,7 @@ env/
 
 # Data files (can be large)
 data/raw/*
-data/processed/*
+#data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
@@ -66,3 +67,4 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+tests/
