@@ -17,7 +17,7 @@ def main():
     pattern = os.path.join(raw_dir, "*.csv")
     files = sorted(glob.glob(pattern))
 
-    out_path = os.path.join(raw_dir, "uk_horse_races.csv")
+    out_path = os.path.join(raw_dir, "all_gb_races.csv")
 
     # exclude output if it already exists in the list
     files = [f for f in files if os.path.basename(f) != os.path.basename(out_path)]

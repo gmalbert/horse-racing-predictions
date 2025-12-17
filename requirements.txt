@@ -5,6 +5,7 @@ python-dotenv>=1.0.0
 # Data Processing
 pandas>=2.0.0
 numpy>=1.24.0
+beautifulsoup4>=4.12.0
 
 # Machine Learning
 scikit-learn>=1.3.0
@@ -23,3 +24,6 @@ pytest-cov>=4.1.0
 
 # Web UI
 streamlit>=1.30.0
+
+# Web Scraping (optional - for Selenium-based scripts)
+selenium>=4.15.0

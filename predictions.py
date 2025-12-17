@@ -9,15 +9,27 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).parent
-DATA_FILE = BASE_DIR / "data" / "processed" / "uk_horse_races.csv"
+PARQUET_FILE = BASE_DIR / "data" / "processed" / "all_gb_races.parquet"
+CSV_FILE = BASE_DIR / "data" / "processed" / "all_gb_races.csv"
 LOGO_FILE = BASE_DIR / "data" / "logo.png"
 
 
 @st.cache_data
 def load_data():
-    """Load and cache the UK horse races CSV."""
-    df = pd.read_csv(DATA_FILE)
-    df["date"] = pd.to_datetime(df["date"])
+    """Load and cache the UK horse races dataset (Parquet preferred).
+
+    The function will prefer `all_gb_races.parquet` if present for faster
+    loading and smaller storage. Falls back to CSV if Parquet is missing.
+    """
+    if PARQUET_FILE.exists():
+        df = pd.read_parquet(PARQUET_FILE)
+    elif CSV_FILE.exists():
+        df = pd.read_csv(CSV_FILE)
+    else:
+        raise FileNotFoundError(f"Dataset not found: {PARQUET_FILE} or {CSV_FILE}")
+
+    if 'date' in df.columns:
+        df["date"] = pd.to_datetime(df["date"])
     
     # Rename columns to be more readable
     column_rename = {
@@ -84,11 +96,31 @@ def main():
     if LOGO_FILE.exists():
         st.image(str(LOGO_FILE), width=200)
     
-    st.title("🏇 Equine Edge")
-    st.markdown("---")
+    # st.title("🏇 Equine Edge")
+    # st.markdown("---")
 
     # Load data
     df = load_data()
+
+    # Upcoming schedule (fixtures) - show in an expander
+    fixtures_file = BASE_DIR / "data" / "processed" / "bha_2026_ascot_newmarket_doncaster_york.csv"
+    if fixtures_file.exists():
+        try:
+            fixtures = pd.read_csv(fixtures_file)
+            # Parse Date column if present and sort chronologically
+            if "Date" in fixtures.columns:
+                fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
+                fixtures = fixtures.sort_values("Date")
+
+            with st.expander("Upcoming Schedule 🗓️", expanded=False):
+                show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in fixtures.columns]
+                fixtures_display = fixtures.copy()
+                if "Date" in fixtures_display.columns:
+                    fixtures_display["Date"] = fixtures_display["Date"].dt.strftime("%Y-%m-%d")
+
+                st.dataframe(fixtures_display[show_cols].head(200), width="stretch", hide_index=True)
+        except Exception as e:
+            st.warning(f"Could not load upcoming schedule: {e}")
 
     # Sidebar filters
     st.sidebar.header("Filters")
@@ -116,13 +148,18 @@ def main():
     horse_name = st.sidebar.text_input("Horse Name (contains)", "")
 
     # Finish order filter - convert to int for proper sorting
-    positions = sorted([int(p) for p in df["Finish Position"].dropna().unique() if str(p).isdigit()])
+    # Create a numeric finish-position column for reliable filtering
+    df["Finish Position Numeric"] = pd.to_numeric(df["Finish Position"], errors="coerce")
+    positions = sorted([int(p) for p in df["Finish Position Numeric"].dropna().unique()])
     selected_positions = st.sidebar.multiselect(
         "Finish Position",
         options=positions,
         default=None,
         placeholder="All positions"
     )
+
+    # Checkbox to show only top-3 finishes
+    top3_only = st.sidebar.checkbox("Top 3 only", value=False, help="Show only horses finishing 1-3")
 
     # Apply filters
     filtered_df = df.copy()
@@ -139,62 +176,28 @@ def main():
         ]
 
     if selected_positions:
-        filtered_df = filtered_df[filtered_df["Finish Position"].isin(selected_positions)]
+        filtered_df = filtered_df[filtered_df["Finish Position Numeric"].isin(selected_positions)]
+
+    if top3_only:
+        filtered_df = filtered_df[filtered_df["Finish Position Numeric"] <= 3]
 
     # Sort by date descending
     filtered_df = filtered_df.sort_values("Date", ascending=False)
     
-    # Number of results to display - on main page
-    total_filtered = len(filtered_df)
-    num_results_options = [25, 50, 75, 100, "All"]
-    num_results = st.selectbox(
-        "Number of Results to Display",
-        options=num_results_options,
-        index=1  # Default to 50
-    )
-    
-    # Apply result limit
-    if num_results != "All":
-        filtered_df = filtered_df.head(num_results)
-
-    # Format date column to remove time if it's 00:00:00
-    filtered_df["Date"] = filtered_df["Date"].apply(
-        lambda x: x.strftime("%Y-%m-%d") if x.hour == 0 and x.minute == 0 and x.second == 0 else x.strftime("%Y-%m-%d %H:%M:%S")
-    )
-
-    # Display results
-    results_text = f"top {num_results}" if num_results != "All" else "all"
-    st.subheader(f"Results ({len(filtered_df):,} of {total_filtered:,} races shown, {results_text} by date)")
-    
-    # Select key columns to display
-    display_columns = [
-        "Date", "Course", "Race Name", "Horse", "Finish Position", 
-        "Jockey", "Trainer", "Distance", "Going", "Time"
-    ]
-    
-    # Filter to only existing columns
-    display_columns = [col for col in display_columns if col in filtered_df.columns]
-    
-    height = get_dataframe_height(filtered_df)
-    st.dataframe(
-        filtered_df[display_columns],
-        width="stretch",
-        hide_index=True,
-        height=height
-    )
+    # Results display moved to the "Raw Data" tab at the bottom of the page.
 
     # Show summary stats in sidebar
-    st.sidebar.markdown("---")
+    # st.sidebar.markdown("---")
     st.sidebar.subheader("Summary")
     st.sidebar.metric("Total Races in Dataset", f"{len(df):,}")
     st.sidebar.metric("Filtered Races", f"{len(filtered_df):,}")
     
     # Detailed statistics section on main page
-    st.markdown("---")
-    st.header("📊 Data Summary")
+    # st.markdown("---")
+    # st.header("📊 Data Summary")
     
     # Create tabs for different summary views
-    tab1, tab2, tab3, tab4 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🗃️ Raw Data"])
     
     with tab1:
         st.subheader("Horse Performance")
@@ -350,6 +353,50 @@ def main():
         st.dataframe(
             distance_counts,
             # width="stretch",
+            hide_index=True,
+            height=height
+        )
+
+    with tab5:
+        st.subheader("Raw Results")
+
+        # Show number-of-results selector and the filtered results (this uses the
+        # full `filtered_df` computed above, but displays a limited subset when
+        # the user selects a cap).
+        total_filtered = len(filtered_df)
+        num_results_options = [25, 50, 75, 100, "All"]
+        num_results = st.selectbox(
+            "Number of Results to Display",
+            options=num_results_options,
+            index=1,
+            key="num_results_display"
+        )
+
+        if num_results != "All":
+            display_df = filtered_df.head(num_results).copy()
+        else:
+            display_df = filtered_df.copy()
+
+        # Format Date column for display only
+        if "Date" in display_df.columns:
+            display_df["Date"] = display_df["Date"].apply(
+                lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) and x.hour == 0 and x.minute == 0 and x.second == 0
+                else (x.strftime("%Y-%m-%d %H:%M:%S") if pd.notna(x) else "")
+            )
+
+        results_text = f"top {num_results}" if num_results != "All" else "all"
+        st.subheader(f"Results ({len(display_df):,} of {total_filtered:,} races shown, {results_text} by date)")
+
+        display_columns = [
+            "Date", "Course", "Race Name", "Horse", "Finish Position", 
+            "Jockey", "Trainer", "Distance", "Going", "Time"
+        ]
+        display_columns = [col for col in display_columns if col in display_df.columns]
+
+        height = get_dataframe_height(display_df)
+        st.dataframe(
+            display_df[display_columns],
+            width="stretch",
             hide_index=True,
             height=height
         )

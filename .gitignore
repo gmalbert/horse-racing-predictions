@@ -38,6 +38,7 @@ env/
 # Data files (can be large)
 data/raw/*
 #data/processed/*
+data/processed/all_gb_races.parquet
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
@@ -68,3 +69,4 @@ logs/
 .coverage
 htmlcov/
 tests/
+*/old/*
