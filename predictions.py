@@ -161,6 +161,113 @@ def main():
     # Checkbox to show only top-3 finishes
     top3_only = st.sidebar.checkbox("Top 3 only", value=False, help="Show only horses finishing 1-3")
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Advanced Filters")
+
+    # 1. Official Rating (OR) range slider
+    df["OR Numeric"] = pd.to_numeric(df["Official Rating"], errors="coerce")
+    or_min = int(df["OR Numeric"].min()) if df["OR Numeric"].notna().any() else 0
+    or_max = int(df["OR Numeric"].max()) if df["OR Numeric"].notna().any() else 150
+    or_range = st.sidebar.slider(
+        "Official Rating (OR)",
+        min_value=or_min,
+        max_value=or_max,
+        value=(or_min, or_max),
+        help="Filter by horse's official rating"
+    )
+
+    # 2. Race Class multiselect
+    if "Class" in df.columns:
+        classes = sorted([c for c in df["Class"].dropna().unique() if c])
+        selected_classes = st.sidebar.multiselect(
+            "Race Class",
+            options=classes,
+            default=None,
+            placeholder="All classes",
+            help="Class 1 = highest quality"
+        )
+    else:
+        selected_classes = None
+
+    # 3. Prize Money threshold
+    df["Prize Numeric"] = pd.to_numeric(df["Prize"], errors="coerce")
+    if df["Prize Numeric"].notna().any():
+        prize_min = st.sidebar.number_input(
+            "Min Prize Money (£)",
+            min_value=0,
+            value=0,
+            step=1000,
+            help="Show races with prize ≥ this amount"
+        )
+    else:
+        prize_min = 0
+
+    # 4. Field Size filter
+    if "ran" in df.columns:
+        df["Field Size"] = pd.to_numeric(df["ran"], errors="coerce")
+        field_min = int(df["Field Size"].min()) if df["Field Size"].notna().any() else 0
+        field_max = int(df["Field Size"].max()) if df["Field Size"].notna().any() else 30
+        field_range = st.sidebar.slider(
+            "Field Size (runners)",
+            min_value=field_min,
+            max_value=field_max,
+            value=(field_min, field_max),
+            help="Number of runners in race"
+        )
+    else:
+        field_range = None
+
+    # 5. Surface filter
+    if "Surface" in df.columns:
+        surfaces = sorted([s for s in df["Surface"].dropna().unique() if s])
+        selected_surfaces = st.sidebar.multiselect(
+            "Surface",
+            options=surfaces,
+            default=None,
+            placeholder="All surfaces",
+            help="Turf vs All-Weather"
+        )
+    else:
+        selected_surfaces = None
+
+    # 6. Distance bands
+    df["Distance F Numeric"] = pd.to_numeric(df["Distance"].str.extract(r'(\d+)f')[0], errors="coerce") if "Distance" in df.columns else pd.to_numeric(df.get("dist_f"), errors="coerce")
+    distance_bands = [
+        ("Sprint", 5, 7),
+        ("Mile", 7, 9),
+        ("Middle", 9, 12),
+        ("Long", 12, 99)
+    ]
+    selected_distance_band = st.sidebar.selectbox(
+        "Distance Band",
+        options=["All"] + [band[0] for band in distance_bands],
+        help="Sprint (5-7f), Mile (7-9f), Middle (9-12f), Long (12f+)"
+    )
+
+    # 7. Pattern races checkbox
+    if "Pattern" in df.columns:
+        pattern_only = st.sidebar.checkbox(
+            "Pattern Races Only",
+            value=False,
+            help="Show only Group/Listed races"
+        )
+    else:
+        pattern_only = False
+
+    # 8. Age band filter
+    if "Age Band" in df.columns or "age_band" in df.columns:
+        age_col = "Age Band" if "Age Band" in df.columns else "age_band"
+        age_bands = sorted([a for a in df[age_col].dropna().unique() if a])
+        selected_age_bands = st.sidebar.multiselect(
+            "Age Band",
+            options=age_bands,
+            default=None,
+            placeholder="All age bands",
+            help="2yo, 3yo, 3yo+, 4yo+, etc."
+        )
+    else:
+        selected_age_bands = None
+
     # Apply filters
     filtered_df = df.copy()
 
@@ -180,6 +287,50 @@ def main():
 
     if top3_only:
         filtered_df = filtered_df[filtered_df["Finish Position Numeric"] <= 3]
+
+    # Apply advanced filters
+    # 1. OR range
+    filtered_df = filtered_df[
+        (filtered_df["OR Numeric"].isna()) | 
+        ((filtered_df["OR Numeric"] >= or_range[0]) & (filtered_df["OR Numeric"] <= or_range[1]))
+    ]
+
+    # 2. Race Class
+    if selected_classes:
+        filtered_df = filtered_df[filtered_df["Class"].isin(selected_classes)]
+
+    # 3. Prize Money
+    if prize_min > 0:
+        filtered_df = filtered_df[filtered_df["Prize Numeric"] >= prize_min]
+
+    # 4. Field Size
+    if field_range:
+        filtered_df = filtered_df[
+            (filtered_df["Field Size"].isna()) |
+            ((filtered_df["Field Size"] >= field_range[0]) & (filtered_df["Field Size"] <= field_range[1]))
+        ]
+
+    # 5. Surface
+    if selected_surfaces:
+        filtered_df = filtered_df[filtered_df["Surface"].isin(selected_surfaces)]
+
+    # 6. Distance bands
+    if selected_distance_band != "All":
+        band = next((b for b in distance_bands if b[0] == selected_distance_band), None)
+        if band:
+            filtered_df = filtered_df[
+                (filtered_df["Distance F Numeric"] >= band[1]) & 
+                (filtered_df["Distance F Numeric"] < band[2])
+            ]
+
+    # 7. Pattern races
+    if pattern_only:
+        filtered_df = filtered_df[filtered_df["Pattern"].notna() & (filtered_df["Pattern"] != "")]
+
+    # 8. Age band
+    if selected_age_bands:
+        age_col = "Age Band" if "Age Band" in filtered_df.columns else "age_band"
+        filtered_df = filtered_df[filtered_df[age_col].isin(selected_age_bands)]
 
     # Sort by date descending
     filtered_df = filtered_df.sort_values("Date", ascending=False)
