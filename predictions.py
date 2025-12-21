@@ -133,8 +133,52 @@ def main():
     # Load data
     df = load_data()
 
+    # Top predictive races expander
+    with st.expander("🎯 Top Predictive Races (Tier 1 Focus)", expanded=False):
+        if 'race_tier' in df.columns and 'race_score' in df.columns:
+            # Get Tier 1 Focus races on or after today
+            today = pd.Timestamp.today().normalize()
+            tier1_races = df[df['race_tier'] == 'Tier 1: Focus'].copy()
+            
+            # Filter to future races only
+            if 'Date' in tier1_races.columns:
+                tier1_races['Date'] = pd.to_datetime(tier1_races['Date'])
+                tier1_races = tier1_races[tier1_races['Date'] >= today]
+            
+            # Group by unique race and get the best score
+            race_cols = ['Date', 'Course', 'Race Name', 'Class', 'Distance', 'Prize', 'race_score']
+            available_cols = [c for c in race_cols if c in tier1_races.columns]
+            
+            if len(tier1_races) > 0:
+                # Get unique races (deduplicate by race_id if available)
+                if 'race_id' in tier1_races.columns:
+                    tier1_unique = tier1_races.groupby('race_id')[available_cols].first().reset_index(drop=True)
+                else:
+                    tier1_unique = tier1_races[available_cols].drop_duplicates()
+                
+                # Sort by date ascending (soonest first), then by score descending
+                tier1_unique = tier1_unique.sort_values(['Date', 'race_score'], ascending=[True, False]).head(50)
+                
+                # Format display
+                display_df = tier1_unique.copy()
+                if 'Date' in display_df.columns:
+                    display_df['Date'] = display_df['Date'].dt.strftime('%Y-%m-%d')
+                if 'Prize' in display_df.columns:
+                    display_df['Prize'] = display_df['Prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                if 'race_score' in display_df.columns:
+                    display_df['Score'] = display_df['race_score'].round(1)
+                    display_df = display_df.drop('race_score', axis=1)
+                
+                st.info(f"📊 Showing next {len(display_df)} upcoming Tier 1 Focus races (score ≥70) - sorted by date")
+                height = get_dataframe_height(display_df, max_height=400)
+                st.dataframe(display_df, hide_index=True, height=height)
+            else:
+                st.warning("No upcoming Tier 1 Focus races found in dataset")
+        else:
+            st.warning("Race scoring data not available. Run Phase 2 scoring first.")
+    
     # Upcoming schedule (fixtures) - show in an expander
-    fixtures_file = BASE_DIR / "data" / "processed" / "bha_2026_ascot_newmarket_doncaster_york.csv"
+    fixtures_file = BASE_DIR / "data" / "processed" / "bha_2026_all_courses_class1-4.csv"
     if fixtures_file.exists():
         try:
             fixtures = pd.read_csv(fixtures_file)
@@ -208,7 +252,34 @@ def main():
         help="Filter by horse's official rating"
     )
 
-    # 2. Race Class multiselect
+    # 2. Race Tier filter (from Phase 2 scorer)
+    if 'race_tier' in df.columns:
+        tiers = sorted([t for t in df['race_tier'].dropna().unique() if t])
+        selected_tiers = st.sidebar.multiselect(
+            "🎯 Race Tier (Profitability)",
+            options=tiers,
+            default=None,
+            placeholder="All tiers",
+            help="Tier 1 Focus = best betting value (score ≥70), Tier 2 Value (50-69), Tier 3 Avoid (<50)"
+        )
+    else:
+        selected_tiers = None
+    
+    # 3. Race Score range (from Phase 2 scorer)
+    if 'race_score' in df.columns:
+        score_min = int(df['race_score'].min()) if df['race_score'].notna().any() else 0
+        score_max = int(df['race_score'].max()) if df['race_score'].notna().any() else 100
+        score_range = st.sidebar.slider(
+            "Race Score",
+            min_value=score_min,
+            max_value=score_max,
+            value=(score_min, score_max),
+            help="Race profitability score (0-100) - higher = better betting opportunity"
+        )
+    else:
+        score_range = None
+
+    # 4. Race Class multiselect
     if "Class" in df.columns:
         classes = sorted([c for c in df["Class"].dropna().unique() if c])
         selected_classes = st.sidebar.multiselect(
@@ -221,7 +292,7 @@ def main():
     else:
         selected_classes = None
 
-    # 3. Prize Money threshold
+    # 5. Prize Money threshold
     df["Prize Numeric"] = pd.to_numeric(df["Prize"], errors="coerce")
     if df["Prize Numeric"].notna().any():
         prize_min = st.sidebar.number_input(
@@ -234,7 +305,7 @@ def main():
     else:
         prize_min = 0
 
-    # 4. Field Size filter
+    # 6. Field Size filter
     if "ran" in df.columns:
         df["Field Size"] = pd.to_numeric(df["ran"], errors="coerce")
         field_min = int(df["Field Size"].min()) if df["Field Size"].notna().any() else 0
@@ -249,7 +320,7 @@ def main():
     else:
         field_range = None
 
-    # 5. Surface filter
+    # 7. Surface filter
     if "Surface" in df.columns:
         surfaces = sorted([s for s in df["Surface"].dropna().unique() if s])
         selected_surfaces = st.sidebar.multiselect(
@@ -262,7 +333,7 @@ def main():
     else:
         selected_surfaces = None
 
-    # 6. Distance bands
+    # 8. Distance bands
     df["Distance F Numeric"] = pd.to_numeric(df["Distance"].str.extract(r'(\d+)f')[0], errors="coerce") if "Distance" in df.columns else pd.to_numeric(df.get("dist_f"), errors="coerce")
     distance_bands = [
         ("Sprint", 5, 7),
@@ -276,7 +347,7 @@ def main():
         help="Sprint (5-7f), Mile (7-9f), Middle (9-12f), Long (12f+)"
     )
 
-    # 7. Pattern races checkbox
+    # 9. Pattern races checkbox
     if "Pattern" in df.columns:
         pattern_only = st.sidebar.checkbox(
             "Pattern Races Only",
@@ -286,7 +357,7 @@ def main():
     else:
         pattern_only = False
 
-    # 8. Age band filter
+    # 10. Age band filter
     if "Age Band" in df.columns or "age_band" in df.columns:
         age_col = "Age Band" if "Age Band" in df.columns else "age_band"
         age_bands = sorted([a for a in df[age_col].dropna().unique() if a])
@@ -327,26 +398,37 @@ def main():
         ((filtered_df["OR Numeric"] >= or_range[0]) & (filtered_df["OR Numeric"] <= or_range[1]))
     ]
 
-    # 2. Race Class
+    # 2. Race Tier
+    if selected_tiers:
+        filtered_df = filtered_df[filtered_df['race_tier'].isin(selected_tiers)]
+    
+    # 3. Race Score
+    if score_range:
+        filtered_df = filtered_df[
+            (filtered_df['race_score'].isna()) |
+            ((filtered_df['race_score'] >= score_range[0]) & (filtered_df['race_score'] <= score_range[1]))
+        ]
+
+    # 4. Race Class
     if selected_classes:
         filtered_df = filtered_df[filtered_df["Class"].isin(selected_classes)]
 
-    # 3. Prize Money
+    # 5. Prize Money
     if prize_min > 0:
         filtered_df = filtered_df[filtered_df["Prize Numeric"] >= prize_min]
 
-    # 4. Field Size
+    # 6. Field Size
     if field_range:
         filtered_df = filtered_df[
             (filtered_df["Field Size"].isna()) |
             ((filtered_df["Field Size"] >= field_range[0]) & (filtered_df["Field Size"] <= field_range[1]))
         ]
 
-    # 5. Surface
+    # 7. Surface
     if selected_surfaces:
         filtered_df = filtered_df[filtered_df["Surface"].isin(selected_surfaces)]
 
-    # 6. Distance bands
+    # 8. Distance bands
     if selected_distance_band != "All":
         band = next((b for b in distance_bands if b[0] == selected_distance_band), None)
         if band:
@@ -355,11 +437,11 @@ def main():
                 (filtered_df["Distance F Numeric"] < band[2])
             ]
 
-    # 7. Pattern races
+    # 9. Pattern races
     if pattern_only:
         filtered_df = filtered_df[filtered_df["Pattern"].notna() & (filtered_df["Pattern"] != "")]
 
-    # 8. Age band
+    # 10. Age band
     if selected_age_bands:
         age_col = "Age Band" if "Age Band" in filtered_df.columns else "age_band"
         filtered_df = filtered_df[filtered_df[age_col].isin(selected_age_bands)]
