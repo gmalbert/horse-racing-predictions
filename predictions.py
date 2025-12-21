@@ -2,17 +2,48 @@
 Horse Racing Predictions - Streamlit App
 
 Displays UK horse race results with filtering capabilities.
+Includes ML model for win probability predictions.
 """
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+import pickle
+import subprocess
+import sys
 
 
 BASE_DIR = Path(__file__).parent
-PARQUET_FILE = BASE_DIR / "data" / "processed" / "all_gb_races.parquet"
+PARQUET_FILE = BASE_DIR / "data" / "processed" / "race_scores.parquet"  # Using cleaned data with scores
 CSV_FILE = BASE_DIR / "data" / "processed" / "all_gb_races.csv"
 LOGO_FILE = BASE_DIR / "data" / "logo.png"
+MODEL_FILE = BASE_DIR / "models" / "horse_win_predictor.pkl"
+FEATURE_IMPORTANCE_FILE = BASE_DIR / "models" / "feature_importance.csv"
+METADATA_FILE = BASE_DIR / "models" / "model_metadata.pkl"
 
+
+@st.cache_data
+def load_model():
+    """Load trained ML model and metadata"""
+    if not MODEL_FILE.exists():
+        return None, None, None
+    
+    try:
+        with open(MODEL_FILE, 'rb') as f:
+            model = pickle.load(f)
+        
+        metadata = None
+        if METADATA_FILE.exists():
+            with open(METADATA_FILE, 'rb') as f:
+                metadata = pickle.load(f)
+        
+        feature_importance = None
+        if FEATURE_IMPORTANCE_FILE.exists():
+            feature_importance = pd.read_csv(FEATURE_IMPORTANCE_FILE)
+        
+        return model, metadata, feature_importance
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None, None, None
 
 @st.cache_data
 def load_data():
@@ -114,11 +145,12 @@ def main():
 
             with st.expander("Upcoming Schedule 🗓️", expanded=False):
                 show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in fixtures.columns]
-                fixtures_display = fixtures.copy()
+                fixtures_display = fixtures[show_cols].head(200).copy()
                 if "Date" in fixtures_display.columns:
                     fixtures_display["Date"] = fixtures_display["Date"].dt.strftime("%Y-%m-%d")
 
-                st.dataframe(fixtures_display[show_cols].head(200), width="stretch", hide_index=True)
+                height = get_dataframe_height(fixtures_display, max_height=400)
+                st.dataframe(fixtures_display, hide_index=True, height=height)
         except Exception as e:
             st.warning(f"Could not load upcoming schedule: {e}")
 
@@ -348,7 +380,7 @@ def main():
     # st.header("📊 Data Summary")
     
     # Create tabs for different summary views
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🗃️ Raw Data"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data"])
     
     with tab1:
         st.subheader("Horse Performance")
@@ -509,6 +541,155 @@ def main():
         )
 
     with tab5:
+        st.subheader("Machine Learning Model")
+        
+        # Load model
+        model, metadata, feature_importance = load_model()
+        
+        if model is None:
+            st.warning("⚠️ No trained model found. Train the model first.")
+            st.info("The model predicts horse win probability using 18+ features including career stats, recent form, and race context.")
+            
+            if st.button("🚀 Train Model Now", type="primary"):
+                with st.spinner("Training model... This may take 2-3 minutes."):
+                    try:
+                        # Run training script
+                        result = subprocess.run(
+                            [sys.executable, "scripts/phase3_build_horse_model.py"],
+                            cwd=str(BASE_DIR),
+                            capture_output=True,
+                            text=True
+                        )
+                        
+                        if result.returncode == 0:
+                            st.success("✅ Model trained successfully!")
+                            st.text("Training Output:")
+                            st.code(result.stdout[-2000:], language="text")  # Show last 2000 chars
+                            st.info("Refresh the page to load the new model.")
+                        else:
+                            st.error(f"❌ Training failed with error code {result.returncode}")
+                            st.code(result.stderr, language="text")
+                    except Exception as e:
+                        st.error(f"Error running training script: {e}")
+        else:
+            # Model loaded successfully
+            st.success("✅ Model loaded successfully")
+            
+            # Show metadata
+            if metadata:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Model Type", metadata.get('model_type', 'Unknown'))
+                with col2:
+                    st.metric("Features", metadata.get('n_features', 0))
+                with col3:
+                    st.metric("Trained", metadata.get('trained_date', 'Unknown')[:10])
+            
+            st.markdown("---")
+            
+            # Feature importance visualization
+            if feature_importance is not None:
+                st.subheader("📊 Top 15 Most Important Features")
+                
+                # Get top 15
+                top_features = feature_importance.head(15)
+                
+                # Create bar chart using plotly
+                try:
+                    import plotly.graph_objects as go
+                    
+                    fig = go.Figure(go.Bar(
+                        x=top_features['importance'],
+                        y=top_features['feature'],
+                        orientation='h',
+                        marker=dict(
+                            color=top_features['importance'],
+                            colorscale='Viridis',
+                            showscale=True
+                        )
+                    ))
+                    
+                    fig.update_layout(
+                        title="Feature Importance (XGBoost)",
+                        xaxis_title="Importance Score",
+                        yaxis_title="Feature",
+                        height=500,
+                        yaxis={'categoryorder':'total ascending'}
+                    )
+                    
+                    st.plotly_chart(fig, width='stretch')
+                except ImportError:
+                    # Fallback to simple bar chart
+                    st.bar_chart(top_features.set_index('feature')['importance'])
+                
+                # Show feature descriptions
+                with st.expander("📖 Feature Descriptions"):
+                    feature_descriptions = {
+                        'avg_last_3_pos': 'Average finishing position in last 3 races (lower = better recent form)',
+                        'field_size': 'Number of runners in the race',
+                        'class_num': 'Race class (1 = highest quality, 7 = lowest)',
+                        'or_change': 'Change in Official Rating since last race (positive = improving)',
+                        'career_place_rate': 'Career percentage of top-3 finishes',
+                        'class_step': 'Change in race class (negative = stepping up)',
+                        'wins_last_3': 'Number of wins in last 3 races',
+                        'or_numeric': 'Official Rating (horse ability score)',
+                        'career_runs': 'Total career races',
+                        'days_since_last': 'Days since last race',
+                        'cd_win_rate': 'Win rate at this course/distance combination',
+                        'career_win_rate': 'Career win percentage',
+                        'race_score': 'Race profitability score (from Phase 2 scorer)',
+                        'or_trend_3': '3-race average Official Rating trend',
+                        'going_numeric': 'Going/ground condition (1=Firm to 7=Heavy)',
+                        'is_turf': 'Whether race is on turf (1) vs all-weather (0)',
+                        'career_earnings': 'Total career prize money won',
+                        'cd_runs': 'Number of previous runs at this course/distance'
+                    }
+                    
+                    for feat in top_features['feature']:
+                        desc = feature_descriptions.get(feat, 'No description available')
+                        st.markdown(f"**{feat}**: {desc}")
+                
+                # Show full feature importance table
+                with st.expander("📋 Full Feature Importance Table"):
+                    st.dataframe(
+                        feature_importance,
+                        hide_index=True,
+                        height=400
+                    )
+            
+            st.markdown("---")
+            
+            # Retrain button
+            st.subheader("🔄 Retrain Model")
+            st.info("Retrain the model with latest data or different parameters.")
+            
+            if st.button("🔄 Retrain Model", type="secondary"):
+                with st.spinner("Retraining model... This may take 2-3 minutes."):
+                    try:
+                        result = subprocess.run(
+                            [sys.executable, "scripts/phase3_build_horse_model.py"],
+                            cwd=str(BASE_DIR),
+                            capture_output=True,
+                            text=True
+                        )
+                        
+                        if result.returncode == 0:
+                            st.success("✅ Model retrained successfully!")
+                            st.text("Training Output:")
+                            st.code(result.stdout[-2000:], language="text")
+                            st.info("Clear cache and refresh to load the new model.")
+                            
+                            # Add cache clear button
+                            if st.button("Clear Cache & Refresh"):
+                                st.cache_data.clear()
+                                st.rerun()
+                        else:
+                            st.error(f"❌ Retraining failed with error code {result.returncode}")
+                            st.code(result.stderr, language="text")
+                    except Exception as e:
+                        st.error(f"Error running training script: {e}")
+    
+    with tab6:
         st.subheader("Raw Results")
 
         # Show number-of-results selector and the filtered results (this uses the
@@ -547,9 +728,9 @@ def main():
         height = get_dataframe_height(display_df)
         st.dataframe(
             display_df[display_columns],
-            width="stretch",
             hide_index=True,
-            height=height
+            height=height,
+            width='stretch'
         )
 
 
