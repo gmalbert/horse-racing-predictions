@@ -9,14 +9,12 @@ beautifulsoup4>=4.12.0
 
 # Machine Learning
 scikit-learn>=1.3.0
-
-# Optional: Gradient Boosting (uncomment as needed)
-# xgboost>=2.0.0
-# lightgbm>=4.0.0
+xgboost>=2.0.0
 
 # Visualization
 matplotlib>=3.7.0
 seaborn>=0.12.0
+plotly>=5.18.0
 
 # Testing
 pytest>=7.4.0
