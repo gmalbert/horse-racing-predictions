@@ -131,6 +131,8 @@ A full-featured web interface for exploring race data, analyzing predictions, an
 
 **Run Predictions:** `python scripts/score_fixture_calendar.py`
 
+[Back to Top](#table-of-contents)
+
 ---
 
 ## Project Components
@@ -169,6 +171,8 @@ A full-featured web interface for exploring race data, analyzing predictions, an
 - Performance backtesting
 - Production deployment automation
 
+[Back to Top](#table-of-contents)
+
 ---
 
 ## Quick Start
@@ -190,6 +194,8 @@ streamlit run predictions.py
 ```
 
 The app will open in your browser at `http://localhost:8501`
+
+[Back to Top](#table-of-contents)
 
 ---
 
@@ -240,6 +246,8 @@ horse-racing-predictions/
     └── utils/                # Helper functions
 ```
 
+[Back to Top](#table-of-contents)
+
 ---
 
 ## API Data Sources
@@ -273,6 +281,8 @@ horse-racing-predictions/
 - Use cached data in tests (see `tests/fixtures/`)
 - Batch API calls where possible
 - Monitor usage with `examples/api_example.py`
+
+[Back to Top](#table-of-contents)
 
 ---
 
@@ -363,6 +373,8 @@ python scripts/phase3_build_horse_model.py
 python scripts/score_fixture_calendar.py
 ```
 
+[Back to Top](#table-of-contents)
+
 ---
 
 ## Development
@@ -426,6 +438,12 @@ Both APIs have 500 calls/month limits:
 
 **Project Status:** Active Development
 
+[Back to Top](#table-of-contents)
+
 **Current Phase:** Phase 3 complete (ML model), Phase 4 in progress (betting strategy)
 
+[Back to Top](#table-of-contents)
+
 **License:** See repository for license information
+
+[Back to Top](#table-of-contents)
