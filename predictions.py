@@ -19,6 +19,7 @@ LOGO_FILE = BASE_DIR / "data" / "logo.png"
 MODEL_FILE = BASE_DIR / "models" / "horse_win_predictor.pkl"
 FEATURE_IMPORTANCE_FILE = BASE_DIR / "models" / "feature_importance.csv"
 METADATA_FILE = BASE_DIR / "models" / "model_metadata.pkl"
+SCORED_FIXTURES_FILE = BASE_DIR / "data" / "processed" / "scored_fixtures_calendar.csv"
 
 
 @st.cache_data
@@ -133,28 +134,59 @@ def main():
     # Load data
     df = load_data()
 
-    # Top predictive races expander
+    # Top predictive races expander - includes both historical AND upcoming predicted races
     with st.expander("🎯 Top Predictive Races (Tier 1 Focus)", expanded=False):
+        # Combine historical scores with predicted fixture scores
+        all_tier1_races = pd.DataFrame()
+        
+        # 1. Load historical Tier 1 races
         if 'race_tier' in df.columns and 'race_score' in df.columns:
-            # Get Tier 1 Focus races on or after today
-            today = pd.Timestamp.today().normalize()
-            tier1_races = df[df['race_tier'] == 'Tier 1: Focus'].copy()
-            
+            historical_tier1 = df[df['race_tier'] == 'Tier 1: Focus'].copy()
+            if 'Date' in historical_tier1.columns:
+                historical_tier1['Date'] = pd.to_datetime(historical_tier1['Date'])
+            historical_tier1['source'] = 'Historical'
+            all_tier1_races = historical_tier1
+        
+        # 2. Load predicted fixture scores
+        if SCORED_FIXTURES_FILE.exists():
+            try:
+                fixtures_scored = pd.read_csv(SCORED_FIXTURES_FILE)
+                fixtures_tier1 = fixtures_scored[fixtures_scored['race_tier'] == 'Tier 1: Focus'].copy()
+                if len(fixtures_tier1) > 0:
+                    # Rename columns to match historical data format
+                    col_mapping = {
+                        'date': 'Date',
+                        'course': 'Course',
+                        'class': 'Class',
+                        'prize': 'Prize',
+                        'dist_f': 'Distance'
+                    }
+                    fixtures_tier1 = fixtures_tier1.rename(columns=col_mapping)
+                    if 'Date' in fixtures_tier1.columns:
+                        fixtures_tier1['Date'] = pd.to_datetime(fixtures_tier1['Date'])
+                    fixtures_tier1['source'] = 'Predicted 🔮'
+                    fixtures_tier1['Race Name'] = 'Predicted Race'
+                    
+                    # Combine with historical
+                    all_tier1_races = pd.concat([all_tier1_races, fixtures_tier1], ignore_index=True)
+            except Exception as e:
+                st.warning(f"Could not load predicted fixtures: {e}")
+        
+        if len(all_tier1_races) > 0:
             # Filter to future races only
-            if 'Date' in tier1_races.columns:
-                tier1_races['Date'] = pd.to_datetime(tier1_races['Date'])
-                tier1_races = tier1_races[tier1_races['Date'] >= today]
+            today = pd.Timestamp.today().normalize()
+            all_tier1_races = all_tier1_races[all_tier1_races['Date'] >= today]
             
             # Group by unique race and get the best score
-            race_cols = ['Date', 'Course', 'Race Name', 'Class', 'Distance', 'Prize', 'race_score']
-            available_cols = [c for c in race_cols if c in tier1_races.columns]
+            race_cols = ['Date', 'Course', 'Race Name', 'Class', 'Distance', 'Prize', 'race_score', 'source']
+            available_cols = [c for c in race_cols if c in all_tier1_races.columns]
             
-            if len(tier1_races) > 0:
-                # Get unique races (deduplicate by race_id if available)
-                if 'race_id' in tier1_races.columns:
-                    tier1_unique = tier1_races.groupby('race_id')[available_cols].first().reset_index(drop=True)
+            if len(all_tier1_races) > 0:
+                # Get unique races (deduplicate by race_id if available, otherwise by date+course)
+                if 'race_id' in all_tier1_races.columns:
+                    tier1_unique = all_tier1_races.groupby('race_id')[available_cols].first().reset_index(drop=True)
                 else:
-                    tier1_unique = tier1_races[available_cols].drop_duplicates()
+                    tier1_unique = all_tier1_races[available_cols].drop_duplicates(['Date', 'Course'])
                 
                 # Sort by date ascending (soonest first), then by score descending
                 tier1_unique = tier1_unique.sort_values(['Date', 'race_score'], ascending=[True, False]).head(50)
@@ -165,15 +197,19 @@ def main():
                     display_df['Date'] = display_df['Date'].dt.strftime('%Y-%m-%d')
                 if 'Prize' in display_df.columns:
                     display_df['Prize'] = display_df['Prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                if 'Distance' in display_df.columns:
+                    display_df['Distance'] = display_df['Distance'].apply(lambda x: f"{x:.0f}f" if pd.notna(x) else "")
                 if 'race_score' in display_df.columns:
                     display_df['Score'] = display_df['race_score'].round(1)
                     display_df = display_df.drop('race_score', axis=1)
                 
-                st.info(f"📊 Showing next {len(display_df)} upcoming Tier 1 Focus races (score ≥70) - sorted by date")
+                # Count predicted vs historical
+                predicted_count = (tier1_unique['source'] == 'Predicted 🔮').sum() if 'source' in tier1_unique.columns else 0
+                st.info(f"📊 Showing next {len(display_df)} upcoming Tier 1 Focus races (score ≥70) - {predicted_count} predicted, {len(display_df)-predicted_count} with actual data")
                 height = get_dataframe_height(display_df, max_height=400)
                 st.dataframe(display_df, hide_index=True, height=height)
             else:
-                st.warning("No upcoming Tier 1 Focus races found in dataset")
+                st.warning("No upcoming Tier 1 Focus races found")
         else:
             st.warning("Race scoring data not available. Run Phase 2 scoring first.")
     
@@ -462,7 +498,7 @@ def main():
     # st.header("📊 Data Summary")
     
     # Create tabs for different summary views
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures"])
     
     with tab1:
         st.subheader("Horse Performance")
@@ -699,7 +735,7 @@ def main():
                         yaxis={'categoryorder':'total ascending'}
                     )
                     
-                    st.plotly_chart(fig, width='stretch')
+                    st.plotly_chart(fig, use_container_width=True)
                 except ImportError:
                     # Fallback to simple bar chart
                     st.bar_chart(top_features.set_index('feature')['importance'])
@@ -812,8 +848,149 @@ def main():
             display_df[display_columns],
             hide_index=True,
             height=height,
-            width='stretch'
+            use_container_width=True
         )
+    
+    with tab7:
+        st.subheader("Predicted Fixtures (2025-2026)")
+        
+        # Load scored fixtures
+        if SCORED_FIXTURES_FILE.exists():
+            try:
+                fixtures_scored = pd.read_csv(SCORED_FIXTURES_FILE)
+                fixtures_scored['date'] = pd.to_datetime(fixtures_scored['date'])
+                
+                # Overview metrics
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Total Fixtures", f"{len(fixtures_scored):,}")
+                with col2:
+                    tier1_count = (fixtures_scored['race_tier'] == 'Tier 1: Focus').sum()
+                    st.metric("Tier 1 Focus", tier1_count)
+                with col3:
+                    tier2_count = (fixtures_scored['race_tier'] == 'Tier 2: Value').sum()
+                    st.metric("Tier 2 Value", tier2_count)
+                with col4:
+                    avg_score = fixtures_scored['race_score'].mean()
+                    st.metric("Avg Score", f"{avg_score:.1f}")
+                
+                st.markdown("---")
+                
+                # Explanation
+                with st.expander("ℹ️ About Predicted Fixtures", expanded=False):
+                    st.markdown("""
+                    **How predictions work:**
+                    
+                    1. **Course Profiles**: Analyzed 245,298 historical races to build statistical profiles for 37 courses
+                    2. **Characteristic Prediction**: For each fixture, predicted:
+                       - **Class**: Weekend races get better class (Class 2 vs weekday Class 3)
+                       - **Prize Money**: 75th percentile for weekends, median for weekdays
+                       - **Field Size**: Larger fields predicted for weekend races
+                       - **Going**: Seasonal adjustments (winter=softer, summer=firmer)
+                       - **Distance**: Course-specific median distances
+                    3. **Scoring**: Applied Phase 2 race scoring algorithm to predicted characteristics
+                    
+                    **Prediction Quality:**
+                    - Based on 10+ years of historical data per course
+                    - Weekend/weekday distinction improves accuracy
+                    - Seasonal going adjustments match UK weather patterns
+                    - Scores are estimates - actual races may vary
+                    
+                    **Top Predicted Courses:**
+                    - **Ascot**: 14 Tier 1 races (score 85.4)
+                    - **York**: 8 Tier 1 races (score 82+)
+                    - **Goodwood**: 7 Tier 1 races (score 74+)
+                    """)
+                
+                # Score distribution chart
+                st.subheader("Score Distribution")
+                try:
+                    import plotly.express as px
+                    fig = px.histogram(
+                        fixtures_scored, 
+                        x='race_score',
+                        nbins=30,
+                        title='Distribution of Predicted Race Scores',
+                        labels={'race_score': 'Race Score', 'count': 'Number of Races'},
+                        color='race_tier',
+                        color_discrete_map={
+                            'Tier 1: Focus': '#2ecc71',
+                            'Tier 2: Value': '#f39c12',
+                            'Tier 3: Avoid': '#e74c3c'
+                        }
+                    )
+                    fig.update_layout(height=400)
+                    st.plotly_chart(fig, use_container_width=True)
+                except ImportError:
+                    st.info("Install plotly to see score distribution chart")
+                
+                # Course breakdown
+                st.subheader("Top Courses by Score")
+                course_stats = fixtures_scored.groupby('course').agg({
+                    'race_score': ['count', 'mean', 'max'],
+                    'race_tier': lambda x: (x == 'Tier 1: Focus').sum()
+                }).round(1)
+                course_stats.columns = ['Total Races', 'Avg Score', 'Max Score', 'Tier 1 Count']
+                course_stats = course_stats.sort_values('Max Score', ascending=False).head(15)
+                st.dataframe(course_stats, height=400, use_container_width=True)
+                
+                # Filterable table of all fixtures
+                st.subheader("All Predicted Fixtures")
+                
+                # Filters in columns
+                fcol1, fcol2, fcol3 = st.columns(3)
+                with fcol1:
+                    tier_filter = st.multiselect(
+                        "Filter by Tier",
+                        options=['Tier 1: Focus', 'Tier 2: Value', 'Tier 3: Avoid'],
+                        default=['Tier 1: Focus', 'Tier 2: Value'],
+                        key="pred_tier_filter"
+                    )
+                with fcol2:
+                    course_filter = st.multiselect(
+                        "Filter by Course",
+                        options=sorted(fixtures_scored['course'].unique()),
+                        key="pred_course_filter"
+                    )
+                with fcol3:
+                    min_score = st.number_input(
+                        "Min Score",
+                        min_value=0,
+                        max_value=100,
+                        value=0,
+                        key="pred_min_score"
+                    )
+                
+                # Apply filters
+                filtered_fixtures = fixtures_scored.copy()
+                if tier_filter:
+                    filtered_fixtures = filtered_fixtures[filtered_fixtures['race_tier'].isin(tier_filter)]
+                if course_filter:
+                    filtered_fixtures = filtered_fixtures[filtered_fixtures['course'].isin(course_filter)]
+                filtered_fixtures = filtered_fixtures[filtered_fixtures['race_score'] >= min_score]
+                
+                # Sort by date
+                filtered_fixtures = filtered_fixtures.sort_values('date')
+                
+                # Display table
+                display_cols = ['date', 'course', 'class', 'prize', 'race_score', 'race_tier', 'weekday', 'surface']
+                display_fixtures = filtered_fixtures[display_cols].copy()
+                display_fixtures['date'] = display_fixtures['date'].dt.strftime('%Y-%m-%d')
+                display_fixtures['prize'] = display_fixtures['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                display_fixtures['race_score'] = display_fixtures['race_score'].round(1)
+                display_fixtures.columns = ['Date', 'Course', 'Class', 'Prize', 'Score', 'Tier', 'Day', 'Surface']
+                
+                st.info(f"Showing {len(display_fixtures):,} of {len(fixtures_scored):,} predicted fixtures")
+                height = get_dataframe_height(display_fixtures, max_height=600)
+                st.dataframe(display_fixtures, hide_index=True, height=height, use_container_width=True)
+                
+            except Exception as e:
+                st.error(f"Error loading predicted fixtures: {e}")
+                import traceback
+                st.code(traceback.format_exc())
+        else:
+            st.warning(f"Predicted fixtures file not found. Run `python scripts/score_fixture_calendar.py` to generate predictions.")
+            st.info(f"Expected file: {SCORED_FIXTURES_FILE}")
 
 
 if __name__ == "__main__":
