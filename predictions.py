@@ -498,7 +498,7 @@ def main():
     # st.header("📊 Data Summary")
     
     # Create tabs for different summary views
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures", "🎯 Betting Watchlist"])
     
     with tab1:
         st.subheader("Horse Performance")
@@ -991,6 +991,136 @@ def main():
         else:
             st.warning(f"Predicted fixtures file not found. Run `python scripts/score_fixture_calendar.py` to generate predictions.")
             st.info(f"Expected file: {SCORED_FIXTURES_FILE}")
+    
+    with tab8:
+        st.subheader("Betting Watchlist (Strategy-Based)")
+        
+        # Load betting watchlist
+        watchlist_file = BASE_DIR / "data" / "processed" / "betting_watchlist.csv"
+        if watchlist_file.exists():
+            try:
+                watchlist = pd.read_csv(watchlist_file)
+                watchlist['date'] = pd.to_datetime(watchlist['date'])
+                
+                # Overview
+                st.markdown("""
+                **Betting Strategy Tiers** (from BETTING_STRATEGY.md):
+                - **Tier 1: Focus** - Highest ROI potential (Class 1-2, premium courses, mile-middle distance)
+                - **Tier 2: Value** - Medium risk/reward (Class 3-4 handicaps, competitive fields)
+                - **Tier 3: Avoid** - Low predictability (Class 5-7, weak fields, amateur races)
+                """)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Watchlist Races", len(watchlist))
+                with col2:
+                    tier1_count = (watchlist['betting_tier'] == 'Tier 1: Focus').sum()
+                    st.metric("Tier 1 Focus", tier1_count)
+                with col3:
+                    tier2_count = (watchlist['betting_tier'] == 'Tier 2: Value').sum()
+                    st.metric("Tier 2 Value", tier2_count)
+                
+                st.markdown("---")
+                
+                # Tier breakdown
+                if len(watchlist) > 0:
+                    # Show Tier 1 races
+                    tier1_races = watchlist[watchlist['betting_tier'] == 'Tier 1: Focus'].copy()
+                    if len(tier1_races) > 0:
+                        st.subheader(f"🎯 Tier 1: Focus Races ({len(tier1_races)})")
+                        st.info("**Strategy**: Best betting opportunities. Class 1-2 races at premium courses (Ascot, Newmarket, York, Doncaster) with 7-12f distance.")
+                        
+                        # Display Tier 1 races
+                        display_cols = ['date', 'course', 'class', 'prize', 'race_score', 'weekday']
+                        available = [c for c in display_cols if c in tier1_races.columns]
+                        
+                        tier1_display = tier1_races[available].copy()
+                        tier1_display['date'] = tier1_display['date'].dt.strftime('%Y-%m-%d')
+                        if 'prize' in tier1_display.columns:
+                            tier1_display['prize'] = tier1_display['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                        if 'race_score' in tier1_display.columns:
+                            tier1_display['race_score'] = tier1_display['race_score'].round(1)
+                        
+                        tier1_display.columns = [c.title() for c in tier1_display.columns]
+                        st.dataframe(tier1_display, hide_index=True, use_container_width=True)
+                    
+                    # Show Tier 2 races
+                    tier2_races = watchlist[watchlist['betting_tier'] == 'Tier 2: Value'].copy()
+                    if len(tier2_races) > 0:
+                        st.subheader(f"💰 Tier 2: Value Races ({len(tier2_races)})")
+                        st.info("**Strategy**: Medium risk/reward. Class 3-4 handicaps with 10-16 runners. Look for well-handicapped horses or 2nd/3rd favorites.")
+                        
+                        # Display Tier 2 races
+                        display_cols = ['date', 'course', 'class', 'prize', 'race_score', 'weekday']
+                        available = [c for c in display_cols if c in tier2_races.columns]
+                        
+                        tier2_display = tier2_races[available].copy()
+                        tier2_display['date'] = tier2_display['date'].dt.strftime('%Y-%m-%d')
+                        if 'prize' in tier2_display.columns:
+                            tier2_display['prize'] = tier2_display['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                        if 'race_score' in tier2_display.columns:
+                            tier2_display['race_score'] = tier2_display['race_score'].round(1)
+                        
+                        tier2_display.columns = [c.title() for c in tier2_display.columns]
+                        with st.expander("Show Tier 2 Races", expanded=False):
+                            st.dataframe(tier2_display, hide_index=True, use_container_width=True)
+                    
+                    # Betting workflow guidance
+                    st.markdown("---")
+                    st.subheader("📋 Betting Workflow")
+                    st.markdown("""
+                    **Before Race (48h):**
+                    1. Review watchlist races above
+                    2. Wait for racecard publication (usually 48h before race)
+                    3. Fetch horse entries, jockeys, trainers via API
+                    
+                    **Day Before Race (24h):**
+                    4. Run ML model to predict win probabilities for each horse
+                    5. Compare model probabilities to bookmaker odds
+                    6. Identify value bets (model prob > market prob + 5% edge)
+                    7. Calculate Kelly Criterion bet sizing
+                    
+                    **Race Day:**
+                    8. Place bets 12-24h before race (best odds window)
+                    9. Track results and update bankroll
+                    10. Record bets for performance analysis
+                    
+                    **Next Steps:**
+                    - Implement Phase 4: Kelly Criterion betting system
+                    - Build racecard fetcher and horse feature engineering
+                    - Create bet tracking dashboard
+                    """)
+                    
+                    # Historical performance (if available)
+                    historical_file = BASE_DIR / "data" / "processed" / "race_scores_with_betting_tiers.parquet"
+                    if historical_file.exists():
+                        with st.expander("📊 Historical Tier Performance", expanded=False):
+                            df_hist = pd.read_parquet(historical_file)
+                            
+                            # Calculate stats by tier
+                            tier_stats = df_hist.groupby('betting_tier').agg({
+                                'race_id': 'count',
+                                'race_score': 'mean'
+                            }).round(1)
+                            tier_stats.columns = ['Total Races', 'Avg Score']
+                            tier_stats = tier_stats.sort_values('Avg Score', ascending=False)
+                            
+                            st.write("**Race counts and average scores by betting tier:**")
+                            st.dataframe(tier_stats, use_container_width=True)
+                            
+                            st.caption("Note: Historical tiers use strict criteria. Upcoming predictions use relaxed criteria due to limited data.")
+                
+                else:
+                    st.info("No races in betting watchlist. Run `python scripts/apply_betting_strategy.py` to generate watchlist.")
+                    
+            except Exception as e:
+                st.error(f"Error loading betting watchlist: {e}")
+                import traceback
+                st.code(traceback.format_exc())
+        else:
+            st.warning("Betting watchlist not found. Run the betting strategy classifier:")
+            st.code("python scripts/apply_betting_strategy.py", language="bash")
+            st.info(f"Expected file: {watchlist_file}")
 
 
 if __name__ == "__main__":
