@@ -314,21 +314,36 @@ def prepare_training_data(df):
     
     return X, y, feature_cols, df_train
 
-def train_model(X, y, feature_cols):
+def train_model(X, y, feature_cols, df_train):
     """
     Train XGBoost classifier (or Random Forest if XGBoost unavailable).
+    Uses temporal split to prevent data leakage.
     """
     print("\n" + "="*60)
     print("TRAINING MODEL")
     print("="*60)
     
-    # Split train/test (80/20)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+    # Temporal split: train on older data, test on recent data (last 20%)
+    # Sort by date to ensure temporal integrity
+    df_sorted = df_train.sort_values('date_dt').reset_index(drop=True)
     
-    print(f"\nTrain set: {len(X_train):,} records")
-    print(f"Test set:  {len(X_test):,} records")
+    # Calculate split point (80% train, 20% test)
+    split_idx = int(len(df_sorted) * 0.8)
+    split_date = df_sorted.loc[split_idx, 'date_dt']
+    
+    # Create temporal train/test masks
+    train_mask = df_train['date_dt'] < split_date
+    test_mask = df_train['date_dt'] >= split_date
+    
+    X_train, y_train = X[train_mask], y[train_mask]
+    X_test, y_test = X[test_mask], y[test_mask]
+    
+    print(f"\nTemporal Split:")
+    print(f"  Train period: {df_train.loc[train_mask, 'date_dt'].min().date()} to {df_train.loc[train_mask, 'date_dt'].max().date()}")
+    print(f"  Test period:  {df_train.loc[test_mask, 'date_dt'].min().date()} to {df_train.loc[test_mask, 'date_dt'].max().date()}")
+    print(f"  Split date:   {split_date.date()}")
+    print(f"\nTrain set: {len(X_train):,} records ({len(X_train)/len(X)*100:.1f}%)")
+    print(f"Test set:  {len(X_test):,} records ({len(X_test)/len(X)*100:.1f}%)")
     
     # Initialize model
     if HAS_XGBOOST:
@@ -461,8 +476,8 @@ def main():
     # Prepare training data
     X, y, feature_cols, df_train = prepare_training_data(df)
     
-    # Train model
-    model, feature_importance = train_model(X, y, feature_cols)
+    # Train model (with temporal split)
+    model, feature_importance = train_model(X, y, feature_cols, df_train)
     
     # Save
     save_model_and_artifacts(model, feature_importance, feature_cols)
