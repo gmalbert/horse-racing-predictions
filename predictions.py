@@ -848,7 +848,7 @@ def main():
             display_df[display_columns],
             hide_index=True,
             height=height,
-            width='stretch'
+            # width="stretch"
         )
     
     with tab7:
@@ -933,7 +933,7 @@ def main():
                 course_stats.columns = ['Total Races', 'Avg Score', 'Max Score', 'Tier 1 Count']
                 course_stats = course_stats.sort_values('Max Score', ascending=False).head(15)
                 height = get_dataframe_height(course_stats)
-                st.dataframe(course_stats, height=height, width='stretch')
+                st.dataframe(course_stats, height=height, use_container_width=True)
                 
                 # Filterable table of all fixtures
                 st.subheader("All Predicted Fixtures")
@@ -983,7 +983,7 @@ def main():
                 
                 st.info(f"Showing {len(display_fixtures):,} of {len(fixtures_scored):,} predicted fixtures")
                 height = get_dataframe_height(display_fixtures, max_height=600)
-                st.dataframe(display_fixtures, hide_index=True, height=height, width='stretch')
+                st.dataframe(display_fixtures, hide_index=True, height=height, use_container_width=True)
                 
             except Exception as e:
                 st.error(f"Error loading predicted fixtures: {e}")
@@ -1043,7 +1043,7 @@ def main():
                             tier1_display['race_score'] = tier1_display['race_score'].round(1)
                         
                         tier1_display.columns = [c.title() for c in tier1_display.columns]
-                        st.dataframe(tier1_display, hide_index=True, width='stretch')
+                        st.dataframe(tier1_display, hide_index=True, use_container_width=True)
                     
                     # Show Tier 2 races
                     tier2_races = watchlist[watchlist['betting_tier'] == 'Tier 2: Value'].copy()
@@ -1064,7 +1064,7 @@ def main():
                         
                         tier2_display.columns = [c.title() for c in tier2_display.columns]
                         with st.expander("Show Tier 2 Races", expanded=False):
-                            st.dataframe(tier2_display, hide_index=True, width='stretch')
+                            st.dataframe(tier2_display, hide_index=True, use_container_width=True)
                     
                     # Betting workflow guidance
                     st.markdown("---")
@@ -1107,7 +1107,7 @@ def main():
                             tier_stats = tier_stats.sort_values('Avg Score', ascending=False)
                             
                             st.write("**Race counts and average scores by betting tier:**")
-                            st.dataframe(tier_stats, width='stretch')
+                            st.dataframe(tier_stats, use_container_width=True)
                             
                             st.caption("Note: Historical tiers use strict criteria. Upcoming predictions use relaxed criteria due to limited data.")
                 
@@ -1143,21 +1143,23 @@ def main():
             has_odds = 'bookmaker_odds' in predictions.columns
             
             if has_odds:
-                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
+                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
             else:
-                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'race_class', 'distance_f', 'ofr']
+                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'race_class', 'distance_f', 'ofr']
             
             top_25 = predictions.nlargest(25, 'win_probability')[display_cols].copy()
             
             top_25['win_probability'] = top_25['win_probability'].apply(lambda x: f"{x:.1%}")
+            top_25['place_probability'] = top_25['place_probability'].apply(lambda x: f"{x:.1%}")
+            top_25['show_probability'] = top_25['show_probability'].apply(lambda x: f"{x:.1%}")
             
             if has_odds:
                 top_25['bookmaker_odds'] = top_25['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
-                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Odds', 'Class', 'Distance', 'OR']
+                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
             else:
-                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Class', 'Distance', 'OR']
+                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
-            st.dataframe(top_25, hide_index=True, width='stretch')
+            st.dataframe(top_25, hide_index=True, use_container_width=True)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
@@ -1205,18 +1207,46 @@ def main():
             with col4:
                 st.metric("Class", race_preds.iloc[0]['race_class'])
             
+            # Top picks summary
+            st.markdown("##### 🏆 Top Picks")
+            col1, col2, col3 = st.columns(3)
+            
+            top_win = race_preds.nlargest(1, 'win_probability').iloc[0]
+            top_place = race_preds.nlargest(1, 'place_probability').iloc[0]
+            top_show = race_preds.nlargest(1, 'show_probability').iloc[0]
+            
+            with col1:
+                st.metric("Most Likely to WIN", top_win['horse'], f"{top_win['win_probability']:.1%}")
+            with col2:
+                st.metric("Most Likely to PLACE", top_place['horse'], f"{top_place['place_probability']:.1%}")
+            with col3:
+                st.metric("Most Likely to SHOW", top_show['horse'], f"{top_show['show_probability']:.1%}")
+            
             # Predictions table
-            st.markdown("##### 🐎 Horse Predictions (Sorted by Win Probability)")
+            st.markdown("##### 🐎 All Horse Predictions")
+            st.caption("📊 Form shows recent race finishes (read right to left: rightmost = most recent race). Lower numbers = better finishes. 1 = Won, 2 = 2nd, 3 = 3rd, etc.")
             
-            display_cols = ['horse', 'jockey', 'win_probability', 'age', 'weight_lbs', 'ofr', 'last_run', 'form']
+            display_cols = ['horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'age', 'weight_lbs', 'ofr', 'form']
             display_df = race_preds[display_cols].copy()
+            
+            # Add rankings for each category before formatting
+            display_df['win_rank'] = race_preds['win_probability'].rank(ascending=False, method='min').astype(int)
+            display_df['place_rank'] = race_preds['place_probability'].rank(ascending=False, method='min').astype(int)
+            display_df['show_rank'] = race_preds['show_probability'].rank(ascending=False, method='min').astype(int)
+            
+            # Format probabilities
             display_df['win_probability'] = display_df['win_probability'].apply(lambda x: f"{x:.1%}")
-            display_df.columns = ['Horse', 'Jockey', 'Win Probability', 'Age', 'Weight', 'OR', 'Days Since', 'Form']
+            display_df['place_probability'] = display_df['place_probability'].apply(lambda x: f"{x:.1%}")
+            display_df['show_probability'] = display_df['show_probability'].apply(lambda x: f"{x:.1%}")
             
-            # Add ranking
-            display_df.insert(0, 'Rank', range(1, len(display_df) + 1))
+            # Reorder and rename columns
+            display_df = display_df[['horse', 'jockey', 'win_rank', 'win_probability', 'place_rank', 'place_probability', 'show_rank', 'show_probability', 'age', 'weight_lbs', 'ofr', 'form']]
+            display_df.columns = ['Horse', 'Jockey', 'Win Rank', 'Win %', 'Place Rank', 'Place %', 'Show Rank', 'Show %', 'Age', 'Weight', 'OR', 'Recent Form']
             
-            st.dataframe(display_df, hide_index=True, width='stretch')
+            # Sort by win rank
+            display_df = display_df.sort_values('Win Rank')
+            
+            st.dataframe(display_df, hide_index=True, use_container_width=True)
             
             # Value betting section
             st.markdown("##### 💰 Value Betting Analysis")
@@ -1241,7 +1271,7 @@ def main():
                 display = value_analysis[['horse', 'win_probability_fmt', 'bookmaker_odds_fmt', 'fair_odds_fmt', 'edge_fmt', 'is_value']].copy()
                 display.columns = ['Horse', 'Model Win %', 'Bookmaker Odds', 'Fair Odds', 'Edge', 'Value Bet?']
                 
-                st.dataframe(display, hide_index=True, width='stretch')
+                st.dataframe(display, hide_index=True, use_container_width=True)
                 
                 # Highlight value bets
                 value_bets = value_analysis[value_analysis['is_value']]
@@ -1268,7 +1298,7 @@ def main():
                     st.markdown("*Fair odds based on model probabilities:*")
                     display = top_3[['horse', 'win_probability_pct', 'fair_odds_fmt']].copy()
                     display.columns = ['Horse', 'Model Win %', 'Fair Decimal Odds']
-                    st.dataframe(display, hide_index=True, width='stretch')
+                    st.dataframe(display, hide_index=True, use_container_width=True)
                     
                     st.markdown("**Betting Rule:** Only bet if bookmaker odds > fair odds (with margin for edge)")
                     st.info("💡 Fetch odds with: `python scripts/fetch_odds.py --date " + today_str + "`")
@@ -1353,7 +1383,7 @@ def main():
                     display_df['dist_f'] = display_df['dist_f'].apply(lambda x: f"{x}f")
                     display_df.columns = ['Date', 'Course', 'Class', 'Distance', 'Prize', 'Score']
                     
-                    st.dataframe(display_df, hide_index=True, width='stretch')
+                    st.dataframe(display_df, hide_index=True, use_container_width=True)
                     st.caption("Fetch racecards 24-48h before race date to get predictions")
                 else:
                     st.info("No upcoming races in watchlist")
