@@ -23,23 +23,31 @@ sys.path.insert(0, str(project_root))
 
 # Paths
 DATA_DIR = project_root / "data"
-MODEL_FILE = project_root / "models" / "horse_win_predictor.pkl"
+WIN_MODEL_FILE = project_root / "models" / "horse_win_predictor.pkl"
+PLACE_MODEL_FILE = project_root / "models" / "horse_place_predictor.pkl"
+SHOW_MODEL_FILE = project_root / "models" / "horse_show_predictor.pkl"
 FEATURE_COLS_FILE = project_root / "models" / "feature_columns.txt"
 HISTORICAL_DATA = DATA_DIR / "processed" / "race_scores_with_betting_tiers.parquet"
 
 
-def load_model():
-    """Load trained ML model and feature columns"""
-    print("\nLoading ML model...")
+def load_models():
+    """Load trained ML models (win, place, show) and feature columns"""
+    print("\nLoading ML models...")
     
-    with open(MODEL_FILE, 'rb') as f:
-        model = pickle.load(f)
+    with open(WIN_MODEL_FILE, 'rb') as f:
+        win_model = pickle.load(f)
+    
+    with open(PLACE_MODEL_FILE, 'rb') as f:
+        place_model = pickle.load(f)
+    
+    with open(SHOW_MODEL_FILE, 'rb') as f:
+        show_model = pickle.load(f)
     
     with open(FEATURE_COLS_FILE, 'r') as f:
         feature_cols = [line.strip() for line in f]
     
-    print(f"[OK] Model loaded with {len(feature_cols)} features")
-    return model, feature_cols
+    print(f"[OK] Models loaded (win, place, show) with {len(feature_cols)} features")
+    return win_model, place_model, show_model, feature_cols
 
 
 def load_racecards(date_str):
@@ -242,7 +250,7 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
     return features
 
 
-def predict_race(racecard, historical_df, model, feature_cols):
+def predict_race(racecard, historical_df, win_model, place_model, show_model, feature_cols):
     """Generate predictions for all horses in a race"""
     
     race_predictions = []
@@ -254,9 +262,11 @@ def predict_race(racecard, historical_df, model, feature_cols):
         # Create feature vector in correct order
         feature_vector = [features.get(col, 0) for col in feature_cols]
         
-        # Predict
+        # Predict all three probabilities
         X = np.array(feature_vector).reshape(1, -1)
-        win_prob = model.predict_proba(X)[0][1]
+        win_prob = win_model.predict_proba(X)[0][1]
+        place_prob = place_model.predict_proba(X)[0][1]
+        show_prob = show_model.predict_proba(X)[0][1]
         
         # Store prediction
         # Convert race time from GMT to US Eastern Time
@@ -296,6 +306,8 @@ def predict_race(racecard, historical_df, model, feature_cols):
             'last_run': runner.get('last_run', '-'),
             'form': runner.get('form', ''),
             'win_probability': win_prob,
+            'place_probability': place_prob,
+            'show_probability': show_prob,
             **features  # Include all features for analysis
         })
     
@@ -311,7 +323,7 @@ def main():
     print("="*60)
     
     # Load components
-    model, feature_cols = load_model()
+    win_model, place_model, show_model, feature_cols = load_models()
     racecards = load_racecards(today)
     historical_df = load_historical_data()
     
@@ -333,13 +345,13 @@ def main():
         
         print(f"\n[{i}/{len(racecards)}] {time} {course} ({runners_count} runners)")
         
-        race_preds = predict_race(racecard, historical_df, model, feature_cols)
+        race_preds = predict_race(racecard, historical_df, win_model, place_model, show_model, feature_cols)
         all_predictions.extend(race_preds)
         
-        # Show top 3 predicted horses
+        # Show top 3 predicted horses with all probabilities
         race_df = pd.DataFrame(race_preds).sort_values('win_probability', ascending=False)
         for j, row in enumerate(race_df.head(3).itertuples(), 1):
-            print(f"  {j}. {row.horse:25s} {row.win_probability:.1%} (Jockey: {row.jockey})")
+            print(f"  {j}. {row.horse:25s} Win: {row.win_probability:.1%} | Place: {row.place_probability:.1%} | Show: {row.show_probability:.1%}")
     
     # Save all predictions
     predictions_df = pd.DataFrame(all_predictions)
