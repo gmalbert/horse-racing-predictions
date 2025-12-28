@@ -1,11 +1,16 @@
 # API and Environment
 requests>=2.31.0
 python-dotenv>=1.0.0
+betfairlightweight>=2.19.0
 
 # Data Processing
 pandas>=2.0.0
 numpy>=1.24.0
 beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Time handling
+pytz>=2023.3
 
 # Machine Learning
 scikit-learn>=1.3.0
