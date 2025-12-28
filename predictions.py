@@ -498,7 +498,7 @@ def main():
     # st.header("📊 Data Summary")
     
     # Create tabs for different summary views
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures", "🎯 Betting Watchlist"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures", "🎯 Betting Watchlist", "🎲 Today's Predictions"])
     
     with tab1:
         st.subheader("Horse Performance")
@@ -1121,6 +1121,243 @@ def main():
             st.warning("Betting watchlist not found. Run the betting strategy classifier:")
             st.code("python scripts/apply_betting_strategy.py", language="bash")
             st.info(f"Expected file: {watchlist_file}")
+    
+    with tab9:
+        st.subheader("🎲 Today's Race Predictions")
+        
+        # Check for today's predictions
+        today_str = pd.Timestamp.now().strftime('%Y-%m-%d')
+        predictions_file = BASE_DIR / "data" / "processed" / f"predictions_{today_str}.csv"
+        
+        if predictions_file.exists():
+            # Load predictions
+            predictions = pd.read_csv(predictions_file)
+            
+            st.success(f"✅ Loaded {len(predictions)} horse predictions from {len(predictions['course'].unique())} races today")
+            
+            # Top predictions across all races
+            st.markdown("##### 🏆 Top 25 Predictions (All Races Today)")
+            
+            # Check if odds column exists
+            has_odds = 'bookmaker_odds' in predictions.columns
+            
+            if has_odds:
+                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
+            else:
+                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'race_class', 'distance_f', 'ofr']
+            
+            top_25 = predictions.nlargest(25, 'win_probability')[display_cols].copy()
+            
+            top_25['win_probability'] = top_25['win_probability'].apply(lambda x: f"{x:.1%}")
+            
+            if has_odds:
+                top_25['bookmaker_odds'] = top_25['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
+                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Odds', 'Class', 'Distance', 'OR']
+            else:
+                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Class', 'Distance', 'OR']
+            
+            st.dataframe(top_25, hide_index=True, use_container_width=True)
+            
+            if not has_odds:
+                st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
+            
+            # Show timezone info
+            if 'race_time_gmt' in predictions.columns:
+                st.caption("⏰ Times shown in **US Eastern Time (ET)** | GMT times available in detailed view")
+            
+            st.markdown("---")
+            
+            # Race-by-race breakdown
+            st.markdown("##### 📋 Race-by-Race Predictions")
+            
+            # Group by race
+            races = predictions.groupby(['race_time', 'course', 'race_name']).size().reset_index()[['race_time', 'course', 'race_name']]
+            
+            # Race selector
+            race_options = [f"{row['race_time']} - {row['course']} - {row['race_name'][:50]}" for _, row in races.iterrows()]
+            
+            selected_race_idx = st.selectbox(
+                "Select a race to see detailed predictions:",
+                range(len(race_options)),
+                format_func=lambda i: race_options[i]
+            )
+            
+            selected_race_info = races.iloc[selected_race_idx]
+            
+            # Filter predictions for selected race
+            race_preds = predictions[
+                (predictions['race_time'] == selected_race_info['race_time']) &
+                (predictions['course'] == selected_race_info['course'])
+            ].copy()
+            
+            # Sort by win probability
+            race_preds = race_preds.sort_values('win_probability', ascending=False)
+            
+            # Race details
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Course", selected_race_info['course'])
+            with col2:
+                st.metric("Time", selected_race_info['race_time'])
+            with col3:
+                st.metric("Runners", len(race_preds))
+            with col4:
+                st.metric("Class", race_preds.iloc[0]['race_class'])
+            
+            # Predictions table
+            st.markdown("##### 🐎 Horse Predictions (Sorted by Win Probability)")
+            
+            display_cols = ['horse', 'jockey', 'win_probability', 'age', 'weight_lbs', 'ofr', 'last_run', 'form']
+            display_df = race_preds[display_cols].copy()
+            display_df['win_probability'] = display_df['win_probability'].apply(lambda x: f"{x:.1%}")
+            display_df.columns = ['Horse', 'Jockey', 'Win Probability', 'Age', 'Weight', 'OR', 'Days Since', 'Form']
+            
+            # Add ranking
+            display_df.insert(0, 'Rank', range(1, len(display_df) + 1))
+            
+            st.dataframe(display_df, hide_index=True, use_container_width=True)
+            
+            # Value betting section
+            st.markdown("##### 💰 Value Betting Analysis")
+            
+            # Check if we have odds data
+            has_odds = 'bookmaker_odds' in race_preds.columns and race_preds['bookmaker_odds'].notna().any()
+            
+            if has_odds:
+                # Calculate value bets
+                value_analysis = race_preds.head(10)[['horse', 'win_probability', 'bookmaker_odds']].copy()
+                value_analysis['fair_odds'] = 1 / value_analysis['win_probability']
+                value_analysis['implied_prob'] = 1 / value_analysis['bookmaker_odds']
+                value_analysis['edge'] = value_analysis['win_probability'] - value_analysis['implied_prob']
+                value_analysis['is_value'] = value_analysis['edge'] > 0.05  # 5% edge minimum
+                
+                # Format for display
+                value_analysis['win_probability_fmt'] = value_analysis['win_probability'].apply(lambda x: f"{x:.1%}")
+                value_analysis['bookmaker_odds_fmt'] = value_analysis['bookmaker_odds'].apply(lambda x: f"{x:.2f}")
+                value_analysis['fair_odds_fmt'] = value_analysis['fair_odds'].apply(lambda x: f"{x:.2f}")
+                value_analysis['edge_fmt'] = value_analysis['edge'].apply(lambda x: f"{x:+.1%}")
+                
+                display = value_analysis[['horse', 'win_probability_fmt', 'bookmaker_odds_fmt', 'fair_odds_fmt', 'edge_fmt', 'is_value']].copy()
+                display.columns = ['Horse', 'Model Win %', 'Bookmaker Odds', 'Fair Odds', 'Edge', 'Value Bet?']
+                
+                st.dataframe(display, hide_index=True, use_container_width=True)
+                
+                # Highlight value bets
+                value_bets = value_analysis[value_analysis['is_value']]
+                if len(value_bets) > 0:
+                    st.success(f"🎯 Found {len(value_bets)} value bet(s) in this race with 5%+ edge!")
+                else:
+                    st.warning("⚠️ No clear value bets found in this race (model probability not significantly higher than market)")
+            else:
+                st.info("**To identify value bets, you need:**\n"
+                        "1. Current market odds for each horse\n"
+                        "2. Compare model probability vs implied probability from odds\n"
+                        "3. Look for horses where model probability > implied probability\n\n"
+                        "**Example:** If model predicts 35% (2.86 decimal odds) but bookmaker offers 4.0, that's a value bet!")
+                
+                # Show top 3 with sample value analysis
+                with st.expander("📊 Top 3 Horses - Fair Odds Calculation"):
+                    top_3 = race_preds.head(3)[['horse', 'win_probability']].copy()
+                    
+                    # Calculate fair decimal odds
+                    top_3['fair_odds'] = 1 / top_3['win_probability']
+                    top_3['win_probability_pct'] = top_3['win_probability'].apply(lambda x: f"{x:.1%}")
+                    top_3['fair_odds_fmt'] = top_3['fair_odds'].apply(lambda x: f"{x:.2f}")
+                    
+                    st.markdown("*Fair odds based on model probabilities:*")
+                    display = top_3[['horse', 'win_probability_pct', 'fair_odds_fmt']].copy()
+                    display.columns = ['Horse', 'Model Win %', 'Fair Decimal Odds']
+                    st.dataframe(display, hide_index=True, use_container_width=True)
+                    
+                    st.markdown("**Betting Rule:** Only bet if bookmaker odds > fair odds (with margin for edge)")
+                    st.info("💡 Fetch odds with: `python scripts/fetch_odds.py --date " + today_str + "`")
+            
+            # Feature importance for this prediction
+            with st.expander("🔍 Key Factors (Top Horse)"):
+                top_horse = race_preds.iloc[0]
+                
+                st.markdown(f"**{top_horse['horse']}** - Predicted Win: {top_horse['win_probability']:.1%}")
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Career Win Rate", f"{top_horse['career_win_rate']:.1%}")
+                    st.metric("Career Runs", int(top_horse['career_runs']))
+                with col2:
+                    st.metric("CD Win Rate", f"{top_horse['cd_win_rate']:.1%}")
+                    st.metric("CD Runs", int(top_horse['cd_runs']))
+                with col3:
+                    st.metric("Recent Form (Avg Pos)", f"{top_horse['avg_last_3_pos']:.1f}")
+                    st.metric("Wins Last 3", int(top_horse['wins_last_3']))
+            
+            st.markdown("---")
+            
+            # Instructions for fetching odds
+            with st.expander("🔧 How to Add Live Odds"):
+                st.markdown("""
+                **To enable value bet detection, integrate odds data:**
+                
+                1. **Use The Odds API** - https://the-odds-api.com
+                   - Free tier: 500 requests/month
+                   - Covers major bookmakers
+                
+                2. **Or scrape odds from:**
+                   - Oddschecker.com
+                   - Betfair Exchange
+                   - Racing Post
+                
+                3. **Store odds in CSV** alongside predictions
+                
+                4. **Calculate value automatically:**
+                   ```python
+                   value = model_prob - (1 / decimal_odds)
+                   if value > 0.05:  # 5% edge minimum
+                       # This is a value bet
+                   ```
+                """)
+        
+        else:
+            # No predictions for today
+            st.warning(f"⏳ No predictions found for today ({today_str})")
+            
+            st.info("**To generate predictions for today's races:**\n\n"
+                    "1. Fetch today's racecards:\n"
+                    "   ```bash\n"
+                    f"   python scripts/fetch_racecards.py --date {today_str}\n"
+                    "   ```\n\n"
+                    "2. Run prediction script:\n"
+                    "   ```bash\n"
+                    "   python scripts/predict_todays_races.py\n"
+                    "   ```\n\n"
+                    "This will analyze all races and generate win probabilities for each horse.")
+            
+            # Show future watchlist
+            st.markdown("---")
+            st.markdown("##### 📅 Upcoming High-Value Races")
+            
+            watchlist_file = BASE_DIR / "data" / "processed" / "betting_watchlist.csv"
+            
+            if watchlist_file.exists():
+                watchlist = pd.read_csv(watchlist_file)
+                watchlist['date'] = pd.to_datetime(watchlist['date'])
+                
+                future = watchlist[watchlist['date'] > pd.Timestamp.now()].copy()
+                
+                if len(future) > 0:
+                    future_sorted = future.sort_values('date').head(10)
+                    
+                    display_cols = ['date', 'course', 'class', 'dist_f', 'prize', 'race_score']
+                    display_df = future_sorted[display_cols].copy()
+                    display_df['date'] = display_df['date'].dt.strftime('%Y-%m-%d')
+                    display_df['prize'] = display_df['prize'].apply(lambda x: f"£{x:,.0f}")
+                    display_df['dist_f'] = display_df['dist_f'].apply(lambda x: f"{x}f")
+                    display_df.columns = ['Date', 'Course', 'Class', 'Distance', 'Prize', 'Score']
+                    
+                    st.dataframe(display_df, hide_index=True, use_container_width=True)
+                    st.caption("Fetch racecards 24-48h before race date to get predictions")
+                else:
+                    st.info("No upcoming races in watchlist")
+            else:
+                st.info("Run `python scripts/apply_betting_strategy.py` to generate race watchlist")
 
 
 if __name__ == "__main__":
