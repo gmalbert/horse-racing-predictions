@@ -1261,60 +1261,121 @@ def main():
             
             st.dataframe(display_df, hide_index=True, use_container_width=True)
             
-            # Value betting section
-            st.markdown("##### 💰 Value Betting Analysis")
+            # Value Bet Calculator
+            st.markdown("---")
+            st.markdown("##### 💰 Value Bet Calculator")
+            st.caption("Compare model odds to bookmaker odds to identify value betting opportunities")
             
-            # Check if we have odds data
-            has_odds = 'bookmaker_odds' in race_preds.columns and race_preds['bookmaker_odds'].notna().any()
+            # Interactive calculator
+            with st.expander("🧮 Calculate Value Bet (Enter Bookmaker Odds)", expanded=False):
+                st.markdown("**How to use:**")
+                st.markdown("1. Look up bookmaker's odds for a horse (e.g., Bet365, William Hill)")
+                st.markdown("2. Enter the decimal odds below (e.g., 4.5)")
+                st.markdown("3. See if there's value compared to model's fair odds")
+                
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    # Select horse
+                    horses_list = race_preds['horse'].tolist()
+                    selected_horse = st.selectbox(
+                        "Select Horse",
+                        horses_list,
+                        key=f"vb_horse_{selected_race_idx}"
+                    )
+                
+                with col2:
+                    # Enter bookmaker odds
+                    bookmaker_odds_input = st.number_input(
+                        "Bookmaker Decimal Odds",
+                        min_value=1.01,
+                        max_value=1000.0,
+                        value=3.0,
+                        step=0.1,
+                        key=f"vb_odds_{selected_race_idx}"
+                    )
+                
+                # Calculate value bet
+                horse_data = race_preds[race_preds['horse'] == selected_horse].iloc[0]
+                model_prob = horse_data['win_probability']
+                model_decimal_odds = 1 / model_prob
+                model_fractional = horse_data['win_odds_fractional']
+                
+                bookmaker_implied_prob = 1 / bookmaker_odds_input
+                edge = model_prob - bookmaker_implied_prob
+                edge_pct = edge * 100
+                
+                # Display results
+                st.markdown("---")
+                st.markdown(f"**Analysis for {selected_horse}:**")
+                
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric(
+                        "Model Win %",
+                        f"{model_prob:.1%}",
+                        help="Model's predicted win probability"
+                    )
+                
+                with col2:
+                    st.metric(
+                        "Model Odds",
+                        f"{model_fractional} ({model_decimal_odds:.2f})",
+                        help="Fair odds based on model probability"
+                    )
+                
+                with col3:
+                    st.metric(
+                        "Bookmaker Implied %",
+                        f"{bookmaker_implied_prob:.1%}",
+                        help="Bookmaker's implied probability"
+                    )
+                
+                with col4:
+                    delta_color = "normal" if edge > 0 else "inverse"
+                    st.metric(
+                        "Edge",
+                        f"{edge_pct:+.1f}%",
+                        delta=f"{edge_pct:+.1f}%",
+                        delta_color=delta_color,
+                        help="Positive edge = value bet opportunity"
+                    )
+                
+                # Value bet recommendation
+                st.markdown("---")
+                
+                if edge >= 0.05:  # 5%+ edge
+                    st.success(f"✅ **VALUE BET!** Edge: {edge_pct:+.1f}%")
+                    st.markdown(f"**Recommendation:** BACK {selected_horse}")
+                    st.markdown(f"- Model says: {model_prob:.1%} chance ({model_fractional})")
+                    st.markdown(f"- Bookmaker offers: {bookmaker_odds_input:.2f} decimal ({bookmaker_implied_prob:.1%} implied)")
+                    st.markdown(f"- **You have a {edge_pct:.1f}% edge over the bookmaker**")
+                elif edge >= 0.02:  # 2-5% edge
+                    st.info(f"⚖️ **MARGINAL VALUE** Edge: {edge_pct:+.1f}%")
+                    st.markdown(f"Small edge detected. Consider bet size and variance.")
+                elif edge >= -0.02:  # Close to fair
+                    st.warning(f"📊 **FAIR ODDS** Edge: {edge_pct:+.1f}%")
+                    st.markdown(f"Bookmaker odds closely match model prediction. No clear edge.")
+                else:  # Negative edge
+                    st.error(f"❌ **NO VALUE** Edge: {edge_pct:+.1f}%")
+                    st.markdown(f"**Recommendation:** AVOID - Bookmaker odds are worse than model's fair value")
+                    st.markdown(f"- Model says: {model_prob:.1%} ({model_fractional})")
+                    st.markdown(f"- Bookmaker offers: {bookmaker_odds_input:.2f} ({bookmaker_implied_prob:.1%} implied)")
             
-            if has_odds:
-                # Calculate value bets
-                value_analysis = race_preds.head(10)[['horse', 'win_probability', 'bookmaker_odds']].copy()
-                value_analysis['fair_odds'] = 1 / value_analysis['win_probability']
-                value_analysis['implied_prob'] = 1 / value_analysis['bookmaker_odds']
-                value_analysis['edge'] = value_analysis['win_probability'] - value_analysis['implied_prob']
-                value_analysis['is_value'] = value_analysis['edge'] > 0.05  # 5% edge minimum
+            # Quick reference table for all horses
+            with st.expander("📊 Quick Reference - All Horses' Fair Odds"):
+                reference_df = race_preds[['horse', 'win_probability', 'win_odds_decimal', 'win_odds_fractional']].copy()
+                reference_df['win_probability'] = reference_df['win_probability'].apply(lambda x: f"{x:.1%}")
+                reference_df['win_odds_decimal'] = reference_df['win_odds_decimal'].apply(lambda x: f"{x:.2f}")
+                reference_df.columns = ['Horse', 'Model Win %', 'Fair Decimal Odds', 'Fair Fractional Odds']
                 
-                # Format for display
-                value_analysis['win_probability_fmt'] = value_analysis['win_probability'].apply(lambda x: f"{x:.1%}")
-                value_analysis['bookmaker_odds_fmt'] = value_analysis['bookmaker_odds'].apply(lambda x: f"{x:.2f}")
-                value_analysis['fair_odds_fmt'] = value_analysis['fair_odds'].apply(lambda x: f"{x:.2f}")
-                value_analysis['edge_fmt'] = value_analysis['edge'].apply(lambda x: f"{x:+.1%}")
+                st.dataframe(reference_df, hide_index=True, use_container_width=True)
                 
-                display = value_analysis[['horse', 'win_probability_fmt', 'bookmaker_odds_fmt', 'fair_odds_fmt', 'edge_fmt', 'is_value']].copy()
-                display.columns = ['Horse', 'Model Win %', 'Bookmaker Odds', 'Fair Odds', 'Edge', 'Value Bet?']
-                
-                st.dataframe(display, hide_index=True, use_container_width=True)
-                
-                # Highlight value bets
-                value_bets = value_analysis[value_analysis['is_value']]
-                if len(value_bets) > 0:
-                    st.success(f"🎯 Found {len(value_bets)} value bet(s) in this race with 5%+ edge!")
-                else:
-                    st.warning("⚠️ No clear value bets found in this race (model probability not significantly higher than market)")
-            else:
-                st.info("**To identify value bets, you need:**\n"
-                        "1. Current market odds for each horse\n"
-                        "2. Compare model probability vs implied probability from odds\n"
-                        "3. Look for horses where model probability > implied probability\n\n"
-                        "**Example:** If model predicts 35% (2.86 decimal odds) but bookmaker offers 4.0, that's a value bet!")
-                
-                # Show top 3 with sample value analysis
-                with st.expander("📊 Top 3 Horses - Fair Odds Calculation"):
-                    top_3 = race_preds.head(3)[['horse', 'win_probability']].copy()
-                    
-                    # Calculate fair decimal odds
-                    top_3['fair_odds'] = 1 / top_3['win_probability']
-                    top_3['win_probability_pct'] = top_3['win_probability'].apply(lambda x: f"{x:.1%}")
-                    top_3['fair_odds_fmt'] = top_3['fair_odds'].apply(lambda x: f"{x:.2f}")
-                    
-                    st.markdown("*Fair odds based on model probabilities:*")
-                    display = top_3[['horse', 'win_probability_pct', 'fair_odds_fmt']].copy()
-                    display.columns = ['Horse', 'Model Win %', 'Fair Decimal Odds']
-                    st.dataframe(display, hide_index=True, use_container_width=True)
-                    
-                    st.markdown("**Betting Rule:** Only bet if bookmaker odds > fair odds (with margin for edge)")
-                    st.info("💡 Fetch odds with: `python scripts/fetch_odds.py --date " + today_str + "`")
+                st.markdown("**💡 Value Betting Rule:**")
+                st.markdown("- ✅ BET if Bookmaker Odds **>** Fair Odds (positive edge)")
+                st.markdown("- ❌ AVOID if Bookmaker Odds **<** Fair Odds (negative edge)")
+                st.markdown("- Example: Fair odds 3.5, Bookmaker offers 4.5 → **VALUE BET!**")
             
             # Feature importance for this prediction
             with st.expander("🔍 Key Factors (Top Horse)"):
