@@ -21,6 +21,10 @@ import numpy as np
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# Import odds converter
+sys.path.insert(0, str(project_root / "scripts"))
+from odds_converter import probability_to_decimal_odds, probability_to_fractional_odds
+
 # Paths
 DATA_DIR = project_root / "data"
 WIN_MODEL_FILE = project_root / "models" / "horse_win_predictor.pkl"
@@ -308,6 +312,12 @@ def predict_race(racecard, historical_df, win_model, place_model, show_model, fe
             'win_probability': win_prob,
             'place_probability': place_prob,
             'show_probability': show_prob,
+            'win_odds_decimal': probability_to_decimal_odds(win_prob),
+            'win_odds_fractional': probability_to_fractional_odds(win_prob),
+            'place_odds_decimal': probability_to_decimal_odds(place_prob),
+            'place_odds_fractional': probability_to_fractional_odds(place_prob),
+            'show_odds_decimal': probability_to_decimal_odds(show_prob),
+            'show_odds_fractional': probability_to_fractional_odds(show_prob),
             **features  # Include all features for analysis
         })
     

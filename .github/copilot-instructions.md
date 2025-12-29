@@ -49,6 +49,15 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - Add dependencies: edit `requirements.txt`, then `pip install -r requirements.txt` locally.
 
 - Run the Streamlit UI: `streamlit run predictions.py` (app loads `data/processed/uk_horse_races.csv` and `data/logo.png`)
+- Generate daily predictions with odds: `python scripts/predict_todays_races.py` (outputs to `data/processed/predictions_YYYY-MM-DD.csv`)
+
+## Odds conversion and value betting
+- Module: `scripts/odds_converter.py` provides probability ↔ odds conversions
+- Formats: Decimal (e.g., 4.0), Fractional (e.g., "3/1"), American (e.g., "+300")
+- Fractional odds use simple denominators (max 2) for UK racing: 1/2, 1/1, 3/2, 2/1, 5/2, etc.
+- Predictions CSV includes 6 odds columns: win/place/show in both decimal and fractional formats
+- Value betting workflow: Model generates implied odds → User compares to live bookmaker odds → Bet when bookmaker odds > model odds
+- Example: Model says 3/1 (25%), bookmaker offers 5/1 → edge = 8.33% → VALUE BET
 
 ## Testing and safety
 - Use `pytest` and place new tests in `tests/` alongside any fixtures.
@@ -69,6 +78,7 @@ Notes about test fixtures added:
 - Data layout: `data/raw/` and `data/processed/`
 
 - Streamlit UI: `predictions.py` (root) — shows filters: Year, Course, Horse (contains), Finish Position; main page number-of-results dropdown; uses cached CSV and `data/logo.png`.
+- Daily predictions table displays: Horse, Jockey, Win Rank, Win %, Win Odds (fractional), Place Rank, Place %, Place Odds, Show Rank, Show %, Show Odds, Age, Weight, OR, Recent Form.
 - Note: the raw CSV column `pos` is exposed in the app as `Finish Position`. The app normalises date display to `YYYY-MM-DD` when time is 00:00:00.
 
 ## Final note

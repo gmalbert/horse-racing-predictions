@@ -1225,8 +1225,9 @@ def main():
             # Predictions table
             st.markdown("##### 🐎 All Horse Predictions")
             st.caption("📊 Form shows recent race finishes (read right to left: rightmost = most recent race). Lower numbers = better finishes. 1 = Won, 2 = 2nd, 3 = 3rd, etc.")
+            st.caption("💰 Model Odds show the fair value based on probabilities. Compare to bookmaker odds to find value bets!")
             
-            display_cols = ['horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'age', 'weight_lbs', 'ofr', 'form']
+            display_cols = ['horse', 'jockey', 'win_probability', 'win_odds_fractional', 'place_probability', 'place_odds_fractional', 'show_probability', 'show_odds_fractional', 'age', 'weight_lbs', 'ofr', 'form']
             display_df = race_preds[display_cols].copy()
             
             # Add rankings for each category before formatting
@@ -1240,8 +1241,20 @@ def main():
             display_df['show_probability'] = display_df['show_probability'].apply(lambda x: f"{x:.1%}")
             
             # Reorder and rename columns
-            display_df = display_df[['horse', 'jockey', 'win_rank', 'win_probability', 'place_rank', 'place_probability', 'show_rank', 'show_probability', 'age', 'weight_lbs', 'ofr', 'form']]
-            display_df.columns = ['Horse', 'Jockey', 'Win Rank', 'Win %', 'Place Rank', 'Place %', 'Show Rank', 'Show %', 'Age', 'Weight', 'OR', 'Recent Form']
+            display_df = display_df[[
+                'horse', 'jockey',
+                'win_rank', 'win_probability', 'win_odds_fractional',
+                'place_rank', 'place_probability', 'place_odds_fractional',
+                'show_rank', 'show_probability', 'show_odds_fractional',
+                'age', 'weight_lbs', 'ofr', 'form'
+            ]]
+            display_df.columns = [
+                'Horse', 'Jockey',
+                'Win Rank', 'Win %', 'Win Odds',
+                'Place Rank', 'Place %', 'Place Odds',
+                'Show Rank', 'Show %', 'Show Odds',
+                'Age', 'Weight', 'OR', 'Recent Form'
+            ]
             
             # Sort by win rank
             display_df = display_df.sort_values('Win Rank')
