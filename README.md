@@ -51,7 +51,14 @@ A full-featured web interface for exploring race data, analyzing predictions, an
   - Feature importance visualization
   - One-click model retraining
 
-- **📅 Predicted Fixtures**
+- **� Value Betting with Implied Odds**
+  - Automatic conversion of probabilities to betting odds
+  - Displays decimal and fractional odds (UK format)
+  - Simple fractional odds (denominators ≤2): 1/2, 1/1, 3/2, 2/1, 5/2, etc.
+  - Compare model odds vs bookmaker odds to find value bets
+  - **Example**: Model shows 3/1, bookmaker offers 5/1 → VALUE BET!
+
+- **�📅 Predicted Fixtures**
   - 1,474 upcoming races scored (Dec 2025 - Dec 2026)
   - 29 Tier 1 Focus races identified
   - Interactive filters: tier, course, minimum score
@@ -156,12 +163,21 @@ A full-featured web interface for exploring race data, analyzing predictions, an
 **Multi-Layer Approach:**
 1. **Race Scoring** (Phase 2): Identifies valuable races
 2. **Horse Prediction** (Phase 3): Predicts win probability per horse
-3. **Fixture Prediction**: Estimates characteristics for upcoming races
+3. **Odds Conversion** (Phase 3.5): Converts probabilities to implied odds
+4. **Fixture Prediction**: Estimates characteristics for upcoming races
 
 **Scripts:**
 - `scripts/phase2_score_races.py` - Score historical races
 - `scripts/phase3_build_horse_model.py` - Train ML model
+- `scripts/odds_converter.py` - Probability/odds conversion utilities
+- `scripts/predict_todays_races.py` - Generate daily predictions with odds
 - `scripts/score_fixture_calendar.py` - Predict & score fixtures
+
+**Odds Conversion:**
+- **Decimal Odds**: 1 / probability (e.g., 25% → 4.0)
+- **Fractional Odds**: Simplified to UK standard formats (e.g., 25% → 3/1)
+- **American Odds**: ±100 × probability ratio (e.g., 25% → +300)
+- **Value Bet Detection**: Identifies when bookmaker odds exceed model odds
 
 ### Betting Strategy Tools
 
@@ -227,6 +243,8 @@ horse-racing-predictions/
 ├── scripts/                   # Data processing & training
 │   ├── phase2_score_races.py           # Race profitability scorer
 │   ├── phase3_build_horse_model.py     # ML model training
+│   ├── odds_converter.py               # Probability/odds conversion
+│   ├── predict_todays_races.py         # Daily predictions with odds
 │   ├── score_fixture_calendar.py       # Predict upcoming races
 │   ├── extract_2025_recent_fixtures.py # Parse .ics calendar
 │   └── extract_bha_2026_four_courses.py # Parse Excel fixtures
