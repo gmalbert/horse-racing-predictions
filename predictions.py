@@ -1071,25 +1071,23 @@ def main():
                     st.subheader("📋 Betting Workflow")
                     st.markdown("""
                     **Before Race (48h):**
+                    
                     1. Review watchlist races above
                     2. Wait for racecard publication (usually 48h before race)
                     3. Fetch horse entries, jockeys, trainers via API
                     
                     **Day Before Race (24h):**
+                    
                     4. Run ML model to predict win probabilities for each horse
                     5. Compare model probabilities to bookmaker odds
                     6. Identify value bets (model prob > market prob + 5% edge)
                     7. Calculate Kelly Criterion bet sizing
                     
                     **Race Day:**
+                    
                     8. Place bets 12-24h before race (best odds window)
                     9. Track results and update bankroll
                     10. Record bets for performance analysis
-                    
-                    **Next Steps:**
-                    - Implement Phase 4: Kelly Criterion betting system
-                    - Build racecard fetcher and horse feature engineering
-                    - Create bet tracking dashboard
                     """)
                     
                     # Historical performance (if available)
