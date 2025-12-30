@@ -232,6 +232,93 @@ def engineer_race_context(df):
     
     return df
 
+def engineer_jockey_features(df):
+    """
+    Engineer jockey-specific features from historical data.
+    Uses temporal ordering (date + time) to prevent data leakage.
+    """
+    print("\nEngineering jockey features...")
+    
+    df = df.copy()
+    df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
+    
+    # Create full timestamp (date + race time) to prevent same-day leakage
+    # This ensures races are processed in true chronological order
+    df['datetime_full'] = pd.to_datetime(
+        df['date'].astype(str) + ' ' + df['off'].astype(str), 
+        errors='coerce'
+    )
+    
+    # Sort by full timestamp
+    df = df.sort_values('datetime_full').reset_index(drop=True)
+    
+    # Initialize jockey feature tracking
+    jockey_overall = {}   # jockey -> {runs, wins}
+    jockey_course = {}    # (jockey, course) -> {runs, wins}
+    jockey_trainer = {}   # (jockey, trainer) -> {runs, wins}
+    
+    jockey_features = {
+        'jockey_career_runs': [],
+        'jockey_career_win_rate': [],
+        'jockey_course_runs': [],
+        'jockey_course_win_rate': [],
+        'jockey_trainer_runs': [],
+        'jockey_trainer_win_rate': []
+    }
+    
+    # Process each race in chronological order
+    for idx, row in df.iterrows():
+        jockey = row.get('jockey', 'Unknown')
+        course = row.get('course_clean', 'Unknown')
+        trainer = row.get('trainer', 'Unknown')
+        won = 1 if row.get('won', 0) == 1 else 0
+        
+        # Get historical stats (BEFORE this race)
+        j_stats = jockey_overall.get(jockey, {'runs': 0, 'wins': 0})
+        jc_stats = jockey_course.get((jockey, course), {'runs': 0, 'wins': 0})
+        jt_stats = jockey_trainer.get((jockey, trainer), {'runs': 0, 'wins': 0})
+        
+        # Calculate features from historical data
+        jockey_features['jockey_career_runs'].append(j_stats['runs'])
+        jockey_features['jockey_career_win_rate'].append(
+            j_stats['wins'] / j_stats['runs'] if j_stats['runs'] > 0 else 0.0
+        )
+        
+        jockey_features['jockey_course_runs'].append(jc_stats['runs'])
+        jockey_features['jockey_course_win_rate'].append(
+            jc_stats['wins'] / jc_stats['runs'] if jc_stats['runs'] > 0 else 0.0
+        )
+        
+        jockey_features['jockey_trainer_runs'].append(jt_stats['runs'])
+        jockey_features['jockey_trainer_win_rate'].append(
+            jt_stats['wins'] / jt_stats['runs'] if jt_stats['runs'] > 0 else 0.0
+        )
+        
+        # Update stats AFTER recording features (prevents leakage)
+        if jockey not in jockey_overall:
+            jockey_overall[jockey] = {'runs': 0, 'wins': 0}
+        jockey_overall[jockey]['runs'] += 1
+        jockey_overall[jockey]['wins'] += won
+        
+        if (jockey, course) not in jockey_course:
+            jockey_course[(jockey, course)] = {'runs': 0, 'wins': 0}
+        jockey_course[(jockey, course)]['runs'] += 1
+        jockey_course[(jockey, course)]['wins'] += won
+        
+        if (jockey, trainer) not in jockey_trainer:
+            jockey_trainer[(jockey, trainer)] = {'runs': 0, 'wins': 0}
+        jockey_trainer[(jockey, trainer)]['runs'] += 1
+        jockey_trainer[(jockey, trainer)]['wins'] += won
+    
+    # Add features to dataframe
+    for feat_name, feat_values in jockey_features.items():
+        df[feat_name] = feat_values
+    
+    print(f"  Jockey features: jockey_career_win_rate, jockey_course_win_rate, jockey_trainer_win_rate")
+    print(f"  Processed {len(jockey_overall):,} unique jockeys")
+    
+    return df
+
 def engineer_all_features(df):
     """Engineer all features in sequence"""
     print("\nEngineering features for {0:,} records...".format(len(df)))
@@ -243,6 +330,7 @@ def engineer_all_features(df):
     df = engineer_recent_form(df)
     df = engineer_recency(df)
     df = engineer_race_context(df)
+    df = engineer_jockey_features(df)
     
     print("\n[OK] Feature engineering complete")
     
@@ -289,7 +377,12 @@ def prepare_training_data(df):
         'field_size', 'is_turf', 'going_numeric',
         
         # Race quality (from scorer)
-        'race_score'
+        'race_score',
+        
+        # Jockey features
+        'jockey_career_runs', 'jockey_career_win_rate',
+        'jockey_course_runs', 'jockey_course_win_rate',
+        'jockey_trainer_runs', 'jockey_trainer_win_rate'
     ]
     
     # Target variable

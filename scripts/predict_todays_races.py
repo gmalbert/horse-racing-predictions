@@ -140,7 +140,7 @@ def encode_going(going_str):
 def build_horse_features_from_racecard(runner, race_info, historical_df):
     """Build features for a specific horse from racecard data
     
-    Matches the 18 features used in the trained model:
+    Matches the 24 features used in the trained model (18 original + 6 jockey):
     - career_runs, career_win_rate, career_place_rate, career_earnings
     - cd_runs, cd_win_rate
     - class_num, class_step
@@ -149,13 +149,34 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
     - days_since_last
     - field_size, is_turf, going_numeric
     - race_score
+    - jockey_career_runs, jockey_career_win_rate
+    - jockey_course_runs, jockey_course_win_rate
+    - jockey_trainer_runs, jockey_trainer_win_rate
     """
     horse_name = runner.get('horse') or runner.get('name', 'Unknown')
+    jockey_name = runner.get('jockey', 'Unknown')
+    trainer_name = runner.get('trainer', 'Unknown')
     
     # Filter to this horse's history
     horse_history = historical_df[
         historical_df['horse'].str.lower() == horse_name.lower()
     ].copy()
+    
+    # Calculate jockey stats from ALL historical data (not just this horse)
+    jockey_history = historical_df[
+        historical_df['jockey'].str.lower() == jockey_name.lower()
+    ] if jockey_name != 'Unknown' else pd.DataFrame()
+    
+    # Jockey-course stats
+    course = race_info['course']
+    jockey_course_history = jockey_history[
+        jockey_history['course'].str.lower() == course.lower()
+    ] if len(jockey_history) > 0 else pd.DataFrame()
+    
+    # Jockey-trainer stats
+    jockey_trainer_history = jockey_history[
+        jockey_history['trainer'].str.lower() == trainer_name.lower()
+    ] if len(jockey_history) > 0 and trainer_name != 'Unknown' else pd.DataFrame()
     
     if horse_history.empty:
         # New horse or no data - use defaults
@@ -177,7 +198,14 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
             'field_size': int(race_info.get('field_size', 10)),
             'is_turf': 1 if race_info.get('surface') == 'Turf' else 0,
             'going_numeric': encode_going(race_info.get('going', 'Good')),
-            'race_score': 50.0  # Default
+            'race_score': 50.0,  # Default
+            # Jockey features
+            'jockey_career_runs': len(jockey_history),
+            'jockey_career_win_rate': (jockey_history['pos'] == 1).sum() / len(jockey_history) if len(jockey_history) > 0 else 0.0,
+            'jockey_course_runs': len(jockey_course_history),
+            'jockey_course_win_rate': (jockey_course_history['pos'] == 1).sum() / len(jockey_course_history) if len(jockey_course_history) > 0 else 0.0,
+            'jockey_trainer_runs': len(jockey_trainer_history),
+            'jockey_trainer_win_rate': (jockey_trainer_history['pos'] == 1).sum() / len(jockey_trainer_history) if len(jockey_trainer_history) > 0 else 0.0
         }
         return features
     
@@ -230,6 +258,14 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
     # Race score (if available in race_info, else default)
     race_score = race_info.get('race_score', 50.0)
     
+    # Jockey features
+    jockey_career_runs = len(jockey_history)
+    jockey_career_wins = (jockey_history['pos'] == 1).sum() if len(jockey_history) > 0 else 0
+    jockey_course_runs = len(jockey_course_history)
+    jockey_course_wins = (jockey_course_history['pos'] == 1).sum() if len(jockey_course_history) > 0 else 0
+    jockey_trainer_runs = len(jockey_trainer_history)
+    jockey_trainer_wins = (jockey_trainer_history['pos'] == 1).sum() if len(jockey_trainer_history) > 0 else 0
+    
     features = {
         'career_runs': career_runs,
         'career_win_rate': career_wins / career_runs if career_runs > 0 else 0.0,
@@ -248,7 +284,13 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
         'field_size': field_size,
         'is_turf': is_turf,
         'going_numeric': going_numeric,
-        'race_score': race_score
+        'race_score': race_score,
+        'jockey_career_runs': jockey_career_runs,
+        'jockey_career_win_rate': jockey_career_wins / jockey_career_runs if jockey_career_runs > 0 else 0.0,
+        'jockey_course_runs': jockey_course_runs,
+        'jockey_course_win_rate': jockey_course_wins / jockey_course_runs if jockey_course_runs > 0 else 0.0,
+        'jockey_trainer_runs': jockey_trainer_runs,
+        'jockey_trainer_win_rate': jockey_trainer_wins / jockey_trainer_runs if jockey_trainer_runs > 0 else 0.0
     }
     
     return features
