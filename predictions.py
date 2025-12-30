@@ -1129,7 +1129,135 @@ def main():
         # Check for today's predictions
         today_str = pd.Timestamp.now().strftime('%Y-%m-%d')
         predictions_file = BASE_DIR / "data" / "processed" / f"predictions_{today_str}.csv"
+        racecards_file = BASE_DIR / "data" / "raw" / f"racecards_{today_str}.json"
         
+        # Only show generation steps if predictions don't exist yet
+        if not predictions_file.exists():
+            # Step 1: Fetch Racecards
+            st.markdown("### Step 1: Fetch Today's Racecards")
+            
+            col1a, col1b = st.columns([3, 2])
+            
+            with col1a:
+                if st.button("📥 Fetch Today's Racecards", type="secondary", use_container_width=True):
+                    with st.spinner("📡 Fetching racecards from external source... Please wait..."):
+                        try:
+                            # Run the fetch racecards script
+                            result = subprocess.run(
+                                [sys.executable, "scripts/fetch_racecards.py", "--date", today_str],
+                                cwd=str(BASE_DIR),
+                                capture_output=True,
+                                text=True,
+                                timeout=120  # 2 minute timeout
+                            )
+                            
+                            if result.returncode == 0:
+                                st.success("✅ Racecards fetched successfully!")
+                                # Show output
+                                if result.stdout:
+                                    with st.expander("📋 Fetch Details"):
+                                        st.code(result.stdout, language="text")
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to fetch racecards")
+                                with st.expander("View Error Details"):
+                                    st.code(result.stderr, language="text")
+                                    if result.stdout:
+                                        st.code(result.stdout, language="text")
+                        
+                        except subprocess.TimeoutExpired:
+                            st.error("❌ Racecard fetch timed out (>2 minutes)")
+                        except Exception as e:
+                            st.error(f"❌ Error: {e}")
+                            import traceback
+                            with st.expander("View Traceback"):
+                                st.code(traceback.format_exc())
+            
+            with col1b:
+                # Show racecards status
+                if racecards_file.exists():
+                    file_time = pd.Timestamp.fromtimestamp(racecards_file.stat().st_mtime)
+                    time_str = file_time.strftime('%I:%M %p').lstrip('0')  # Remove leading zero from hour
+                    st.success(f"✅ Racecards available\nFetched today at {time_str}")
+                else:
+                    st.warning("⚠️ No racecards for today")
+            
+            st.markdown("---")
+            
+            # Step 2: Generate Predictions
+            st.markdown("### Step 2: Generate ML Predictions")
+            
+            col2a, col2b, col2c = st.columns([2, 2, 1])
+            
+            with col2a:
+                if st.button("🔄 Generate Today's Predictions", type="primary", use_container_width=True):
+                    # Check if racecards exist
+                    if not racecards_file.exists():
+                        st.error(f"❌ Racecards not found for {today_str}")
+                        st.info(f"Please click '📥 Fetch Today's Racecards' button above first")
+                    else:
+                        with st.spinner("🤖 Running ML predictions... This may take 1-2 minutes..."):
+                            try:
+                                # Run the prediction script
+                                result = subprocess.run(
+                                    [sys.executable, "scripts/predict_todays_races.py"],
+                                    cwd=str(BASE_DIR),
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=300  # 5 minute timeout
+                                )
+                                
+                                if result.returncode == 0:
+                                    st.success("✅ Predictions generated successfully!")
+                                    st.balloons()
+                                    st.info("🔄 Auto-refreshing in 3 seconds to display new predictions...")
+                                    
+                                    # Show brief output summary
+                                    if result.stdout:
+                                        # Extract summary info from output
+                                        output_lines = result.stdout.split('\n')
+                                        summary_lines = [line for line in output_lines if 'Total horses' in line or 'Total races' in line or 'SAVED' in line]
+                                        if summary_lines:
+                                            with st.expander("📊 Generation Summary"):
+                                                st.code('\n'.join(summary_lines), language="text")
+                                    
+                                    # Brief delay so user sees the success message
+                                    import time
+                                    time.sleep(3)
+                                    
+                                    # Rerun to show new predictions
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Prediction generation failed")
+                                    with st.expander("View Error Details"):
+                                        st.code(result.stderr, language="text")
+                                        if result.stdout:
+                                            st.code(result.stdout, language="text")
+                            
+                            except subprocess.TimeoutExpired:
+                                st.error("❌ Prediction generation timed out (>5 minutes)")
+                            except Exception as e:
+                                st.error(f"❌ Error: {e}")
+                                import traceback
+                                with st.expander("View Traceback"):
+                                    st.code(traceback.format_exc())
+            
+            with col2b:
+                # Show status
+                if predictions_file.exists():
+                    file_time = pd.Timestamp.fromtimestamp(predictions_file.stat().st_mtime)
+                    st.info(f"📅 Last generated:\n{file_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                else:
+                    st.warning("⚠️ No predictions yet")
+            
+            with col2c:
+                # Refresh button
+                if st.button("🔃 Refresh", use_container_width=True):
+                    st.rerun()
+            
+            st.markdown("---")
+        
+        # Show predictions if they exist
         if predictions_file.exists():
             # Load predictions
             predictions = pd.read_csv(predictions_file)
