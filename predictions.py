@@ -1264,6 +1264,150 @@ def main():
             
             st.success(f"✅ Loaded {len(predictions)} horse predictions from {len(predictions['course'].unique())} races today")
             
+            # Handicap Opportunities Summary
+            st.markdown("##### 🎯 Handicap Betting Opportunities")
+            st.caption("Smart handicap plays identified by the model")
+            
+            # Explanation expander
+            with st.expander("📖 What Are Handicap Angles?"):
+                st.markdown("""
+                **Handicap racing** uses a weight system to level the playing field. Better horses carry more weight, weaker horses carry less. 
+                This creates specific betting opportunities when the handicapper gets it wrong or circumstances change:
+                
+                **⬇️ Class Droppers**
+                - Horse competed in higher class races (e.g., Class 2) and now drops to lower class (e.g., Class 4)
+                - Usually carrying similar weight but facing easier competition
+                - **Edge**: Experience advantage + physical ability gap
+                - **Look for**: Win probability > 50% with class drop of 1+ levels
+                
+                **📈 Well-In Horses (Rising Official Rating)**
+                - Official Rating (OR) has increased by 3+ points recently
+                - Weight assignment hasn't caught up with improved form yet
+                - **Edge**: Horse is better than the handicapper thinks
+                - **Look for**: OR change > +3 with win probability > 40%
+                
+                **⚖️ Bottom Weight Opportunities**
+                - Lightest horse in the race (handicapper rates them weakest)
+                - But model gives them a reasonable chance (>20% win probability)
+                - **Edge**: Handicapper underestimating ability, weight advantage
+                - **Look for**: Minimum weight in race + improving recent form
+                
+                **⚠️ Top Weight Traps (Avoid These)**
+                - Heaviest horse in race carrying maximum burden
+                - Low win probability (<30%) despite high rating
+                - **Trap**: Public over-bets "best handicapped horse"
+                - **Look for**: Maximum weight + low model probability = DON'T BET
+                
+                **💡 Betting Strategy:**
+                - Class Droppers + Well-In horses = **Priority bets** when odds are fair
+                - Bottom Weights = **Value longshots** if odds > 6.0
+                - Top Weights = **Avoid** unless win probability > 40%
+                """)
+            
+            # Calculate handicap opportunities
+            handicap_opportunities = []
+            
+            # 1. Class Droppers (stepping down in class with high win %)
+            if 'class_step' in predictions.columns:
+                class_droppers = predictions[
+                    (predictions['class_step'] < -0.5) & 
+                    (predictions['win_probability'] > 0.5)
+                ].copy()
+                for _, horse in class_droppers.iterrows():
+                    handicap_opportunities.append({
+                        'race_time': horse['race_time'],
+                        'course': horse['course'],
+                        'horse': horse['horse'],
+                        'opportunity': '⬇️ Class Dropper',
+                        'win_prob': horse['win_probability'],
+                        'details': f"Class {horse['race_class']} (down from Class {int(horse['race_class'] + abs(horse['class_step']))})"
+                    })
+            
+            # 2. Well-In Horses (OR increased, high win %)
+            if 'or_change' in predictions.columns:
+                well_in = predictions[
+                    (predictions['or_change'] > 3) & 
+                    (predictions['win_probability'] > 0.4)
+                ].copy()
+                for _, horse in well_in.iterrows():
+                    handicap_opportunities.append({
+                        'race_time': horse['race_time'],
+                        'course': horse['course'],
+                        'horse': horse['horse'],
+                        'opportunity': '📈 Well-In',
+                        'win_prob': horse['win_probability'],
+                        'details': f"OR +{horse['or_change']:.0f} (now {horse['ofr']})"
+                    })
+            
+            # 3. Bottom-Weight Value (lightest in race with decent win %)
+            for race_key, race_df in predictions.groupby(['course', 'race_time']):
+                min_weight = race_df['weight_lbs'].min()
+                bottom_weight_horses = race_df[
+                    (race_df['weight_lbs'] == min_weight) & 
+                    (race_df['win_probability'] > 0.2)
+                ]
+                for _, horse in bottom_weight_horses.iterrows():
+                    handicap_opportunities.append({
+                        'race_time': horse['race_time'],
+                        'course': horse['course'],
+                        'horse': horse['horse'],
+                        'opportunity': '⚖️ Bottom Weight',
+                        'win_prob': horse['win_probability'],
+                        'details': f"{horse['weight_lbs']:.0f} lbs (lightest)"
+                    })
+            
+            # 4. Top-Weight Traps (heaviest in race with low win %)
+            for race_key, race_df in predictions.groupby(['course', 'race_time']):
+                max_weight = race_df['weight_lbs'].max()
+                top_weight_traps = race_df[
+                    (race_df['weight_lbs'] == max_weight) & 
+                    (race_df['win_probability'] < 0.3)
+                ]
+                for _, horse in top_weight_traps.iterrows():
+                    handicap_opportunities.append({
+                        'race_time': horse['race_time'],
+                        'course': horse['course'],
+                        'horse': horse['horse'],
+                        'opportunity': '⚠️ Top Weight Trap',
+                        'win_prob': horse['win_probability'],
+                        'details': f"{horse['weight_lbs']:.0f} lbs (heaviest, avoid)"
+                    })
+            
+            if handicap_opportunities:
+                opp_df = pd.DataFrame(handicap_opportunities)
+                opp_df = opp_df.sort_values('win_prob', ascending=False)
+                
+                # Format for display
+                display_opp = opp_df.copy()
+                display_opp['win_prob'] = display_opp['win_prob'].apply(lambda x: f"{x:.1%}")
+                display_opp.columns = ['Race Time', 'Course', 'Horse', 'Type', 'Win %', 'Details']
+                
+                st.dataframe(
+                    display_opp,
+                    hide_index=True,
+                    use_container_width=True,
+                    height=min(400, len(display_opp) * 35 + 38)
+                )
+                
+                # Summary metrics
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    class_drop_count = len([o for o in handicap_opportunities if 'Class Dropper' in o['opportunity']])
+                    st.metric("⬇️ Class Droppers", class_drop_count)
+                with col2:
+                    well_in_count = len([o for o in handicap_opportunities if 'Well-In' in o['opportunity']])
+                    st.metric("📈 Well-In Horses", well_in_count)
+                with col3:
+                    bottom_wt_count = len([o for o in handicap_opportunities if 'Bottom Weight' in o['opportunity']])
+                    st.metric("⚖️ Bottom Weights", bottom_wt_count)
+                with col4:
+                    trap_count = len([o for o in handicap_opportunities if 'Trap' in o['opportunity']])
+                    st.metric("⚠️ Traps to Avoid", trap_count)
+            else:
+                st.info("No significant handicap opportunities identified today")
+            
+            st.markdown("---")
+            
             # Top predictions across all races
             st.markdown("##### 🏆 Top 25 Predictions (All Races Today)")
             
@@ -1388,6 +1532,131 @@ def main():
             display_df = display_df.sort_values('Win Rank')
             
             st.dataframe(display_df, hide_index=True, use_container_width=True)
+            
+            # Handicap Analysis for this specific race
+            st.markdown("---")
+            st.markdown("##### 🎯 Handicap Analysis - This Race")
+            
+            # Calculate race-specific metrics
+            min_weight = race_preds['weight_lbs'].min()
+            max_weight = race_preds['weight_lbs'].max()
+            avg_weight = race_preds['weight_lbs'].mean()
+            weight_spread = max_weight - min_weight
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Weight Range", f"{min_weight:.0f} - {max_weight:.0f} lbs")
+            with col2:
+                st.metric("Average Weight", f"{avg_weight:.1f} lbs")
+            with col3:
+                st.metric("Weight Spread", f"{weight_spread:.0f} lbs")
+            with col4:
+                # Check if tightly handicapped (5+ horses within 3 lbs)
+                weights_grouped = race_preds['weight_lbs'].value_counts()
+                tightly_handicapped = any(count >= 5 for count in weights_grouped.values) or weight_spread <= 10
+                st.metric("Handicap Type", "Tight" if tightly_handicapped else "Spread")
+            
+            # Identify handicap angles for this race
+            handicap_angles = []
+            
+            # 1. Class droppers in this race
+            if 'class_step' in race_preds.columns:
+                class_droppers_race = race_preds[race_preds['class_step'] < -0.5]
+                if len(class_droppers_race) > 0:
+                    for _, horse in class_droppers_race.iterrows():
+                        handicap_angles.append({
+                            'Horse': horse['horse'],
+                            'Angle': '⬇️ Class Dropper',
+                            'Win %': f"{horse['win_probability']:.1%}",
+                            'Details': f"Down {abs(horse['class_step']):.1f} classes",
+                            'Action': 'BET' if horse['win_probability'] > 0.5 else 'WATCH'
+                        })
+            
+            # 2. Well-in horses (OR improved)
+            if 'or_change' in race_preds.columns:
+                well_in_race = race_preds[race_preds['or_change'] > 3]
+                if len(well_in_race) > 0:
+                    for _, horse in well_in_race.iterrows():
+                        handicap_angles.append({
+                            'Horse': horse['horse'],
+                            'Angle': '📈 Well-In (OR ↑)',
+                            'Win %': f"{horse['win_probability']:.1%}",
+                            'Details': f"OR +{horse['or_change']:.0f} to {horse['ofr']}",
+                            'Action': 'BET' if horse['win_probability'] > 0.4 else 'WATCH'
+                        })
+            
+            # 3. Bottom weight horses
+            bottom_weight_horses = race_preds[race_preds['weight_lbs'] == min_weight]
+            for _, horse in bottom_weight_horses.iterrows():
+                if horse['win_probability'] > 0.2:
+                    handicap_angles.append({
+                        'Horse': horse['horse'],
+                        'Angle': '⚖️ Bottom Weight',
+                        'Win %': f"{horse['win_probability']:.1%}",
+                        'Details': f"{horse['weight_lbs']:.0f} lbs (lightest)",
+                        'Action': 'VALUE' if horse['win_probability'] > 0.25 else 'LONGSHOT'
+                    })
+            
+            # 4. Top weight horses (potential traps)
+            top_weight_horses = race_preds[race_preds['weight_lbs'] == max_weight]
+            for _, horse in top_weight_horses.iterrows():
+                handicap_angles.append({
+                    'Horse': horse['horse'],
+                    'Angle': '⚠️ Top Weight' if horse['win_probability'] < 0.3 else '💪 Top Weight (strong)',
+                    'Win %': f"{horse['win_probability']:.1%}",
+                    'Details': f"{horse['weight_lbs']:.0f} lbs (heaviest)",
+                    'Action': 'AVOID' if horse['win_probability'] < 0.25 else 'CONSIDER'
+                })
+            
+            # 5. Young horses with good weights
+            if 'age' in race_preds.columns:
+                young_advantage = race_preds[
+                    (race_preds['age'] <= 4) & 
+                    (race_preds['weight_lbs'] < avg_weight) &
+                    (race_preds['win_probability'] > 0.3)
+                ]
+                for _, horse in young_advantage.iterrows():
+                    handicap_angles.append({
+                        'Horse': horse['horse'],
+                        'Angle': '🌟 Young + Light Weight',
+                        'Win %': f"{horse['win_probability']:.1%}",
+                        'Details': f"Age {horse['age']}, {horse['weight_lbs']:.0f} lbs",
+                        'Action': 'BET' if horse['win_probability'] > 0.4 else 'VALUE'
+                    })
+            
+            if handicap_angles:
+                angles_df = pd.DataFrame(handicap_angles)
+                
+                # Color code by action
+                st.dataframe(
+                    angles_df,
+                    hide_index=True,
+                    use_container_width=True,
+                    height=min(300, len(angles_df) * 35 + 38)
+                )
+                
+                # Interpretation guide
+                with st.expander("📖 How to Use Handicap Angles"):
+                    st.markdown("""
+                    **Action Meanings:**
+                    - **BET**: Strong opportunity based on handicap advantage + model probability
+                    - **VALUE**: Potential value if bookmaker odds are generous
+                    - **WATCH**: Interesting angle but needs confirmation (check odds/form)
+                    - **LONGSHOT**: Low probability but handicap suggests possible upset
+                    - **AVOID**: Top weight with insufficient win probability
+                    - **CONSIDER**: Top weight but strong enough to overcome burden
+                    
+                    **Key Handicap Principles:**
+                    - **Class Droppers**: Horse competed at higher level, now facing easier competition
+                    - **Well-In**: Official Rating increased but weight hasn't caught up yet
+                    - **Bottom Weight**: Handicapper rates them weakest, but model disagrees
+                    - **Top Weight**: Carrying extra weight - only back if very strong
+                    - **Young + Light**: Natural advantages that compound
+                    """)
+            else:
+                st.info("No specific handicap angles identified for this race")
+            
+            st.markdown("---")
             
             # Value Bet Calculator
             st.markdown("---")
