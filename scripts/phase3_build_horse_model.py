@@ -108,6 +108,52 @@ def engineer_course_distance_form(df):
     
     return df
 
+
+def engineer_draw_features(df):
+    """
+    Engineer draw-related features where available.
+    - draw (numeric)
+    - draw_pct (draw / field_size)
+    - draw_group_win_rate: historical win rate for horses in the same draw-group
+    Uses expanding-window grouping to avoid lookahead bias.
+    """
+    print("\nEngineering draw features...")
+
+    # Ensure numeric draw and percent
+    df['draw'] = pd.to_numeric(df.get('draw'), errors='coerce')
+    # Field size is 'ran' in this dataset
+    df['draw_pct'] = df['draw'] / df['ran'].replace(0, 1)
+
+    # Bin draw_pct into 3 groups (low/mid/high) for grouping
+    df['draw_group'] = pd.cut(df['draw_pct'].fillna(0), bins=[-0.1, 0.333, 0.666, 1.0], labels=['low', 'mid', 'high'])
+
+    # Create cd_key if not present
+    if 'cd_key' not in df.columns:
+        df['cd_key'] = df['course_clean'] + '_' + df['distance_band']
+
+    # Build a combined key to compute group-level running stats without leakage
+    df['cd_draw_key'] = df['cd_key'].astype(str) + '_' + df['draw_group'].astype(str)
+
+    # Compute runs and cumulative wins for each cd_draw_key (shifted to exclude current row)
+    df['dg_runs'] = df.groupby('cd_draw_key').cumcount()
+    df['dg_wins'] = df.groupby('cd_draw_key')['won'].cumsum().shift(1).fillna(0)
+
+    # Draw-group win rate (fallback to cd_win_rate if insufficient history)
+    df['draw_group_win_rate'] = np.where(
+        df['dg_runs'] > 0,
+        df['dg_wins'] / df['dg_runs'],
+        df.get('cd_win_rate', 0)
+    )
+
+    # Fill NAs
+    df['draw_group_win_rate'] = df['draw_group_win_rate'].fillna(0)
+
+    # Clean up helper columns
+    df = df.drop(columns=['cd_draw_key', 'dg_runs', 'dg_wins'])
+
+    print("  Draw features: draw, draw_pct, draw_group_win_rate")
+    return df
+
 def engineer_class_step(df):
     """
     Calculate class movement (stepping up/down in class).
@@ -325,6 +371,8 @@ def engineer_all_features(df):
     
     df = engineer_career_features(df)
     df = engineer_course_distance_form(df)
+    # Draw features depend on cd_key and historical wins, compute early
+    df = engineer_draw_features(df)
     df = engineer_class_step(df)
     df = engineer_rating_trend(df)
     df = engineer_recent_form(df)
@@ -378,6 +426,8 @@ def prepare_training_data(df):
         
         # Race quality (from scorer)
         'race_score',
+        # Draw related
+        'draw', 'draw_pct', 'draw_group_win_rate',
         
         # Jockey features
         'jockey_career_runs', 'jockey_career_win_rate',
