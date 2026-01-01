@@ -8,12 +8,17 @@ Quick wins that can be implemented with your existing data infrastructure and Th
 
 **Impact**: High for sprint races; lower for longer distances  
 **Difficulty**: Easy  
-**Current Status**: Not in model
+**Current Status**: Implemented
 
 ### Why It Matters
 - Sprint races (5-7f): High draw often advantaged on many UK courses
 - Draw bias varies by course, going conditions, and track configuration
 - Can be a 5-10% edge on certain tracks
+
+### Implementation
+- Status: Implemented in the codebase — training-time draw features and prediction-time extraction are present.
+- Files: `scripts/phase3_build_horse_model.py` (draw engineering) and `scripts/predict_todays_races.py` (prediction-time extraction).
+- Artifacts & results: model artifacts and ablation summaries saved under `models/` (see `models/ablation_no_draw_metrics.txt` and `models/ablation_sprint_summary.txt`).
 
 ### Data Available
 The Racing API returns `draw` field in racecard runners.
