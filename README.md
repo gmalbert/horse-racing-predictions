@@ -211,6 +211,9 @@ streamlit run predictions.py
 
 The app will open in your browser at `http://localhost:8501`
 
+Note: The dashboard now includes a "Today & Tomorrow" predictions tab. It can generate predictions for the current date and for the next day; the UI only shows fetch/generate controls for days that still need data.
+
+
 [Back to Top](#table-of-contents)
 
 ---
@@ -389,6 +392,10 @@ python scripts/phase3_build_horse_model.py
 
 # Score upcoming fixtures
 python scripts/score_fixture_calendar.py
+
+# Generate daily predictions (script now accepts a `--date` parameter)
+python scripts/predict_todays_races.py            # predicts for today (default)
+python scripts/predict_todays_races.py --date 2026-01-01  # predict for a specific date
 ```
 
 [Back to Top](#table-of-contents)
