@@ -1,4 +1,4 @@
-# Horse Racing Predictions - AI Coding Agent Instructions
+﻿# Horse Racing Predictions - AI Coding Agent Instructions
 
 ## Project Overview
 
@@ -50,9 +50,8 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Model artifacts**: Stored in `models/` (gitignored); training scripts in `scripts/`
 - **Feature engineering**: Pure functions preferred; career stats use expanding windows to avoid lookahead bias
 - **UI**: Streamlit app in `predictions.py` with tabs for data exploration, ML predictions, value betting
- - **UI**: Streamlit app in `predictions.py` with tabs for data exploration, ML predictions, value betting
-   - Predictions tab: `Today & Tomorrow` — generates and displays predictions for the current date and the next day.
-   - Behavior: the UI shows fetch/generate controls only for days that don't yet have generated predictions (keeps the interface minimal once data exists).
+  - Predictions tab: `Today & Tomorrow` — generates and displays predictions for the current date and the next day.
+  - Behavior: the UI shows fetch/generate controls only for days that don't yet have generated predictions (keeps the interface minimal once data exists).
 
 ## Developer workflows (commands you can run)
 - **Verify API access**: `python examples/api_example.py` or `python examples/odds_api_example.py`
@@ -61,8 +60,6 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Run UI**: `streamlit run predictions.py` (loads `data/processed/race_scores.parquet` and `data/logo.png`)
 - **Generate predictions**: `python scripts/predict_todays_races.py` or `python scripts/predict_todays_races.py --date 2025-12-31` (outputs `data/processed/predictions_YYYY-MM-DD.csv`)
 - **Fetch racecards**: `python scripts/fetch_racecards.py --date 2025-12-31` (saves to `data/raw/racecards_YYYY-MM-DD.json`)
- - **Fetch racecards**: `python scripts/fetch_racecards.py --date 2025-12-31` (saves to `data/raw/racecards_YYYY-MM-DD.json`)
- - **Generate predictions (script accepts a date)**: `python scripts/predict_todays_races.py --date 2025-12-31` (outputs to `data/processed/predictions_YYYY-MM-DD.csv`)
 - **Pre-compile check**: `python -c "import py_compile,glob; [py_compile.compile(p, doraise=True) for p in glob.glob('**/*.py', recursive=True)]"`
 
 ## Odds conversion and value betting
@@ -91,8 +88,8 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **UI details**: `predictions.py` — filters (Year, Course, Horse contains, Finish Position); displays normalized dates; raw `pos` column shown as "Finish Position"
 - **ML pipeline**: `scripts/phase2_score_races.py` (race scoring), `scripts/phase3_build_horse_model.py` (XGBoost training)
 
-## Streamlit API changes (URGENT - Dec 31, 2025)
-- The `use_container_width` parameter is removed after 2025-12-31
+## Streamlit API changes (note: effective after 2025)
+- The `use_container_width` parameter has been removed in newer Streamlit versions.
 - **Replacement mapping**:
   - `use_container_width=True` → `width='stretch'`
   - `use_container_width=False` → `width='content'`
