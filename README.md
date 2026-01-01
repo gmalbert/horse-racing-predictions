@@ -485,3 +485,26 @@ Both APIs have 500 calls/month limits:
 **License:** See repository for license information
 
 [Back to Top](#table-of-contents)
+
+---
+
+## Short-Term Data Enhancements
+
+Quick actionable feature improvements (1-4 weeks) to improve predictive performance and betting edge. Full details and code snippets are in [docs/SHORT_TERM_DATA_ENHANCEMENTS.md](docs/SHORT_TERM_DATA_ENHANCEMENTS.md).
+
+- **Draw Position (sprints)**: Add `draw`, `draw_pct`, and historical `draw_group_win_rate` (course+distance+going expanding-window). High impact on 5-7f races.
+- **Weight Carried (handicaps)**: Parse weights to `weight_lbs`, add `weight_vs_avg`, `is_top_weight`, and `weight_change` features.
+- **Age Enhancements**: Add `age`, `is_peak_age`, `is_3yo`, `is_veteran`, and `age_vs_avg` to model improvement for age-dependent performance.
+- **Trainer Recent Form**: Rolling 14/30-day trainer win rates (`trainer_win_rate_14d`, `trainer_win_rate_30d`) to capture hot/cold streaks.
+- **Beaten Lengths (BTN)**: Parse `btn` to `btn_lengths`, `avg_btn_last_3`, and `unlucky_last` for richer form signals.
+- **Equipment / Headgear**: Flags for `has_blinkers`, `has_visor`, `first_time_blinkers`, and `gear_changed` (first-time gear is predictive).
+- **Race Condition Refinements**: `is_handicap`, `is_maiden`, `is_pattern`, prize tiers (`prize_log`), and finer distance bands (`is_sprint`, `is_mile`, `is_middle`, `is_staying`).
+
+Quick checklist:
+
+- Update `scripts/phase3_build_horse_model.py` to engineer these features.
+- Expose prediction-time extraction in `scripts/predict_todays_races.py` (use local `data/raw/` racecards).
+- Add new features to `models/feature_columns.txt` and retrain (`python scripts/phase3_build_horse_model.py`).
+- Validate on holdout and per-course/going slices (start with sprint tracks).
+
+Expected near-term impact: combined +0.03–0.08 AUC if implemented and tuned (see docs for per-feature estimates).

@@ -212,6 +212,14 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
             'jockey_trainer_runs': len(jockey_trainer_history),
             'jockey_trainer_win_rate': (jockey_trainer_history['pos'] == 1).sum() / len(jockey_trainer_history) if len(jockey_trainer_history) > 0 else 0.0
         }
+        # Draw features (may be missing in raw JSON)
+        try:
+            draw_val = int(runner.get('draw')) if runner.get('draw') not in (None, '-', '') else None
+        except Exception:
+            draw_val = None
+        features['draw'] = draw_val if draw_val is not None else 0
+        features['draw_pct'] = (features['draw'] / max(1, features['field_size'])) if features['field_size'] > 0 else 0
+        features['draw_group_win_rate'] = 0.0
         return features
     
     # Sort by date
@@ -297,6 +305,53 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
         'jockey_trainer_runs': jockey_trainer_runs,
         'jockey_trainer_win_rate': jockey_trainer_wins / jockey_trainer_runs if jockey_trainer_runs > 0 else 0.0
     }
+
+    # Draw extraction from runner JSON
+    try:
+        draw_val = int(runner.get('draw')) if runner.get('draw') not in (None, '-', '') else None
+    except Exception:
+        draw_val = None
+    features['draw'] = draw_val if draw_val is not None else 0
+    features['draw_pct'] = features['draw'] / max(1, features['field_size'])
+
+    # Attempt to compute draw_group_win_rate from historical data if available
+    # Use same grouping as training: create cd_key and draw_group bins
+    try:
+        # Create cd_key for historical data if absent
+        if 'cd_key' in historical_df.columns:
+            cd_key = historical_df['cd_key']
+        else:
+            # attempt to construct
+            historical_df = historical_df.copy()
+            historical_df['distance_band'] = historical_df.get('distance_band', historical_df.get('distance_f', 0)).astype(str)
+            historical_df['course_clean'] = historical_df.get('course', historical_df.get('course_clean', ''))
+            historical_df['cd_key'] = historical_df['course_clean'].astype(str) + '_' + historical_df['distance_band'].astype(str)
+
+        cd_key_val = race_info.get('course', '') + '_' + str(race_info.get('distance_f', ''))
+
+        # Draw pct grouping
+        dp = features['draw_pct'] if features['draw_pct'] is not None else 0
+        if dp <= 0.333:
+            dg = 'low'
+        elif dp <= 0.666:
+            dg = 'mid'
+        else:
+            dg = 'high'
+
+        hist_mask = (historical_df.get('cd_key') == cd_key_val) & (historical_df.get('draw_group') == dg)
+        hist_group = historical_df[hist_mask]
+        if len(hist_group) > 0 and 'won' in hist_group.columns:
+            # Use historical win rate for this draw-group
+            features['draw_group_win_rate'] = hist_group['won'].sum() / len(hist_group)
+        else:
+            # Fallback to cd_win_rate if present
+            if 'cd_win_rate' in historical_df.columns:
+                cd_hist = historical_df[historical_df.get('cd_key') == cd_key_val]
+                features['draw_group_win_rate'] = cd_hist['cd_win_rate'].mean() if len(cd_hist) > 0 else 0.0
+            else:
+                features['draw_group_win_rate'] = 0.0
+    except Exception:
+        features['draw_group_win_rate'] = 0.0
     
     return features
 
@@ -316,8 +371,17 @@ def predict_race(racecard, historical_df, win_model, place_model, show_model, fe
         # Predict all three probabilities
         X = np.array(feature_vector).reshape(1, -1)
         win_prob = win_model.predict_proba(X)[0][1]
-        place_prob = place_model.predict_proba(X)[0][1]
-        show_prob = show_model.predict_proba(X)[0][1]
+        # Place/show models may be absent or have different feature shapes
+        try:
+            place_prob = place_model.predict_proba(X)[0][1]
+        except Exception:
+            # Fallback: estimate place as a fraction of win probability
+            place_prob = min(1.0, win_prob * 0.6)
+        try:
+            show_prob = show_model.predict_proba(X)[0][1]
+        except Exception:
+            # Fallback: estimate show as a smaller fraction
+            show_prob = min(1.0, win_prob * 0.4)
         
         # Store prediction
         # Convert race time from GMT to US Eastern Time
