@@ -1819,16 +1819,16 @@ def main():
             # No predictions for today
             st.warning(f"⏳ No predictions found for today ({today_str})")
             
-            st.info("**To generate predictions for today's races:**\n\n"
-                    "1. Fetch today's racecards:\n"
-                    "   ```bash\n"
-                    f"   python scripts/fetch_racecards.py --date {today_str}\n"
-                    "   ```\n\n"
-                    "2. Run prediction script:\n"
-                    "   ```bash\n"
-                    "   python scripts/predict_todays_races.py\n"
-                    "   ```\n\n"
-                    "This will analyze all races and generate win probabilities for each horse.")
+            # st.info("**To generate predictions for today's races:**\n\n"
+            #         "1. Fetch today's racecards:\n"
+            #         "   ```bash\n"
+            #         f"   python scripts/fetch_racecards.py --date {today_str}\n"
+            #         "   ```\n\n"
+            #         "2. Run prediction script:\n"
+            #         "   ```bash\n"
+            #         "   python scripts/predict_todays_races.py\n"
+            #         "   ```\n\n"
+            #         "This will analyze all races and generate win probabilities for each horse.")
             
             # Show future watchlist
             st.markdown("---")
