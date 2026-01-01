@@ -222,15 +222,47 @@ def main():
             if "Date" in fixtures.columns:
                 fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
                 fixtures = fixtures.sort_values("Date")
+                
+                # Filter to upcoming races only
+                today = pd.Timestamp.today().normalize()
+                upcoming = fixtures[fixtures["Date"] >= today].copy()
 
-            with st.expander("Upcoming Schedule 🗓️", expanded=False):
-                show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in fixtures.columns]
-                fixtures_display = fixtures[show_cols].head(200).copy()
-                if "Date" in fixtures_display.columns:
-                    fixtures_display["Date"] = fixtures_display["Date"].dt.strftime("%Y-%m-%d")
-
-                height = get_dataframe_height(fixtures_display, max_height=400)
-                st.dataframe(fixtures_display, hide_index=True, height=height)
+            with st.expander("📅 Upcoming Schedule (Class 1-4 Races)", expanded=False):
+                st.caption("Complete fixture calendar for premium races")
+                
+                if len(upcoming) > 0:
+                    # Summary metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("📊 Total Fixtures", f"{len(upcoming):,}")
+                    with col2:
+                        unique_courses = upcoming["Course"].nunique() if "Course" in upcoming.columns else 0
+                        st.metric("🏇 Courses", unique_courses)
+                    with col3:
+                        if "Surface" in upcoming.columns:
+                            turf_count = (upcoming["Surface"] == "Turf").sum()
+                            st.metric("🌱 Turf Races", f"{turf_count:,}")
+                    with col4:
+                        date_range = upcoming["Date"].max() - upcoming["Date"].min()
+                        st.metric("📆 Calendar Span", f"{date_range.days} days")
+                    
+                    st.markdown("---")
+                    
+                    # Display table
+                    show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in upcoming.columns]
+                    fixtures_display = upcoming[show_cols].head(200).copy()
+                    
+                    # Format date column
+                    if "Date" in fixtures_display.columns:
+                        fixtures_display["Date"] = fixtures_display["Date"].dt.strftime("%a %d %b %Y")
+                    
+                    st.markdown(f"##### Next {len(fixtures_display)} Upcoming Fixtures")
+                    height = get_dataframe_height(fixtures_display, max_height=400)
+                    st.dataframe(fixtures_display, hide_index=True, height=height, width='stretch')
+                    
+                    st.caption("💡 **Tip:** Use the 'Predicted Fixtures' tab to see profitability scores for these races")
+                else:
+                    st.info("✨ No upcoming fixtures in calendar")
         except Exception as e:
             st.warning(f"Could not load upcoming schedule: {e}")
 
@@ -1150,11 +1182,16 @@ def main():
             
             if num_days_needing_data == 2:
                 col1a, col1b, col1c = st.columns([2, 2, 2])
-            else:
+            elif today_needs_data:
+                # Only today needs data
                 col1a, col1c = st.columns([3, 2])
                 col1b = None
+            else:
+                # Only tomorrow needs data
+                col1b, col1c = st.columns([3, 2])
+                col1a = None
             
-            if today_needs_data:
+            if today_needs_data and col1a:
                 with col1a:
                     if st.button("📥 Fetch Today's Racecards", type="secondary", width='stretch'):
                         with st.spinner("📡 Fetching racecards from external source... Please wait..."):
@@ -1251,11 +1288,16 @@ def main():
             
             if num_days_needing_data == 2:
                 col2a, col2b, col2c = st.columns([2, 2, 1])
-            else:
+            elif today_needs_data:
+                # Only today needs data
                 col2a, col2c = st.columns([3, 2])
                 col2b = None
+            else:
+                # Only tomorrow needs data
+                col2b, col2c = st.columns([3, 2])
+                col2a = None
             
-            if today_needs_data:
+            if today_needs_data and col2a:
                 with col2a:
                     if st.button("🔄 Generate Today's Predictions", type="primary", width='stretch'):
                         # Check if racecards exist
@@ -1385,21 +1427,34 @@ def main():
             
             st.markdown("---")
         
-        # Display predictions for today and tomorrow
-        # Process each day separately
-        for day_name, predictions_file, racecards_file, date_str in [
-            ("Today", today_predictions_file, today_racecards_file, today_str),
-            ("Tomorrow", tomorrow_predictions_file, tomorrow_racecards_file, tomorrow_str)
-        ]:
-            if not predictions_file.exists():
-                continue
+        # Load and combine predictions from both days
+        all_predictions = []
+        
+        if today_predictions_file.exists():
+            today_df = pd.read_csv(today_predictions_file)
+            today_df['date'] = today_str
+            today_df['day_label'] = 'Today'
+            all_predictions.append(today_df)
+        
+        if tomorrow_predictions_file.exists():
+            tomorrow_df = pd.read_csv(tomorrow_predictions_file)
+            tomorrow_df['date'] = tomorrow_str
+            tomorrow_df['day_label'] = 'Tomorrow'
+            all_predictions.append(tomorrow_df)
+        
+        if not all_predictions:
+            st.info("📅 No predictions available. Use the buttons above to fetch racecards and generate predictions.")
+        else:
+            # Combine all predictions
+            predictions = pd.concat(all_predictions, ignore_index=True)
             
-            st.markdown(f"## 📅 {day_name}'s Predictions ({date_str})")
+            # st.markdown(f"## 📅 Predictions for Today & Tomorrow")
             
-            # Load predictions
-            predictions = pd.read_csv(predictions_file)
-            
-            st.success(f"✅ Loaded {len(predictions)} horse predictions from {len(predictions['course'].unique())} races")
+            # Show summary by day
+            for day_label in predictions['day_label'].unique():
+                day_df = predictions[predictions['day_label'] == day_label]
+                day_date = day_df['date'].iloc[0]
+                st.success(f"✅ {day_label} ({day_date}): {len(day_df)} horses from {len(day_df['course'].unique())} races")
             
             # Handicap Opportunities Summary
             st.markdown("##### 🎯 Handicap Betting Opportunities")
@@ -1452,6 +1507,8 @@ def main():
                 ].copy()
                 for _, horse in class_droppers.iterrows():
                     handicap_opportunities.append({
+                        'date': horse['date'],
+                        'day_label': horse['day_label'],
                         'race_time': horse['race_time'],
                         'course': horse['course'],
                         'horse': horse['horse'],
@@ -1468,6 +1525,8 @@ def main():
                 ].copy()
                 for _, horse in well_in.iterrows():
                     handicap_opportunities.append({
+                        'date': horse['date'],
+                        'day_label': horse['day_label'],
                         'race_time': horse['race_time'],
                         'course': horse['course'],
                         'horse': horse['horse'],
@@ -1477,7 +1536,7 @@ def main():
                     })
             
             # 3. Bottom-Weight Value (lightest in race with decent win %)
-            for race_key, race_df in predictions.groupby(['course', 'race_time']):
+            for race_key, race_df in predictions.groupby(['date', 'course', 'race_time']):
                 min_weight = race_df['weight_lbs'].min()
                 bottom_weight_horses = race_df[
                     (race_df['weight_lbs'] == min_weight) & 
@@ -1485,6 +1544,8 @@ def main():
                 ]
                 for _, horse in bottom_weight_horses.iterrows():
                     handicap_opportunities.append({
+                        'date': horse['date'],
+                        'day_label': horse['day_label'],
                         'race_time': horse['race_time'],
                         'course': horse['course'],
                         'horse': horse['horse'],
@@ -1494,7 +1555,7 @@ def main():
                     })
             
             # 4. Top-Weight Traps (heaviest in race with low win %)
-            for race_key, race_df in predictions.groupby(['course', 'race_time']):
+            for race_key, race_df in predictions.groupby(['date', 'course', 'race_time']):
                 max_weight = race_df['weight_lbs'].max()
                 top_weight_traps = race_df[
                     (race_df['weight_lbs'] == max_weight) & 
@@ -1502,6 +1563,8 @@ def main():
                 ]
                 for _, horse in top_weight_traps.iterrows():
                     handicap_opportunities.append({
+                        'date': horse['date'],
+                        'day_label': horse['day_label'],
                         'race_time': horse['race_time'],
                         'course': horse['course'],
                         'horse': horse['horse'],
@@ -1517,7 +1580,7 @@ def main():
                 # Format for display
                 display_opp = opp_df.copy()
                 display_opp['win_prob'] = display_opp['win_prob'].apply(lambda x: f"{x:.1%}")
-                display_opp.columns = ['Race Time', 'Course', 'Horse', 'Type', 'Win %', 'Details']
+                display_opp.columns = ['Date', 'Day', 'Race Time', 'Course', 'Horse', 'Type', 'Win %', 'Details']
                 
                 st.dataframe(
                     display_opp,
@@ -1546,15 +1609,15 @@ def main():
             st.markdown("---")
             
             # Top predictions across all races
-            st.markdown("##### 🏆 Top 25 Predictions (All Races Today)")
+            st.markdown("##### 🏆 Top 25 Predictions (All Races)")
             
             # Check if odds column exists
             has_odds = 'bookmaker_odds' in predictions.columns
             
             if has_odds:
-                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
+                display_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
             else:
-                display_cols = ['race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'race_class', 'distance_f', 'ofr']
+                display_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'race_class', 'distance_f', 'ofr']
             
             top_25 = predictions.nlargest(25, 'win_probability')[display_cols].copy()
             
@@ -1564,9 +1627,9 @@ def main():
             
             if has_odds:
                 top_25['bookmaker_odds'] = top_25['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
-                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
+                top_25.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
             else:
-                top_25.columns = ['Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
+                top_25.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
             st.dataframe(top_25, hide_index=True, width='stretch')
             
@@ -1583,10 +1646,10 @@ def main():
             st.markdown("##### 📋 Race-by-Race Predictions")
             
             # Group by race
-            races = predictions.groupby(['race_time', 'course', 'race_name']).size().reset_index()[['race_time', 'course', 'race_name']]
+            races = predictions.groupby(['date', 'day_label', 'race_time', 'course', 'race_name']).size().reset_index()[['date', 'day_label', 'race_time', 'course', 'race_name']]
             
             # Race selector
-            race_options = [f"{row['race_time']} - {row['course']} - {row['race_name'][:50]}" for _, row in races.iterrows()]
+            race_options = [f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']} - {row['race_name'][:40]}" for _, row in races.iterrows()]
             
             selected_race_idx = st.selectbox(
                 "Select a race to see detailed predictions:",
@@ -1598,6 +1661,7 @@ def main():
             
             # Filter predictions for selected race
             race_preds = predictions[
+                (predictions['date'] == selected_race_info['date']) &
                 (predictions['race_time'] == selected_race_info['race_time']) &
                 (predictions['course'] == selected_race_info['course'])
             ].copy()
@@ -1606,15 +1670,18 @@ def main():
             race_preds = race_preds.sort_values('win_probability', ascending=False)
             
             # Race details
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3, col4, col5 = st.columns(5)
             with col1:
-                st.metric("Course", selected_race_info['course'])
+                st.metric("Day", selected_race_info['day_label'])
             with col2:
-                st.metric("Time", selected_race_info['race_time'])
+                st.metric("Date", selected_race_info['date'])
             with col3:
-                st.metric("Runners", len(race_preds))
+                st.metric("Course", selected_race_info['course'])
             with col4:
-                st.metric("Class", race_preds.iloc[0]['race_class'])
+                st.metric("Time", selected_race_info['race_time'])
+            with col5:
+                race_class = race_preds.iloc[0]['race_class']
+                st.metric("Class & Runners", f"Class {race_class} ({len(race_preds)})")
             
             # Top picks summary
             st.markdown("##### 🏆 Top Picks")
@@ -1953,20 +2020,16 @@ def main():
             #            # This is a value bet
             #        ```
             #     """)
-            
-            # Add separator between days
-            if day_name == "Today" and tomorrow_predictions_file.exists():
-                st.markdown("---")
-                st.markdown("---")  # Extra separator between days
         
         # If no predictions exist for either day, show watchlist
         if not today_predictions_file.exists() and not tomorrow_predictions_file.exists():
             st.warning(f"⏳ No predictions found for today ({today_str}) or tomorrow ({tomorrow_str})")
-            st.info("Use the buttons above to fetch racecards and generate predictions.")
+            st.info("💡 Use the buttons above to fetch racecards and generate predictions.")
             
             # Show future watchlist
             st.markdown("---")
-            st.markdown("##### 📅 Upcoming High-Value Races")
+            st.markdown("### 📅 Upcoming High-Value Races")
+            st.caption("Target races identified by profitability scoring system")
             
             watchlist_file = BASE_DIR / "data" / "processed" / "betting_watchlist.csv"
             
@@ -1977,21 +2040,45 @@ def main():
                 future = watchlist[watchlist['date'] > pd.Timestamp.now()].copy()
                 
                 if len(future) > 0:
-                    future_sorted = future.sort_values('date').head(10)
+                    # Summary metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("📊 Total Races", len(future))
+                    with col2:
+                        avg_score = future['race_score'].mean()
+                        st.metric("⭐ Avg Score", f"{avg_score:.1f}/100")
+                    with col3:
+                        total_prize = future['prize'].sum()
+                        st.metric("💰 Total Prize Money", f"£{total_prize:,.0f}")
+                    with col4:
+                        unique_courses = future['course'].nunique()
+                        st.metric("🏇 Courses", unique_courses)
+                    
+                    st.markdown("---")
+                    
+                    # Top 10 races
+                    st.markdown("##### 🎯 Top 10 Target Races (By Score)")
+                    future_sorted = future.nlargest(10, 'race_score')
                     
                     display_cols = ['date', 'course', 'class', 'dist_f', 'prize', 'race_score']
                     display_df = future_sorted[display_cols].copy()
-                    display_df['date'] = display_df['date'].dt.strftime('%Y-%m-%d')
+                    
+                    # Format columns
+                    display_df['date'] = display_df['date'].dt.strftime('%a %d %b %Y')
                     display_df['prize'] = display_df['prize'].apply(lambda x: f"£{x:,.0f}")
                     display_df['dist_f'] = display_df['dist_f'].apply(lambda x: f"{x}f")
+                    display_df['race_score'] = display_df['race_score'].apply(lambda x: f"{x:.0f}")
                     display_df.columns = ['Date', 'Course', 'Class', 'Distance', 'Prize', 'Score']
                     
                     st.dataframe(display_df, hide_index=True, width='stretch')
-                    st.caption("Fetch racecards 24-48h before race date to get predictions")
+                    
+                    st.markdown("---")
+                    st.caption("⏰ **Tip:** Fetch racecards 24-48 hours before race date for best results")
+                    st.caption("💡 Race scores are based on class quality, prize money, course tier, and race patterns")
                 else:
-                    st.info("No upcoming races in watchlist")
+                    st.info("✨ No upcoming races in watchlist")
             else:
-                st.info("Run `python scripts/apply_betting_strategy.py` to generate race watchlist")
+                st.info("💡 Run `python scripts/apply_betting_strategy.py` to generate race watchlist")
 
 
 if __name__ == "__main__":

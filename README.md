@@ -71,6 +71,19 @@ A full-featured web interface for exploring race data, analyzing predictions, an
   - Combines actual + predicted race data
   - Shows date, course, class, prize, distance, score
 
+### UI Updates (January 2026)
+
+Recent improvements to the Streamlit dashboard (`predictions.py`) include:
+
+- **Combined Today & Tomorrow predictions view:** The "Today & Tomorrow" tab now loads both days' predictions into a single, unified table and summary so you can see both days together.
+- **Dates added throughout:** All prediction tables now include a `Date` column and `Day` label (Today/Tomorrow) so races are clearly identified by date.
+- **Handicap opportunities updated:** Handicap opportunities and summary tables include `Date` and `Day` columns and group by date+course+race_time for correct context across days.
+- **Top predictions table:** The Top 25 predictions table now shows `Day` and `Date` columns alongside odds, class, distance and OR.
+- **Race selector enhanced:** The race-by-race selector includes day and date (e.g., "Today (2026-01-01) - 14:00 - Newmarket") to avoid ambiguity when multiple days are present.
+- **Upcoming schedule improvements:** The fixtures expander now filters to future fixtures, shows summary metrics (total fixtures, courses, turf count, calendar span) and displays nicely formatted dates.
+- **General UX fixes:** Fixed button visibility and layout bugs so prediction-generation buttons appear correctly when only one day's predictions are missing.
+
+
 ### Race Profitability Scorer
 
 **Phase 2 Algorithm** - Identifies the most profitable races to bet on:
