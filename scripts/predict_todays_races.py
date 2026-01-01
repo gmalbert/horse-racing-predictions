@@ -5,8 +5,13 @@ Reads racecards from data/raw/racecards_YYYY-MM-DD.json
 Generates horse features from historical data
 Runs ML model predictions
 Outputs predictions to data/processed/predictions_YYYY-MM-DD.csv
+
+Usage:
+  python scripts/predict_todays_races.py              # Use today's date
+  python scripts/predict_todays_races.py --date 2025-12-31  # Specific date
 """
 
+import argparse
 import json
 import pickle
 import sys
@@ -367,16 +372,37 @@ def predict_race(racecard, historical_df, win_model, place_model, show_model, fe
 
 
 def main():
-    # Get today's date
-    today = datetime.now().strftime('%Y-%m-%d')
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Predict win probabilities for races using trained ML model'
+    )
+    parser.add_argument(
+        '--date',
+        type=str,
+        default=None,
+        help='Date to predict (YYYY-MM-DD). Defaults to today.'
+    )
+    args = parser.parse_args()
+    
+    # Get target date
+    if args.date:
+        target_date = args.date
+        # Validate date format
+        try:
+            datetime.strptime(target_date, '%Y-%m-%d')
+        except ValueError:
+            print(f"[ERROR] Invalid date format: {target_date}. Use YYYY-MM-DD")
+            return
+    else:
+        target_date = datetime.now().strftime('%Y-%m-%d')
     
     print("="*60)
-    print(f"PREDICTING TODAY'S RACES ({today})")
+    print(f"PREDICTING RACES FOR {target_date}")
     print("="*60)
     
     # Load components
     win_model, place_model, show_model, feature_cols = load_models()
-    racecards = load_racecards(today)
+    racecards = load_racecards(target_date)
     historical_df = load_historical_data()
     
     if not racecards:
@@ -407,7 +433,7 @@ def main():
     
     # Save all predictions
     predictions_df = pd.DataFrame(all_predictions)
-    output_file = DATA_DIR / "processed" / f"predictions_{today}.csv"
+    output_file = DATA_DIR / "processed" / f"predictions_{target_date}.csv"
     predictions_df.to_csv(output_file, index=False)
     
     print("\n" + "="*60)
