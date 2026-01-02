@@ -38,14 +38,8 @@ def engineer_draw_features(df):
     df = df.copy()
     
     # Extract draw position
-    df['draw'] = pd.to_numeric(df['draw'], errors='coerce').fillna(0)
-    
-    # Draw position relative to field size (0=rail, 1=widest)
     df['draw_pct'] = df['draw'] / df['field_size'].clip(lower=1)
     
-    # Historical draw bias by course+distance+going
-    # Calculate BEFORE current race (expanding window)
-    df['date_dt'] = pd.to_datetime(df['date'])
     df = df.sort_values(['course_clean', 'dist_f', 'date_dt'])
     
     # Group draw positions into bins (low/middle/high)
@@ -135,7 +129,6 @@ def engineer_weight_features(df):
     # Parse weight (lbs or st-lb format)
     def parse_weight_lbs(weight_str):
         if pd.isna(weight_str):
-            return np.nan
         weight_str = str(weight_str)
         
         # Format: "9-7" (9 stone 7 lbs) or just "133" (lbs)
@@ -153,8 +146,6 @@ def engineer_weight_features(df):
     df['weight_lbs'] = df['wgt'].apply(parse_weight_lbs)
     
     # Weight relative to race (top weight = high, bottom = low)
-    df['weight_rank'] = df.groupby(['date', 'course', 'off'])['weight_lbs'].rank(ascending=False)
-    df['weight_vs_avg'] = df.groupby(['date', 'course', 'off'])['weight_lbs'].transform(
         lambda x: x - x.mean()
     )
     

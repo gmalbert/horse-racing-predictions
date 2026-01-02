@@ -52,6 +52,13 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **UI**: Streamlit app in `predictions.py` with tabs for data exploration, ML predictions, value betting
   - Predictions tab: `Today & Tomorrow` — generates and displays predictions for the current date and the next day.
   - Behavior: the UI shows fetch/generate controls only for days that don't yet have generated predictions (keeps the interface minimal once data exists).
+  - New: Detailed race-level metrics (Exacta/Trifecta) and per-horse cumulative probabilities
+    - `predictions.py` now computes and displays: Exacta (1-2 in order) and Trifecta (1-2-3 in order) probability estimates for the top 3 model picks in the race detail view.
+    - For each horse in the race, the app now exposes *cumulative* finish probabilities:
+      - `Top 2 %` = P(1st) + P(2nd)
+      - `Top 3 %` = P(1st) + P(2nd) + P(3rd)
+    - The UI shows the incremental increases (e.g., "60% (+25%)" for Top 2 meaning +25% added by placing) so reviewers can see what was added at each step.
+    - Implementation note: Exacta/Trifecta probabilities are approximated via renormalization of the model's win/place/show probabilities (conditional probabilities: P(A) * P(B)/(1-P(A)) * P(C)/(1-P(A)-P(B))). This is documented in `predictions.py` and used for displaying "Fair Trifecta Odds".
 
 ## Developer workflows (commands you can run)
 - **Verify API access**: `python examples/api_example.py` or `python examples/odds_api_example.py`

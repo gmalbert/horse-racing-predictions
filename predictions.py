@@ -806,6 +806,29 @@ def main():
                         hide_index=True,
                         height=400
                     )
+
+                    # Top 10 features detailed table (leak-free)
+                    with st.expander("📘 Top 10 Features (Leak-free)"):
+                        st.markdown(
+                            """
+    | Feature | Calculation | Description |
+    |---|---|---|
+    | `field_size` | `ran` (numeric) | Number of runners declared in the race (pre-race feature) |
+    | `career_place_rate` | `groupby('horse')['top3'].cumsum().shift(1) / career_runs` | Career percentage of top-3 finishes computed from prior races only |
+    | `is_veteran` | `age >= 8` | Binary flag for horses aged 8 or older (possible decline/specialist) |
+    | `avg_last_3_pos` | mean of `pos` from last 3 races using `.shift(1)` | Recent form: average finishing position in the three most recent completed races (lower = better) |
+    | `or_change` | `or_numeric - prev_or` (uses `.shift(1)`) | Change in Official Rating since previous race (improvement/decline) |
+    | `is_pattern` | `pattern.notna()` | Flag indicating Group/Listed (stakes) races — a race-level property |
+    | `or_numeric` | numeric conversion of `or` | Official Rating assigned to the horse before the race (published) |
+    | `class_num` | numeric extracted from `class_clean` | Race class (1 = highest quality) — same for all runners in a race |
+    | `class_step` | `class_num - prev_class` (uses `.shift(1)`) | Movement in class since the horse's previous run (stepping up/down) |
+    | `age_vs_avg` | `age - race_mean_age` (grouped by race) | Horse age relative to the race average (captures maturity advantage/disadvantage) |
+
+    Notes:
+    - All historical features use `.shift(1)` or equivalent temporal ordering to avoid lookahead leakage.
+    - `prize_log` now uses total race prize pool (same value for all horses) to avoid leakage.
+    """
+                        )
             
             st.markdown("---")
             
@@ -1609,7 +1632,7 @@ def main():
             st.markdown("---")
             
             # Top predictions across all races
-            st.markdown("##### 🏆 Top 25 Predictions (All Races)")
+            st.markdown("##### 🏆 Top 50 Predictions (All Races)")
             
             # Check if odds column exists
             has_odds = 'bookmaker_odds' in predictions.columns
@@ -1619,19 +1642,20 @@ def main():
             else:
                 display_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'race_class', 'distance_f', 'ofr']
             
-            top_25 = predictions.nlargest(25, 'win_probability')[display_cols].copy()
-            
-            top_25['win_probability'] = top_25['win_probability'].apply(lambda x: f"{x:.1%}")
-            top_25['place_probability'] = top_25['place_probability'].apply(lambda x: f"{x:.1%}")
-            top_25['show_probability'] = top_25['show_probability'].apply(lambda x: f"{x:.1%}")
+            top_50 = predictions.nlargest(50, 'win_probability')[display_cols].copy()
+
+            top_50['win_probability'] = top_50['win_probability'].apply(lambda x: f"{x:.1%}")
+            top_50['place_probability'] = top_50['place_probability'].apply(lambda x: f"{x:.1%}")
+            top_50['show_probability'] = top_50['show_probability'].apply(lambda x: f"{x:.1%}")
             
             if has_odds:
-                top_25['bookmaker_odds'] = top_25['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
-                top_25.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
+                top_50['bookmaker_odds'] = top_50['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
+                top_50.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
             else:
-                top_25.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
+                top_50.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
-            st.dataframe(top_25, hide_index=True, width='stretch')
+            height = get_dataframe_height(top_50)
+            st.dataframe(top_50, hide_index=True, width='stretch', height=height)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
@@ -1698,6 +1722,99 @@ def main():
             with col3:
                 st.metric("Most Likely to SHOW", top_show['horse'], f"{top_show['show_probability']:.1%}")
             
+            # Trifecta probability (top 3 finishing in exact order 1-2-3)
+            st.markdown("---")
+            st.markdown("##### 🎯 Exacta/Trifecta Probabilities")
+            
+            # Get top 3 horses by win probability
+            top_3 = race_preds.nlargest(3, 'win_probability')
+            
+            if len(top_3) >= 3:
+                p1 = top_3.iloc[0]['win_probability']
+                p2 = top_3.iloc[1]['win_probability']
+                p3 = top_3.iloc[2]['win_probability']
+                
+                # Calculate trifecta probability (adjusted for conditional probabilities)
+                # P(A wins AND B second AND C third) = P(A wins) * P(B wins | A already won) * P(C wins | A,B already won)
+                # Approximate using renormalization: P(B second | A won) ≈ p_B / (1 - p_A)
+                if p1 < 0.99:  # Avoid division by zero
+                    p_second_given_first = p2 / (1 - p1)
+                    if (p1 + p2) < 0.99:  # Avoid division by zero
+                        p_third_given_first_second = p3 / (1 - p1 - p2)
+                        trifecta_prob = p1 * p_second_given_first * p_third_given_first_second
+                    else:
+                        trifecta_prob = 0
+                else:
+                    trifecta_prob = 0
+                
+                # Calculate exacta (top 2 in exact order)
+                exacta_prob = p1 * p_second_given_first if p1 < 0.99 else 0
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(
+                        "🥇🥈 Exacta (1-2 in order)", 
+                        f"{exacta_prob:.1%}",
+                        help=f"{top_3.iloc[0]['horse']} (1st) → {top_3.iloc[1]['horse']} (2nd)"
+                    )
+                with col2:
+                    st.metric(
+                        "🥇🥈🥉 Trifecta (1-2-3 in order)", 
+                        f"{trifecta_prob:.1%}",
+                        help=f"{top_3.iloc[0]['horse']} (1st) → {top_3.iloc[1]['horse']} (2nd) → {top_3.iloc[2]['horse']} (3rd)"
+                    )
+                with col3:
+                    # Calculate odds for trifecta bet
+                    if trifecta_prob > 0:
+                        trifecta_odds = (1 / trifecta_prob) - 1
+                        st.metric(
+                            "💰 Fair Trifecta Odds",
+                            f"{trifecta_odds:.1f}/1",
+                            help="Fair odds based on model probabilities"
+                        )
+                    else:
+                        st.metric("💰 Fair Trifecta Odds", "N/A")
+                
+                # Show the predicted top 3
+                st.caption(f"🎯 **Predicted 1-2-3:** {top_3.iloc[0]['horse']} → {top_3.iloc[1]['horse']} → {top_3.iloc[2]['horse']}")
+                
+                # Top horse finishing in top 2 or top 3
+                st.markdown("##### 🏆 Top Selection Probabilities")
+                st.caption(f"Likelihood that **{top_3.iloc[0]['horse']}** (the favorite) finishes in the money")
+                
+                # Calculate cumulative probabilities for top horse
+                # Note: place_probability = P(2nd), show_probability = P(3rd)
+                # So we need to add them to get cumulative probabilities
+                
+                top_horse_win_prob = top_3.iloc[0]['win_probability']
+                top_horse_place_prob = top_3.iloc[0]['place_probability'] if 'place_probability' in top_3.iloc[0] else 0
+                top_horse_show_prob = top_3.iloc[0]['show_probability'] if 'show_probability' in top_3.iloc[0] else 0
+                
+                # Cumulative probabilities
+                prob_top_1 = top_horse_win_prob
+                prob_top_2 = top_horse_win_prob + top_horse_place_prob  # P(1st) + P(2nd)
+                prob_top_3 = top_horse_win_prob + top_horse_place_prob + top_horse_show_prob  # P(1st) + P(2nd) + P(3rd)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric(
+                        "🥇 Win (1st)", 
+                        f"{prob_top_1:.1%}",
+                        help=f"{top_3.iloc[0]['horse']} finishes 1st"
+                    )
+                with col2:
+                    st.metric(
+                        "🥇🥈 Win or Place (1st or 2nd)", 
+                        f"{prob_top_2:.1%} (+{top_horse_place_prob:.1%})",
+                        help=f"{top_3.iloc[0]['horse']} finishes in top 2"
+                    )
+                with col3:
+                    st.metric(
+                        "🥇🥈🥉 Win, Place, or Show (top 3)", 
+                        f"{prob_top_3:.1%} (+{top_horse_show_prob:.1%})",
+                        help=f"{top_3.iloc[0]['horse']} finishes in top 3"
+                    )
+            
             # Predictions table
             st.markdown("##### 🐎 All Horse Predictions")
             st.caption("📊 Form shows recent race finishes (read right to left: rightmost = most recent race). Lower numbers = better finishes. 1 = Won, 2 = 2nd, 3 = 3rd, etc.")
@@ -1705,6 +1822,10 @@ def main():
             
             display_cols = ['horse', 'jockey', 'win_probability', 'win_odds_fractional', 'place_probability', 'place_odds_fractional', 'show_probability', 'show_odds_fractional', 'age', 'weight_lbs', 'ofr', 'form']
             display_df = race_preds[display_cols].copy()
+            
+            # Calculate cumulative probabilities for each horse
+            display_df['top_2_prob'] = race_preds['win_probability'] + race_preds['place_probability']
+            display_df['top_3_prob'] = race_preds['win_probability'] + race_preds['place_probability'] + race_preds['show_probability']
             
             # Add rankings for each category before formatting
             display_df['win_rank'] = race_preds['win_probability'].rank(ascending=False, method='min').astype(int)
@@ -1715,6 +1836,8 @@ def main():
             display_df['win_probability'] = display_df['win_probability'].apply(lambda x: f"{x:.1%}")
             display_df['place_probability'] = display_df['place_probability'].apply(lambda x: f"{x:.1%}")
             display_df['show_probability'] = display_df['show_probability'].apply(lambda x: f"{x:.1%}")
+            display_df['top_2_prob'] = display_df['top_2_prob'].apply(lambda x: f"{x:.1%}")
+            display_df['top_3_prob'] = display_df['top_3_prob'].apply(lambda x: f"{x:.1%}")
             
             # Reorder and rename columns
             display_df = display_df[[
@@ -1722,6 +1845,7 @@ def main():
                 'win_rank', 'win_probability', 'win_odds_fractional',
                 'place_rank', 'place_probability', 'place_odds_fractional',
                 'show_rank', 'show_probability', 'show_odds_fractional',
+                'top_2_prob', 'top_3_prob',
                 'age', 'weight_lbs', 'ofr', 'form'
             ]]
             display_df.columns = [
@@ -1729,6 +1853,7 @@ def main():
                 'Win Rank', 'Win %', 'Win Odds',
                 'Place Rank', 'Place %', 'Place Odds',
                 'Show Rank', 'Show %', 'Show Odds',
+                'Top 2 %', 'Top 3 %',
                 'Age', 'Weight', 'OR', 'Recent Form'
             ]
             
