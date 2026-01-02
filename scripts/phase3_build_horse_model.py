@@ -154,6 +154,333 @@ def engineer_draw_features(df):
     print("  Draw features: draw, draw_pct, draw_group_win_rate")
     return df
 
+def engineer_weight_features(df):
+    """
+    Engineer weight-related features for handicaps.
+    Parse weight strings (stone-lb or lbs) and compute race-relative features.
+    """
+    print("\nEngineering weight features...")
+    
+    df = df.copy()
+    
+    # Parse weight (lbs or st-lb format)
+    def parse_weight_lbs(weight_str):
+        if pd.isna(weight_str):
+            return np.nan
+        weight_str = str(weight_str).strip()
+        
+        # Format: "9-7" (9 stone 7 lbs) or just "133" (lbs)
+        if '-' in weight_str:
+            parts = weight_str.split('-')
+            try:
+                stones = int(parts[0])
+                lbs = int(parts[1]) if len(parts) > 1 else 0
+                return stones * 14 + lbs
+            except:
+                return np.nan
+        else:
+            try:
+                return float(weight_str)
+            except:
+                return np.nan
+    
+    # Parse wgt column if present
+    if 'wgt' in df.columns:
+        df['weight_lbs'] = df['wgt'].apply(parse_weight_lbs)
+    else:
+        df['weight_lbs'] = 140  # Default weight
+    
+    # Weight relative to race (top weight = high, bottom = low)
+    df['weight_rank'] = df.groupby(['date', 'course_clean', 'off'])['weight_lbs'].rank(ascending=False, method='min')
+    df['weight_vs_avg'] = df.groupby(['date', 'course_clean', 'off'])['weight_lbs'].transform(
+        lambda x: x - x.mean()
+    )
+    
+    # Is this horse carrying top weight?
+    df['is_top_weight'] = (df['weight_rank'] == 1).astype(int)
+    
+    # Weight change from last race
+    df['prev_weight'] = df.groupby('horse')['weight_lbs'].shift(1)
+    df['weight_change'] = df['weight_lbs'] - df['prev_weight']
+    df['weight_change'] = df['weight_change'].fillna(0)
+    
+    # Fill NAs
+    df['weight_lbs'] = df['weight_lbs'].fillna(140)
+    df['weight_vs_avg'] = df['weight_vs_avg'].fillna(0)
+    
+    print("  Weight features: weight_lbs, weight_vs_avg, is_top_weight, weight_change")
+    
+    return df
+
+def engineer_age_features(df):
+    """
+    Engineer age-related features.
+    Horses peak at different ages depending on code.
+    """
+    print("\nEngineering age features...")
+    
+    df = df.copy()
+    
+    # Parse age if present
+    if 'age' in df.columns:
+        df['age'] = pd.to_numeric(df['age'], errors='coerce').fillna(4)
+    else:
+        df['age'] = 4  # Default age
+    
+    # Age at peak performance (flat horses peak around 4-5)
+    df['is_peak_age'] = df['age'].between(4, 5).astype(int)
+    
+    # Is improving 3yo?
+    df['is_3yo'] = (df['age'] == 3).astype(int)
+    
+    # Is veteran (older, potentially declining)?
+    df['is_veteran'] = (df['age'] >= 8).astype(int)
+    
+    # Age relative to race average
+    df['age_vs_avg'] = df.groupby(['date', 'course_clean', 'off'])['age'].transform(
+        lambda x: x - x.mean()
+    )
+    df['age_vs_avg'] = df['age_vs_avg'].fillna(0)
+    
+    print("  Age features: age, is_peak_age, is_3yo, is_veteran, age_vs_avg")
+    
+    return df
+
+def engineer_trainer_form(df):
+    """
+    Calculate trainer recent form (hot/cold streak).
+    Uses rolling window to avoid lookahead.
+    """
+    print("\nEngineering trainer form...")
+    
+    df = df.copy()
+    df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
+    
+    # Sort chronologically
+    df = df.sort_values('date_dt').reset_index(drop=True)
+    
+    # Track trainer stats over rolling 14-day and 30-day windows
+    trainer_stats = {}
+    
+    features_14d = []
+    features_30d = []
+    
+    for idx, row in df.iterrows():
+        trainer = row.get('trainer', 'Unknown')
+        race_date = row['date_dt']
+        won = 1 if row.get('won', 0) == 1 else 0
+        
+        # Get stats from last 14/30 days
+        if trainer in trainer_stats:
+            history = trainer_stats[trainer]
+            
+            # Filter to last 14 days
+            recent_14d = [h for h in history if (race_date - h['date']).days <= 14]
+            if recent_14d:
+                runs_14d = len(recent_14d)
+                wins_14d = sum(h['won'] for h in recent_14d)
+                features_14d.append(wins_14d / runs_14d if runs_14d > 0 else 0.0)
+            else:
+                features_14d.append(0.0)
+            
+            # Filter to last 30 days
+            recent_30d = [h for h in history if (race_date - h['date']).days <= 30]
+            if recent_30d:
+                runs_30d = len(recent_30d)
+                wins_30d = sum(h['won'] for h in recent_30d)
+                features_30d.append(wins_30d / runs_30d if runs_30d > 0 else 0.0)
+            else:
+                features_30d.append(0.0)
+        else:
+            features_14d.append(0.0)
+            features_30d.append(0.0)
+        
+        # Update trainer history AFTER recording
+        if trainer not in trainer_stats:
+            trainer_stats[trainer] = []
+        trainer_stats[trainer].append({'date': race_date, 'won': won})
+        
+        # Keep only last 60 days of history (memory optimization)
+        trainer_stats[trainer] = [
+            h for h in trainer_stats[trainer] 
+            if (race_date - h['date']).days <= 60
+        ]
+    
+    df['trainer_win_rate_14d'] = features_14d
+    df['trainer_win_rate_30d'] = features_30d
+    
+    print("  Trainer form: trainer_win_rate_14d, trainer_win_rate_30d")
+    
+    return df
+
+def engineer_beaten_lengths_features(df):
+    """
+    Calculate beaten lengths features for form analysis.
+    Close finishes indicate better form than distant losses.
+    """
+    print("\nEngineering beaten lengths features...")
+    
+    df = df.copy()
+    
+    # Parse beaten lengths (can be decimal, fraction, or text)
+    def parse_btn(btn_str):
+        if pd.isna(btn_str) or btn_str in ['', '-', 'W', 'won']:
+            return 0.0  # Winner
+        try:
+            btn_str = str(btn_str).strip().lower()
+            if 'nk' in btn_str:
+                return 0.25
+            if 'hd' in btn_str or 'head' in btn_str:
+                return 0.1
+            if 'shd' in btn_str or 'short head' in btn_str or 'sh' in btn_str:
+                return 0.05
+            if 'nse' in btn_str or 'nose' in btn_str:
+                return 0.01
+            if 'dist' in btn_str:
+                return 30.0
+            return float(btn_str)
+        except:
+            return np.nan
+    
+    # Parse btn column if present
+    if 'btn' in df.columns:
+        df['btn_lengths'] = df['btn'].apply(parse_btn)
+    else:
+        df['btn_lengths'] = 0
+    
+    # Calculate features from recent races
+    df = df.sort_values(['horse', 'date']).reset_index(drop=True)
+    
+    # Average beaten lengths last 3 races (lower = closer finishes)
+    df['avg_btn_last_3'] = df.groupby('horse')['btn_lengths'].transform(
+        lambda x: x.shift(1).rolling(3, min_periods=1).mean()
+    )
+    
+    # Was beaten narrowly last race? (unlucky loser)
+    df['prev_btn'] = df.groupby('horse')['btn_lengths'].shift(1)
+    df['unlucky_last'] = (
+        (df['prev_btn'] <= 1.0) & (df['prev_btn'] > 0)
+    ).astype(int)
+    
+    # Fill NAs
+    df['btn_lengths'] = df['btn_lengths'].fillna(0)
+    df['avg_btn_last_3'] = df['avg_btn_last_3'].fillna(0)
+    
+    print("  BTN features: btn_lengths, avg_btn_last_3, unlucky_last")
+    
+    return df
+
+def engineer_gear_features(df):
+    """
+    Engineer equipment/headgear features.
+    First-time blinkers is historically a good angle.
+    """
+    print("\nEngineering gear features...")
+    
+    df = df.copy()
+    
+    # Common headgear codes
+    # b = blinkers, v = visor, h = hood, t = tongue strap
+    # p = cheekpieces, e = eye shield
+    
+    if 'headgear' in df.columns:
+        df['headgear'] = df['headgear'].fillna('').str.lower()
+    else:
+        df['headgear'] = ''
+    
+    # Binary flags for common gear
+    df['has_blinkers'] = df['headgear'].str.contains('b').astype(int)
+    df['has_visor'] = df['headgear'].str.contains('v').astype(int)
+    df['has_cheekpieces'] = df['headgear'].str.contains('p').astype(int)
+    df['has_tongue_tie'] = df['headgear'].str.contains('t').astype(int)
+    
+    # First time with this gear (important!)
+    df = df.sort_values(['horse', 'date']).reset_index(drop=True)
+    
+    df['prev_headgear'] = df.groupby('horse')['headgear'].shift(1).fillna('')
+    
+    # First-time blinkers (historically good angle)
+    df['first_time_blinkers'] = (
+        (df['has_blinkers'] == 1) & 
+        (~df['prev_headgear'].str.contains('b', na=False))
+    ).astype(int)
+    
+    # First-time visor
+    df['first_time_visor'] = (
+        (df['has_visor'] == 1) & 
+        (~df['prev_headgear'].str.contains('v', na=False))
+    ).astype(int)
+    
+    # Any gear change
+    df['gear_changed'] = (df['headgear'] != df['prev_headgear']).astype(int)
+    
+    print("  Gear features: has_blinkers, has_visor, first_time_blinkers, gear_changed")
+    
+    return df
+
+def engineer_race_condition_features(df):
+    """
+    Enhanced race condition features.
+    FIX: Use TOTAL race prize pool (sum of all winnings), not individual winnings.
+    """
+    print("\nEngineering enhanced race condition features...")
+    
+    df = df.copy()
+    
+    # Is this a handicap race?
+    if 'type' in df.columns:
+        df['is_handicap'] = df['type'].str.contains('Handicap|Hcap', case=False, na=False).astype(int)
+    else:
+        df['is_handicap'] = 0
+    
+    # Is this a maiden race?
+    if 'type' in df.columns:
+        df['is_maiden'] = df['type'].str.contains('Maiden', case=False, na=False).astype(int)
+    else:
+        df['is_maiden'] = 0
+    
+    # Is this a stakes/pattern race?
+    if 'pattern' in df.columns:
+        df['is_pattern'] = df['pattern'].notna().astype(int)
+    else:
+        df['is_pattern'] = 0
+    
+    # Prize money tier - FIX DATA LEAKAGE!
+    # prize_clean contains INDIVIDUAL winnings (winner gets more than losers)
+    # We need TOTAL race prize pool (same for all horses in race)
+    if 'prize_clean' in df.columns:
+        df['individual_prize'] = pd.to_numeric(
+            df['prize_clean'], 
+            errors='coerce'
+        ).fillna(0)
+        
+        # Calculate total prize pool per race (sum all winnings in the race)
+        df['race_prize_total'] = df.groupby(['date', 'course_clean', 'off'])['individual_prize'].transform('sum')
+        
+        # Use total prize pool (same for all horses) to prevent leakage
+        df['prize_log'] = np.log1p(df['race_prize_total'])
+        
+        print(f"  [FIXED] Using race prize pool instead of individual winnings")
+    elif 'prize_numeric' in df.columns:
+        df['prize_log'] = np.log1p(df['prize_numeric'])
+    else:
+        df['prize_log'] = 0
+    
+    # Distance bands (more granular)
+    if 'dist_f' in df.columns:
+        df['dist_f_num'] = pd.to_numeric(df['dist_f'], errors='coerce').fillna(8)
+    else:
+        df['dist_f_num'] = 8
+    
+    df['is_sprint'] = (df['dist_f_num'] <= 7).astype(int)
+    df['is_mile'] = df['dist_f_num'].between(7.5, 9).astype(int)
+    df['is_middle'] = df['dist_f_num'].between(9, 12).astype(int)
+    df['is_staying'] = (df['dist_f_num'] > 12).astype(int)
+    
+    print("  Race conditions: is_handicap, is_maiden, is_pattern, prize_log, is_sprint")
+    
+    return df
+
 def engineer_class_step(df):
     """
     Calculate class movement (stepping up/down in class).
@@ -373,6 +700,12 @@ def engineer_all_features(df):
     df = engineer_course_distance_form(df)
     # Draw features depend on cd_key and historical wins, compute early
     df = engineer_draw_features(df)
+    df = engineer_weight_features(df)
+    df = engineer_age_features(df)
+    df = engineer_trainer_form(df)
+    df = engineer_beaten_lengths_features(df)
+    df = engineer_gear_features(df)
+    df = engineer_race_condition_features(df)
     df = engineer_class_step(df)
     df = engineer_rating_trend(df)
     df = engineer_recent_form(df)
@@ -429,10 +762,24 @@ def prepare_training_data(df):
         # Draw related
         'draw', 'draw_pct', 'draw_group_win_rate',
         
-        # Jockey features
-        'jockey_career_runs', 'jockey_career_win_rate',
-        'jockey_course_runs', 'jockey_course_win_rate',
-        'jockey_trainer_runs', 'jockey_trainer_win_rate'
+        # Weight features
+        'weight_lbs', 'weight_vs_avg', 'is_top_weight', 'weight_change',
+        
+        # Age features
+        'age', 'is_peak_age', 'is_3yo', 'is_veteran', 'age_vs_avg',
+        
+        # Beaten lengths (historical only - btn_lengths excluded as it leaks outcome)
+        'avg_btn_last_3', 'unlucky_last',
+        
+        # Gear/headgear
+        'has_blinkers', 'has_visor', 'first_time_blinkers', 'gear_changed',
+        
+        # Race conditions
+        'is_handicap', 'is_maiden', 'is_pattern', 'prize_log',
+        'is_sprint', 'is_mile', 'is_middle', 'is_staying',
+        
+        # Jockey features (runs only - win rates excluded as they leak same-day outcomes)
+        'jockey_career_runs', 'jockey_course_runs', 'jockey_trainer_runs'
     ]
     
     # Target variable

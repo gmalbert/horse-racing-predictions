@@ -79,6 +79,9 @@ Recent improvements to the Streamlit dashboard (`predictions.py`) include:
 - **Dates added throughout:** All prediction tables now include a `Date` column and `Day` label (Today/Tomorrow) so races are clearly identified by date.
 - **Handicap opportunities updated:** Handicap opportunities and summary tables include `Date` and `Day` columns and group by date+course+race_time for correct context across days.
 - **Top predictions table:** The Top 25 predictions table now shows `Day` and `Date` columns alongside odds, class, distance and OR.
+- **Top predictions table:** The Top 50 predictions table now shows `Day` and `Date` columns alongside odds, class, distance and OR.
+- **Race detail metrics:** The race-by-race detail view now shows Exacta (1-2 in order) and Trifecta (1-2-3 in order) probability estimates for the top 3 model picks. The display also shows "Fair Trifecta Odds" derived from the model probabilities.
+- **Per-horse cumulative probabilities:** The "All Horse Predictions" table in the race detail view now includes `Top 2 %` (P(1st)+P(2nd)) and `Top 3 %` (P(1st)+P(2nd)+P(3rd)) columns; the UI shows incremental increases in parentheses (e.g., "60% (+25%)") so you can see what each step added.
 - **Race selector enhanced:** The race-by-race selector includes day and date (e.g., "Today (2026-01-01) - 14:00 - Newmarket") to avoid ambiguity when multiple days are present.
 - **Upcoming schedule improvements:** The fixtures expander now filters to future fixtures, shows summary metrics (total fixtures, courses, turf count, calendar span) and displays nicely formatted dates.
 - **General UX fixes:** Fixed button visibility and layout bugs so prediction-generation buttons appear correctly when only one day's predictions are missing.
@@ -126,6 +129,25 @@ Recent improvements to the Streamlit dashboard (`predictions.py`) include:
 - Performance metrics: win rate, place rate, consistency
 
 **Fallback Logic:** Uses RandomForest if XGBoost unavailable
+
+### Top 10 Model Features (Leak-free)
+
+| Feature | Calculation | Description |
+|---|---|---|
+| `field_size` | `ran` (numeric) | Number of runners declared in the race (pre-race feature) |
+| `career_place_rate` | `groupby('horse')['top3'].cumsum().shift(1) / career_runs` | Career percentage of top-3 finishes computed from prior races only |
+| `is_veteran` | `age >= 8` | Binary flag for horses aged 8 or older (possible decline/specialist) |
+| `avg_last_3_pos` | mean of `pos` from last 3 races using `.shift(1)` | Recent form: average finishing position in the three most recent completed races (lower = better) |
+| `or_change` | `or_numeric - prev_or` (uses `.shift(1)`) | Change in Official Rating since previous race (improvement/decline) |
+| `is_pattern` | `pattern.notna()` | Flag indicating Group/Listed (stakes) races — a race-level property |
+| `or_numeric` | numeric conversion of `or` | Official Rating assigned to the horse before the race (published) |
+| `class_num` | numeric extracted from `class_clean` | Race class (1 = highest quality) — same for all runners in a race |
+| `class_step` | `class_num - prev_class` (uses `.shift(1)`) | Movement in class since the horse's previous run (stepping up/down) |
+| `age_vs_avg` | `age - race_mean_age` (grouped by race) | Horse age relative to the race average (captures maturity advantage/disadvantage) |
+
+Notes:
+- All historical features use `.shift(1)` or equivalent temporal ordering to avoid lookahead leakage.
+- `prize_log` was previously leaking outcome information (individual winnings). The pipeline now uses total race prize pool (same value for all horses in a race) to avoid leakage.
 
 ### Fixture Calendar with Predictions
 
