@@ -248,6 +248,15 @@ The app will open in your browser at `http://localhost:8501`
 
 Note: The dashboard now includes a "Today & Tomorrow" predictions tab. It can generate predictions for the current date and for the next day; the UI only shows fetch/generate controls for days that still need data.
 
+Timezone note:
+- The Streamlit app determines "today" and "tomorrow" using the server-side timezone by default. If your server runs in UTC/GMT but you want the app to use a specific local timezone, set the `APP_TIMEZONE` environment variable to an IANA timezone (e.g., `Europe/London` or `America/New_York`) before starting the app.
+
+Example (PowerShell):
+```
+$env:APP_TIMEZONE = 'Europe/London'
+streamlit run predictions.py
+```
+
 
 [Back to Top](#table-of-contents)
 
