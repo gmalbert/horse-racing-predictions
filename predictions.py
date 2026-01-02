@@ -10,6 +10,40 @@ from pathlib import Path
 import pickle
 import subprocess
 import sys
+from datetime import datetime, timedelta
+import os
+
+try:
+    from zoneinfo import ZoneInfo
+except Exception:
+    ZoneInfo = None
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # load variables from .env into environment (APP_TIMEZONE etc.)
+except Exception:
+    # dotenv is optional; if not present we rely on the environment
+    pass
+
+
+def get_now_local(tz_name: str | None = None) -> datetime:
+    """Return a timezone-aware 'now' datetime for the given IANA tz name.
+
+    If tz_name is None, the function will consult the `APP_TIMEZONE`
+    environment variable. If ZoneInfo is unavailable or the tz name is
+    invalid, falls back to the system local timezone.
+    """
+    if tz_name is None:
+        tz_name = os.environ.get('APP_TIMEZONE')
+
+    if tz_name and ZoneInfo is not None:
+        try:
+            tz = ZoneInfo(tz_name)
+        except Exception:
+            tz = datetime.now().astimezone().tzinfo
+    else:
+        tz = datetime.now().astimezone().tzinfo
+
+    return datetime.now(tz)
 
 
 BASE_DIR = Path(__file__).parent
@@ -1179,9 +1213,13 @@ def main():
     with tab9:
         st.subheader("🎲 Today & Tomorrow's Race Predictions")
         
-        # Get today's and tomorrow's dates
-        today_str = pd.Timestamp.now().strftime('%Y-%m-%d')
-        tomorrow_str = (pd.Timestamp.now() + pd.Timedelta(days=1)).strftime('%Y-%m-%d')
+        # Get today's and tomorrow's dates using timezone-aware local time.
+        # If the server is UTC/GMT but you want a specific local timezone (e.g., for your region),
+        # set the `APP_TIMEZONE` environment variable to a valid IANA timezone string (e.g., 'Europe/London' or 'America/New_York').
+        tz_name = os.environ.get('APP_TIMEZONE')
+        now_local = get_now_local(tz_name)
+        today_str = now_local.strftime('%Y-%m-%d')
+        tomorrow_str = (now_local + timedelta(days=1)).strftime('%Y-%m-%d')
         
         # Files for today
         today_predictions_file = BASE_DIR / "data" / "processed" / f"predictions_{today_str}.csv"

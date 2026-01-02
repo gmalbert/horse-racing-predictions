@@ -104,6 +104,12 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Prefer**: `width='stretch'` for full-width tables/charts in the app
 - **Test after update**: `streamlit run predictions.py` to confirm UI renders
 
+## Timezone handling in the UI
+
+- The Streamlit app runs server-side and will use the server's system timezone by default. When the server is in UTC/GMT this can make "Today" and "Tomorrow" differ from the user's local browser date.
+- To control which timezone the app uses for determining "today"/"tomorrow", set the environment variable `APP_TIMEZONE` to a valid IANA timezone string (for example, `Europe/London`, `Europe/Dublin`, `America/New_York`).
+- The code in `predictions.py` will use `APP_TIMEZONE` when present; otherwise it falls back to the server's local timezone. If you want browser-side timezone detection, consider adding a small client-side component to pass the browser timezone to the server (not implemented by default).
+
 ## Final note
 Be conservative with API usage (cache, batch, count calls). If changes trigger API calls, ask repo owner before running live pulls.
 
