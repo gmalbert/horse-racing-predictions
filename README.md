@@ -539,3 +539,5 @@ Quick checklist:
 - Validate on holdout and per-course/going slices (start with sprint tracks).
 
 Expected near-term impact: combined +0.03–0.08 AUC if implemented and tuned (see docs for per-feature estimates).
+
+[Back to Top](#table-of-contents)
