@@ -155,8 +155,13 @@ def main():
     st.set_page_config(
         page_title="Horse Racing Predictions",
         page_icon="🏇",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="collapsed"
     )
+    
+    # Helper to show filter instruction
+    def show_filter_hint():
+        st.info("📊 **Filters available:** Click the **>>** arrow in the top-left to open sidebar filters", icon="ℹ️")
 
     # Display logo
     if LOGO_FILE.exists():
@@ -567,6 +572,7 @@ def main():
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🏇 Horses", "🏟️ Courses", "👤 Jockeys", "📈 Overall", "🔮 ML Model", "🗃️ Raw Data", "📅 Predicted Fixtures", "🎯 Betting Watchlist", "🎲 Today & Tomorrow"])
     
     with tab1:
+        show_filter_hint()
         st.subheader("Horse Performance")
         
         # For all summary tabs, use ALL filtered data (not limited by num_results)
@@ -620,6 +626,7 @@ def main():
         )
     
     with tab2:
+        show_filter_hint()
         st.subheader("Course Statistics")
         
         # For course stats, apply all filters (including course) but use ALL matching data, not limited by num_results
@@ -660,6 +667,7 @@ def main():
         )
     
     with tab3:
+        show_filter_hint()
         st.subheader("Jockey Performance")
         
         jockey_stats = analysis_df.groupby("Jockey").agg({
@@ -690,6 +698,7 @@ def main():
         )
     
     with tab4:
+        show_filter_hint()
         st.subheader("Overall Statistics")
         
         col1, col2, col3 = st.columns(3)
@@ -725,6 +734,7 @@ def main():
         )
 
     with tab5:
+        show_filter_hint()
         st.subheader("Machine Learning Model")
         
         # Load model
@@ -897,6 +907,7 @@ def main():
                         st.error(f"Error running training script: {e}")
     
     with tab6:
+        show_filter_hint()
         st.subheader("Raw Results")
 
         # Show number-of-results selector and the filtered results (this uses the
@@ -1345,7 +1356,7 @@ def main():
             st.markdown("---")
             
             # Step 2: Generate Predictions (only for days that need them)
-            st.markdown("### Step 2: Generate ML Predictions")
+            st.markdown("### Step 2: Generate Machine Learning Predictions")
             
             if num_days_needing_data == 2:
                 col2a, col2b, col2c = st.columns([2, 2, 1])
@@ -1366,7 +1377,7 @@ def main():
                             st.error(f"❌ Racecards not found for {today_str}")
                             st.info(f"Please click '📥 Fetch Today's Racecards' button above first")
                         else:
-                            with st.spinner("🤖 Running ML predictions... This may take 1-2 minutes..."):
+                            with st.spinner("🤖 Running Machine Learning predictions... This may take 1-2 minutes..."):
                                 try:
                                     # Run the prediction script
                                     result = subprocess.run(
@@ -1420,7 +1431,7 @@ def main():
                             st.error(f"❌ Racecards not found for {tomorrow_str}")
                             st.info(f"Please click '📥 Fetch Tomorrow's Racecards' button above first")
                         else:
-                            with st.spinner("🤖 Running ML predictions for tomorrow... This may take 1-2 minutes..."):
+                            with st.spinner("🤖 Running Machine Learning predictions for tomorrow... This may take 1-2 minutes..."):
                                 try:
                                     # Run the prediction script with tomorrow's date
                                     result = subprocess.run(
@@ -1480,7 +1491,7 @@ def main():
                         file_time = pd.Timestamp.fromtimestamp(tomorrow_predictions_file.stat().st_mtime)
                         st.success(f"✅ Tomorrow\n{file_time.strftime('%H:%M:%S')}")
                     else:
-                        st.info("⚠️ No tomorrow")
+                        st.info("⚠️ No predictions for tomorrow")
                 
                 # Refresh button
                 if st.button("🔃 Refresh", width='stretch'):
