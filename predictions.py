@@ -97,6 +97,22 @@ def load_data():
     if 'date' in df.columns:
         df["date"] = pd.to_datetime(df["date"])
     
+    # Filter to recent data to reduce memory usage (2021 onwards - last 5 years)
+    df = df[df["date"] >= pd.Timestamp('2021-01-01')]
+    
+    # Optimize memory usage
+    # Convert object columns with low cardinality to category
+    low_card_cols = ['course', 'class', 'type', 'pattern', 'age_band', 'rating_band', 'course_detail', 'region', 'going', 'sex']
+    for col in low_card_cols:
+        if col in df.columns and df[col].dtype == 'object':
+            df[col] = df[col].astype('category')
+    
+    # Downcast numeric types
+    for col in df.select_dtypes(include=['int64']).columns:
+        df[col] = pd.to_numeric(df[col], downcast='integer')
+    for col in df.select_dtypes(include=['float64']).columns:
+        df[col] = pd.to_numeric(df[col], downcast='float')
+    
     # Rename columns to be more readable
     column_rename = {
         "date": "Date",
@@ -172,8 +188,9 @@ def main():
 
     # Load data
     df = load_data()
-
-    # Top predictive races expander - includes both historical AND upcoming predicted races
+    
+    # Inform user about data scope
+    st.info("📊 **Recent Data Only**: To keep the app fast, we're showing the last 5 years of races. Don't worry—the AI model learned from all past races for smart predictions!", icon="ℹ️")
     with st.expander("🎯 Top Predictive Races (Tier 1 Focus)", expanded=False):
         # Combine historical scores with predicted fixture scores
         all_tier1_races = pd.DataFrame()
@@ -588,7 +605,7 @@ def main():
         if selected_positions:
             analysis_df = analysis_df[analysis_df["Finish Position Numeric"].isin(selected_positions)]
         
-        horse_stats = analysis_df.groupby("Horse").agg({
+        horse_stats = analysis_df.groupby("Horse", observed=False).agg({
             "Finish Position Numeric": [
                 "count", 
                 "mean", 
@@ -642,7 +659,7 @@ def main():
         if selected_positions:
             course_analysis_df = course_analysis_df[course_analysis_df["Finish Position Numeric"].isin(selected_positions)]
         
-        course_stats = course_analysis_df.groupby("Course").agg({
+        course_stats = course_analysis_df.groupby("Course", observed=False).agg({
             "Horse": "count"
         }).reset_index()
         
@@ -670,7 +687,7 @@ def main():
         show_filter_hint()
         st.subheader("Jockey Performance")
         
-        jockey_stats = analysis_df.groupby("Jockey").agg({
+        jockey_stats = analysis_df.groupby("Jockey", observed=False).agg({
             "Finish Position Numeric": ["count", "mean", lambda x: (x == 1).sum(), lambda x: (x <= 3).sum()]
         }).reset_index()
         
@@ -1026,7 +1043,7 @@ def main():
                 
                 # Course breakdown
                 st.subheader("Top Courses by Score")
-                course_stats = fixtures_scored.groupby('course').agg({
+                course_stats = fixtures_scored.groupby('course', observed=False).agg({
                     'race_score': ['count', 'mean', 'max'],
                     'race_tier': lambda x: (x == 'Tier 1: Focus').sum()
                 }).round(1)
@@ -1197,7 +1214,7 @@ def main():
                             df_hist = pd.read_parquet(historical_file)
                             
                             # Calculate stats by tier
-                            tier_stats = df_hist.groupby('betting_tier').agg({
+                            tier_stats = df_hist.groupby('betting_tier', observed=False).agg({
                                 'race_id': 'count',
                                 'race_score': 'mean'
                             }).round(1)
@@ -1575,7 +1592,7 @@ def main():
             st.markdown("##### 📋 Race-by-Race Predictions")
             
             # Group by race
-            races = predictions.groupby(['date', 'day_label', 'race_time', 'course', 'race_name']).size().reset_index()[['date', 'day_label', 'race_time', 'course', 'race_name']]
+            races = predictions.groupby(['date', 'day_label', 'race_time', 'course', 'race_name'], observed=False).size().reset_index()[['date', 'day_label', 'race_time', 'course', 'race_name']]
             
             # Race selector
             race_options = [f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']} - {row['race_name'][:40]}" for _, row in races.iterrows()]
@@ -2203,7 +2220,7 @@ def main():
                             })
                     
                     # 3. Bottom-Weight Value (lightest in race with decent win %)
-                    for race_key, race_df in predictions_for_handicap.groupby(['date', 'course', 'race_time']):
+                    for race_key, race_df in predictions_for_handicap.groupby(['date', 'course', 'race_time'], observed=False):
                         min_weight = race_df['weight_lbs'].min()
                         bottom_weight_horses = race_df[
                             (race_df['weight_lbs'] == min_weight) & 
@@ -2222,7 +2239,7 @@ def main():
                             })
                     
                     # 4. Top-Weight Traps (heaviest in race with low win %)
-                    for race_key, race_df in predictions_for_handicap.groupby(['date', 'course', 'race_time']):
+                    for race_key, race_df in predictions_for_handicap.groupby(['date', 'course', 'race_time'], observed=False):
                         max_weight = race_df['weight_lbs'].max()
                         top_weight_traps = race_df[
                             (race_df['weight_lbs'] == max_weight) & 
