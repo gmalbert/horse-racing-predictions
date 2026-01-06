@@ -29,11 +29,19 @@ def get_now_local(tz_name: str | None = None) -> datetime:
     """Return a timezone-aware 'now' datetime for the given IANA tz name.
 
     If tz_name is None, the function will consult the `APP_TIMEZONE`
-    environment variable. If ZoneInfo is unavailable or the tz name is
+    environment variable, then Streamlit `secrets` (if present). If ZoneInfo is
     invalid, falls back to the system local timezone.
     """
     if tz_name is None:
+        # Prefer explicit environment variable
         tz_name = os.environ.get('APP_TIMEZONE')
+        # Fall back to Streamlit secrets (useful on Streamlit Cloud where
+        # users may have set APP_TIMEZONE in the Secrets UI)
+        if not tz_name:
+            try:
+                tz_name = st.secrets.get('APP_TIMEZONE') if hasattr(st, 'secrets') else None
+            except Exception:
+                tz_name = None
 
     if tz_name and ZoneInfo is not None:
         try:
