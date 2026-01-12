@@ -921,9 +921,13 @@ def save_model_and_artifacts(model, feature_importance, feature_cols):
     models_dir.mkdir(exist_ok=True)
     
     # Save model
-    model_path = models_dir / 'horse_win_predictor.pkl'
-    with open(model_path, 'wb') as f:
-        pickle.dump(model, f)
+    if HAS_XGBOOST:
+        model_path = models_dir / 'horse_win_predictor.json'
+        model.save_model(model_path)
+    else:
+        model_path = models_dir / 'horse_win_predictor.pkl'
+        with open(model_path, 'wb') as f:
+            pickle.dump(model, f)
     print(f"\n[SAVED] Model: {model_path}")
     
     # Save feature importance

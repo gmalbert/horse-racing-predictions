@@ -14,6 +14,19 @@ from datetime import datetime, timedelta
 import os
 
 try:
+    from xgboost import XGBClassifier
+    HAS_XGBOOST = True
+except ImportError:
+    HAS_XGBOOST = False
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    HAS_PLOTLY = True
+except ImportError:
+    HAS_PLOTLY = False
+
+try:
     from zoneinfo import ZoneInfo
 except Exception:
     ZoneInfo = None
@@ -58,7 +71,7 @@ BASE_DIR = Path(__file__).parent
 PARQUET_FILE = BASE_DIR / "data" / "processed" / "race_scores.parquet"  # Using cleaned data with scores
 CSV_FILE = BASE_DIR / "data" / "processed" / "all_gb_races.csv"
 LOGO_FILE = BASE_DIR / "data" / "logo.png"
-MODEL_FILE = BASE_DIR / "models" / "horse_win_predictor.pkl"
+MODEL_FILE = BASE_DIR / "models" / "horse_win_predictor.json"
 FEATURE_IMPORTANCE_FILE = BASE_DIR / "models" / "feature_importance.csv"
 METADATA_FILE = BASE_DIR / "models" / "model_metadata.pkl"
 SCORED_FIXTURES_FILE = BASE_DIR / "data" / "processed" / "scored_fixtures_calendar.csv"
@@ -71,8 +84,13 @@ def load_model():
         return None, None, None
     
     try:
-        with open(MODEL_FILE, 'rb') as f:
-            model = pickle.load(f)
+        # Load model
+        if HAS_XGBOOST:
+            model = XGBClassifier()
+            model.load_model(str(MODEL_FILE))
+        else:
+            st.error("XGBoost not available for model loading")
+            return None, None, None
         
         metadata = None
         if METADATA_FILE.exists():
@@ -258,7 +276,7 @@ def main():
                 # Format display
                 display_df = tier1_unique.copy()
                 if 'Date' in display_df.columns:
-                    display_df['Date'] = display_df['Date'].dt.strftime('%Y-%m-%d')
+                    display_df['Date'] = display_df['Date'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else "Invalid")
                 if 'Prize' in display_df.columns:
                     display_df['Prize'] = display_df['Prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
                 if 'Distance' in display_df.columns:
@@ -308,7 +326,8 @@ def main():
                             st.metric("🌱 Turf Races", f"{turf_count:,}")
                     with col4:
                         date_range = upcoming["Date"].max() - upcoming["Date"].min()
-                        st.metric("📆 Calendar Span", f"{date_range.days} days")
+                        span = f"{date_range.days} days" if not pd.isna(date_range) else "N/A"
+                        st.metric("📆 Calendar Span", span)
                     
                     st.markdown("---")
                     
@@ -318,7 +337,7 @@ def main():
                     
                     # Format date column
                     if "Date" in fixtures_display.columns:
-                        fixtures_display["Date"] = fixtures_display["Date"].dt.strftime("%a %d %b %Y")
+                        fixtures_display["Date"] = fixtures_display["Date"].apply(lambda x: x.strftime("%a %d %b %Y") if pd.notna(x) else "Invalid Date")
                     
                     st.markdown(f"##### Next {len(fixtures_display)} Upcoming Fixtures")
                     height = get_dataframe_height(fixtures_display, max_height=400)
@@ -814,9 +833,7 @@ def main():
                 top_features = feature_importance.head(15)
                 
                 # Create bar chart using plotly
-                try:
-                    import plotly.graph_objects as go
-                    
+                if HAS_PLOTLY:
                     fig = go.Figure(go.Bar(
                         x=top_features['importance'],
                         y=top_features['feature'],
@@ -837,7 +854,7 @@ def main():
                     )
                     
                     st.plotly_chart(fig, width='stretch')
-                except ImportError:
+                else:
                     # Fallback to simple bar chart
                     st.bar_chart(top_features.set_index('feature')['importance'])
                 
@@ -876,9 +893,9 @@ def main():
                         height=400
                     )
 
-                    # Top 10 features detailed table (leak-free)
-                    with st.expander("📘 Top 10 Features (Leak-free)"):
-                        st.markdown(
+                # Top 10 features detailed table (leak-free)
+                with st.expander("📘 Top 10 Features (Leak-free)"):
+                    st.markdown(
                             """
     | Feature | Calculation | Description |
     |---|---|---|
@@ -1029,8 +1046,7 @@ def main():
                 
                 # Score distribution chart
                 st.subheader("Score Distribution")
-                try:
-                    import plotly.express as px
+                if HAS_PLOTLY:
                     fig = px.histogram(
                         fixtures_scored, 
                         x='race_score',
@@ -1046,7 +1062,7 @@ def main():
                     )
                     fig.update_layout(height=400)
                     st.plotly_chart(fig, width='stretch')
-                except ImportError:
+                else:
                     st.info("Install plotly to see score distribution chart")
                 
                 # Course breakdown
@@ -1058,7 +1074,7 @@ def main():
                 course_stats.columns = ['Total Races', 'Avg Score', 'Max Score', 'Tier 1 Count']
                 course_stats = course_stats.sort_values('Max Score', ascending=False).head(15)
                 height = get_dataframe_height(course_stats)
-                st.dataframe(course_stats, height=height, width='stretch')
+                st.dataframe(course_stats, height=height)
                 
                 # Filterable table of all fixtures
                 st.subheader("All Predicted Fixtures")
@@ -1101,14 +1117,14 @@ def main():
                 # Display table
                 display_cols = ['date', 'course', 'class', 'prize', 'race_score', 'race_tier', 'weekday', 'surface']
                 display_fixtures = filtered_fixtures[display_cols].copy()
-                display_fixtures['date'] = display_fixtures['date'].dt.strftime('%Y-%m-%d')
+                display_fixtures['date'] = display_fixtures['date'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else "Invalid")
                 display_fixtures['prize'] = display_fixtures['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
                 display_fixtures['race_score'] = display_fixtures['race_score'].round(1)
                 display_fixtures.columns = ['Date', 'Course', 'Class', 'Prize', 'Score', 'Tier', 'Day', 'Surface']
                 
                 st.info(f"Showing {len(display_fixtures):,} of {len(fixtures_scored):,} predicted fixtures")
                 height = get_dataframe_height(display_fixtures, max_height=600)
-                st.dataframe(display_fixtures, hide_index=True, height=height, width='stretch')
+                st.dataframe(display_fixtures, hide_index=True, height=height)
                 
             except Exception as e:
                 st.error(f"Error loading predicted fixtures: {e}")
@@ -1168,7 +1184,7 @@ def main():
                             tier1_display['race_score'] = tier1_display['race_score'].round(1)
                         
                         tier1_display.columns = [c.title() for c in tier1_display.columns]
-                        st.dataframe(tier1_display, hide_index=True, width='stretch')
+                        st.dataframe(tier1_display, hide_index=True)
                     
                     # Show Tier 2 races
                     tier2_races = watchlist[watchlist['betting_tier'] == 'Tier 2: Value'].copy()
@@ -1326,7 +1342,7 @@ def main():
             
             if tomorrow_needs_data and col1b:
                 with col1b:
-                    if st.button("📥 Fetch Tomorrow's Racecards", type="secondary", width='stretch'):
+                    if st.button("📥 Fetch Tomorrow's Racecards", type="secondary"):
                         with st.spinner("📡 Fetching tomorrow's racecards... Please wait..."):
                             try:
                                 # Run the fetch racecards script for tomorrow
@@ -1450,7 +1466,7 @@ def main():
             
             if tomorrow_needs_data and col2b:
                 with col2b:
-                    if st.button("🔄 Generate Tomorrow's Predictions", type="primary", width='stretch'):
+                    if st.button("🔄 Generate Tomorrow's Predictions", type="primary"):
                         # Check if racecards exist
                         if not tomorrow_racecards_file.exists():
                             st.error(f"❌ Racecards not found for {tomorrow_str}")
@@ -1519,7 +1535,7 @@ def main():
                         st.info("⚠️ No predictions for tomorrow")
                 
                 # Refresh button
-                if st.button("🔃 Refresh", width='stretch'):
+                if st.button("🔃 Refresh"):
                     st.rerun()
             
             st.markdown("---")
@@ -1585,7 +1601,7 @@ def main():
                 top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
             height = get_dataframe_height(top_per_day)
-            st.dataframe(top_per_day, hide_index=True, width='stretch', height=height)
+            st.dataframe(top_per_day, hide_index=True, use_container_width=True, height=height)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
@@ -1790,7 +1806,7 @@ def main():
             # Sort by win rank
             display_df = display_df.sort_values('Win Rank')
             
-            st.dataframe(display_df, hide_index=True, width='stretch')
+            st.dataframe(display_df, hide_index=True, width=800)
             
             # Handicap Analysis for this specific race
             st.markdown("---")
@@ -1890,7 +1906,7 @@ def main():
                 st.dataframe(
                     angles_df,
                     hide_index=True,
-                    width='stretch',
+                    # width='stretch',
                     height=min(300, len(angles_df) * 35 + 38)
                 )
                 
@@ -2026,7 +2042,7 @@ def main():
                 reference_df['win_odds_decimal'] = reference_df['win_odds_decimal'].apply(lambda x: f"{x:.2f}")
                 reference_df.columns = ['Horse', 'Model Win %', 'Fair Decimal Odds', 'Fair Fractional Odds']
                 
-                st.dataframe(reference_df, hide_index=True, width='stretch')
+                st.dataframe(reference_df, hide_index=True)
                 
                 st.markdown("**💡 Value Betting Rule:**")
                 st.markdown("- ✅ BET if Bookmaker Odds **>** Fair Odds (positive edge)")
@@ -2119,7 +2135,7 @@ def main():
                     display_df = future_sorted[display_cols].copy()
                     
                     # Format columns
-                    display_df['date'] = display_df['date'].dt.strftime('%a %d %b %Y')
+                    display_df['date'] = display_df['date'].apply(lambda x: x.strftime('%a %d %b %Y') if pd.notna(x) else "Invalid Date")
                     display_df['prize'] = display_df['prize'].apply(lambda x: f"£{x:,.0f}")
                     display_df['dist_f'] = display_df['dist_f'].apply(lambda x: f"{x}f")
                     display_df['race_score'] = display_df['race_score'].apply(lambda x: f"{x:.0f}")
