@@ -30,3 +30,6 @@ streamlit>=1.51.0
 
 # Web Scraping (optional - for Selenium-based scripts)
 selenium>=4.15.0
+
+# File Watching
+watchdog>=3.0.0

@@ -1601,7 +1601,7 @@ def main():
                 top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
             height = get_dataframe_height(top_per_day)
-            st.dataframe(top_per_day, hide_index=True, width='stretch', height=height)
+            st.dataframe(top_per_day, hide_index=True, use_container_width=True, height=height)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
