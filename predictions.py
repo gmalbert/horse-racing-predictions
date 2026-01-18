@@ -1306,7 +1306,7 @@ def main():
             
             if today_needs_data and col1a:
                 with col1a:
-                    if st.button("📥 Fetch Today's Racecards", type="secondary", width='stretch'):
+                    if st.button("📥 Fetch Today's Racecards", type="secondary"):
                         with st.spinner("📡 Fetching racecards from external source... Please wait..."):
                             try:
                                 # Run the fetch racecards script
@@ -1412,7 +1412,7 @@ def main():
             
             if today_needs_data and col2a:
                 with col2a:
-                    if st.button("🔄 Generate Today's Predictions", type="primary", width='stretch'):
+                    if st.button("🔄 Generate Today's Predictions", type="primary"):
                         # Check if racecards exist
                         if not today_racecards_file.exists():
                             st.error(f"❌ Racecards not found for {today_str}")
@@ -1601,7 +1601,7 @@ def main():
                 top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
             height = get_dataframe_height(top_per_day)
-            st.dataframe(top_per_day, hide_index=True, use_container_width=True, height=height)
+            st.dataframe(top_per_day, hide_index=True, width='stretch', height=height)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
