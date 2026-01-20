@@ -184,8 +184,10 @@ def engineer_weight_features(df):
             except:
                 return np.nan
     
-    # Parse wgt column if present
-    if 'wgt' in df.columns:
+    # Parse weight column (try lbs first, then wgt for compatibility)
+    if 'lbs' in df.columns:
+        df['weight_lbs'] = df['lbs'].apply(parse_weight_lbs)
+    elif 'wgt' in df.columns:
         df['weight_lbs'] = df['wgt'].apply(parse_weight_lbs)
     else:
         df['weight_lbs'] = 140  # Default weight

@@ -142,6 +142,29 @@ def encode_going(going_str):
     return going_map.get(going_str, 3)
 
 
+def parse_weight_lbs(weight_str):
+    """Parse weight string to pounds (e.g., '9-7' -> 133, '140' -> 140)"""
+    if pd.isna(weight_str) or not weight_str or weight_str == '-':
+        return 140  # Default weight
+    
+    weight_str = str(weight_str).strip()
+    
+    # Format: "9-7" (9 stone 7 lbs) or just "133" (lbs)
+    if '-' in weight_str:
+        parts = weight_str.split('-')
+        try:
+            stones = int(parts[0])
+            lbs = int(parts[1]) if len(parts) > 1 else 0
+            return stones * 14 + lbs
+        except:
+            return 140
+    else:
+        try:
+            return float(weight_str)
+        except:
+            return 140
+
+
 def build_horse_features_from_racecard(runner, race_info, historical_df):
     """Build features for a specific horse from racecard data
     
@@ -220,6 +243,14 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
         features['draw'] = draw_val if draw_val is not None else 0
         features['draw_pct'] = (features['draw'] / max(1, features['field_size'])) if features['field_size'] > 0 else 0
         features['draw_group_win_rate'] = 0.0
+        
+        # Weight features
+        weight_str = runner.get('wgt') or runner.get('weight') or runner.get('lbs')
+        features['weight_lbs'] = parse_weight_lbs(weight_str)
+        features['weight_vs_avg'] = 0  # Can't calculate without other runners
+        features['is_top_weight'] = 0  # Can't calculate without other runners
+        features['weight_change'] = 0  # No history for new horse
+        
         return features
     
     # Sort by date
@@ -306,6 +337,31 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
         'jockey_trainer_win_rate': jockey_trainer_wins / jockey_trainer_runs if jockey_trainer_runs > 0 else 0.0
     }
 
+    # Weight features
+    weight_str = runner.get('wgt') or runner.get('weight') or runner.get('lbs')
+    features['weight_lbs'] = parse_weight_lbs(weight_str)
+    
+    # Calculate weight vs race average (need all runners in race)
+    if 'all_weights' in race_info and race_info['all_weights']:
+        all_weights = [parse_weight_lbs(w) for w in race_info['all_weights']]
+        if all_weights:
+            avg_weight = sum(all_weights) / len(all_weights)
+            features['weight_vs_avg'] = features['weight_lbs'] - avg_weight
+            features['is_top_weight'] = 1 if features['weight_lbs'] == max(all_weights) else 0
+        else:
+            features['weight_vs_avg'] = 0
+            features['is_top_weight'] = 0
+    else:
+        features['weight_vs_avg'] = 0
+        features['is_top_weight'] = 0
+    
+    # Weight change from last race
+    if len(horse_history) > 0 and 'wgt' in horse_history.columns:
+        prev_weight = horse_history.head(1)['wgt'].apply(parse_weight_lbs).iloc[0]
+        features['weight_change'] = features['weight_lbs'] - prev_weight
+    else:
+        features['weight_change'] = 0
+
     # Draw extraction from runner JSON
     try:
         draw_val = int(runner.get('draw')) if runner.get('draw') not in (None, '-', '') else None
@@ -358,6 +414,17 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
 
 def predict_race(racecard, historical_df, win_model, place_model, show_model, feature_cols):
     """Generate predictions for all horses in a race"""
+    
+    # Collect all weights for weight_vs_avg calculation
+    all_weights = []
+    for runner in racecard.get('runners', []):
+        weight_str = runner.get('wgt') or runner.get('weight') or runner.get('lbs')
+        if weight_str:
+            all_weights.append(weight_str)
+    
+    # Add to racecard for feature building
+    racecard = racecard.copy()
+    racecard['all_weights'] = all_weights
     
     race_predictions = []
     
