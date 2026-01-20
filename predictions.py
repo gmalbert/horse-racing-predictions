@@ -826,8 +826,11 @@ def main():
             st.markdown("---")
             
             # Feature importance visualization
-            if feature_importance is not None:
-                st.subheader("📊 Top 15 Most Important Features")
+            if feature_importance is not None and not feature_importance.empty:
+                # Ensure rank column exists, add it if missing
+                if 'rank' not in feature_importance.columns:
+                    feature_importance = feature_importance.sort_values('importance', ascending=False).reset_index(drop=True)
+                    feature_importance['rank'] = range(1, len(feature_importance) + 1)
                 
                 # Get top 15
                 top_features = feature_importance.head(15)
@@ -836,7 +839,7 @@ def main():
                 if HAS_PLOTLY:
                     fig = go.Figure(go.Bar(
                         x=top_features['importance'],
-                        y=top_features['feature'],
+                        y=[f"#{int(row['rank'])} {row['feature']}" for _, row in top_features.iterrows()],
                         orientation='h',
                         marker=dict(
                             color=top_features['importance'],
@@ -846,9 +849,9 @@ def main():
                     ))
                     
                     fig.update_layout(
-                        title="Feature Importance (XGBoost)",
+                        title="Feature Importance (XGBoost) - Ranked",
                         xaxis_title="Importance Score",
-                        yaxis_title="Feature",
+                        yaxis_title="Rank & Feature",
                         height=500,
                         yaxis={'categoryorder':'total ascending'}
                     )
@@ -878,20 +881,74 @@ def main():
                         'going_numeric': 'Going/ground condition (1=Firm to 7=Heavy)',
                         'is_turf': 'Whether race is on turf (1) vs all-weather (0)',
                         'career_earnings': 'Total career prize money won',
-                        'cd_runs': 'Number of previous runs at this course/distance'
+                        'cd_runs': 'Number of previous runs at this course/distance',
+                        'weight_vs_avg': 'Weight carried vs race average (handicap races)',
+                        'is_top_weight': 'Whether horse carries top weight in handicap',
+                        'weight_lbs': 'Weight carried in pounds',
+                        'weight_change': 'Change in weight from last race'
                     }
                     
-                    for feat in top_features['feature']:
+                    for _, row in top_features.iterrows():
+                        feat = row['feature']
+                        rank = int(row['rank'])
                         desc = feature_descriptions.get(feat, 'No description available')
-                        st.markdown(f"**{feat}**: {desc}")
+                        st.markdown(f"**#{rank} {feat}**: {desc}")
                 
                 # Show full feature importance table
-                with st.expander("📋 Full Feature Importance Table"):
+                with st.expander("📋 Full Feature Importance Table (Ranked)"):
+                    # Create a copy with professional column names
+                    display_df = feature_importance[['rank', 'feature', 'importance']].copy()
+                    display_df.columns = ['Rank', 'Feature', 'Importance Score']
+                    
                     st.dataframe(
-                        feature_importance,
+                        display_df,
                         hide_index=True,
-                        height=400
+                        height=400,
+                        column_config={
+                            "Rank": st.column_config.NumberColumn(
+                                "Rank", 
+                                width="small",
+                                help="Feature ranking by importance (1 = most important)"
+                            ),
+                            "Feature": st.column_config.TextColumn(
+                                "Feature", 
+                                width="medium",
+                                help="Feature name"
+                            ),
+                            "Importance Score": st.column_config.NumberColumn(
+                                "Importance Score", 
+                                width="medium",
+                                format="%.5f",
+                                help="XGBoost feature importance score"
+                            )
+                        },
+                        # use_container_width=False
                     )
+                
+                # Weight features summary
+                weight_features = feature_importance[feature_importance['feature'].str.contains('weight')]
+                if not weight_features.empty:
+                    with st.expander("⚖️ Weight Features Performance"):
+                        st.markdown("**Weight Features in Handicap Races:**")
+                        
+                        total_weight = weight_features['importance'].sum()
+                        total_all = feature_importance['importance'].sum()
+                        pct = total_weight / total_all * 100
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Weight Features Count", len(weight_features))
+                        with col2:
+                            st.metric("Total Weight Importance", f"{total_weight:.4f}")
+                        with col3:
+                            st.metric("Percentage of Model", f"{pct:.1f}%")
+                        
+                        st.markdown("**Weight Feature Rankings:**")
+                        for _, row in weight_features.iterrows():
+                            rank = int(row['rank'])
+                            feature = row['feature']
+                            importance = row['importance']
+                            st.markdown(f"- **#{rank}** {feature}: {importance:.5f}")
 
                 # Top 10 features detailed table (leak-free)
                 with st.expander("📘 Top 10 Features (Leak-free)"):

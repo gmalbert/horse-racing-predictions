@@ -20,7 +20,7 @@ This file contains concise, actionable guidance for AI coding agents working in 
 ## Quick context
 - Purpose: ML project to predict horse racing outcomes using The Racing API and The Odds API for value betting
 - Repo layout: `examples/`, `data/{raw,processed}`, `models/`, `scripts/`, `tests/`, `src/` (future)
-- Current phase: Phase 3 (ML model) complete, Phase 4 (betting strategy) in progress
+- Current phase: Phase 3 (ML model) complete with weight features implemented, Phase 4 (betting strategy) in progress
 
 ## Environment & setup (explicit)
 - Use virtualenv at `.venv/` and add any new deps to `requirements.txt`
@@ -44,11 +44,12 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Data pipeline phases**:
   - Phase 1: Data cleaning/validation (630K+ races → 245K after removing Class 5-7)
   - Phase 2: Race profitability scoring (0-100 based on class, prize, course tier, field size, pattern races)
-  - Phase 3: ML horse win prediction (XGBoost classifier, 18 features, ROC AUC 0.671)
+  - Phase 3: ML horse win prediction (XGBoost classifier, 47 features including weight features, ROC AUC 0.678)
   - Phase 4: Betting strategy (Kelly criterion, value betting)
 - **Data flow**: Raw API data → `data/raw/` → Processed datasets → `data/processed/` (Parquet preferred)
 - **Model artifacts**: Stored in `models/` (gitignored); training scripts in `scripts/`
 - **Feature engineering**: Pure functions preferred; career stats use expanding windows to avoid lookahead bias
+- **Weight features**: Implemented for handicap races (weight_lbs, weight_vs_avg, is_top_weight, weight_change) - requires weight data in racecards
 - **UI**: Streamlit app in `predictions.py` with tabs for data exploration, ML predictions, value betting
   - Predictions tab: `Today & Tomorrow` — generates and displays predictions for the current date and the next day.
   - Behavior: the UI shows fetch/generate controls only for days that don't yet have generated predictions (keeps the interface minimal once data exists).
@@ -66,6 +67,7 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Add dependencies**: Edit `requirements.txt`, then `pip install -r requirements.txt`
 - **Run UI**: `streamlit run predictions.py` (loads `data/processed/race_scores.parquet` and `data/logo.png`)
 - **Generate predictions**: `python scripts/predict_todays_races.py` or `python scripts/predict_todays_races.py --date 2025-12-31` (outputs `data/processed/predictions_YYYY-MM-DD.csv`)
+- **Batch generate predictions**: `python scripts/batch_generate_predictions.py` (scans `data/raw/` for racecards and generates missing predictions)
 - **Fetch racecards**: `python scripts/fetch_racecards.py --date 2025-12-31` (saves to `data/raw/racecards_YYYY-MM-DD.json`)
 - **Pre-compile check**: `python -c "import py_compile,glob; [py_compile.compile(p, doraise=True) for p in glob.glob('**/*.py', recursive=True)]"`
 
@@ -95,7 +97,7 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **UI details**: `predictions.py` — filters (Year, Course, Horse contains, Finish Position); displays normalized dates; raw `pos` column shown as "Finish Position"
 - **ML pipeline**: `scripts/phase2_score_races.py` (race scoring), `scripts/phase3_build_horse_model.py` (XGBoost training)
 
-## Streamlit API changes (note: effective after 2025)
+## Streamlit API changes (effective 2025+)
 - The `use_container_width` parameter has been removed in newer Streamlit versions.
 - **Replacement mapping**:
   - `use_container_width=True` → `width='stretch'`
