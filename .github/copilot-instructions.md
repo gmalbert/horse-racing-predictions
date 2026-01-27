@@ -1,4 +1,53 @@
-﻿# Horse Racing Predictions - AI Coding Agent Instructions
+﻿# Horse Racing Predictions — Copilot instructions
+
+Purpose: concise, repo-specific guidance for AI coding agents working on the horse-racing-predictions project.
+
+Key idea (big picture)
+- Data pipeline: raw API racecards -> data/raw/ -> processing & feature engineering (scripts/) -> data/processed/ (Parquet/CSV) -> model artifacts in models/ -> predictions outputs in data/processed/predictions_YYYY-MM-DD.csv
+- ML model: XGBoost horse-win classifier trained via `scripts/phase3_build_horse_model.py`; features computed with pure functions and expanding-window career stats to avoid lookahead bias.
+- UI: Streamlit app (`predictions.py`) displays Today/Tomorrow predictions, race detail views, and value-betting tools.
+
+Critical workflows (commands)
+- Setup: create/activate `.venv/` and `pip install -r requirements.txt`
+- Run UI: `streamlit run predictions.py` (loads `data/processed/race_scores.parquet` and `data/logo.png`)
+- Generate predictions (single day): `python scripts/predict_todays_races.py --date YYYY-MM-DD`
+- Batch generate: `python scripts/batch_generate_predictions.py` (scans `data/raw/`)
+- Fetch racecards (example): `python scripts/fetch_racecards.py --date YYYY-MM-DD` (saves `data/raw/racecards_YYYY-MM-DD.json`)
+- Tests: `pytest tests/` (tests avoid live network calls; use fixtures)
+
+Repository conventions & patterns
+- Environment & secrets: use `.venv/`, store secrets in `.env` (gitignored), mirror any new vars in `.env.example`.
+- Data caching: Always prefer offline cached API responses in `data/raw/` for development and tests. Tests must not do live API calls.
+- Models: artifacts live in `models/` and are gitignored; training logic lives in `scripts/`.
+- Feature engineering: functions should be pure where possible and use expanding/windowed aggregations to prevent leakage. Weight-related features exist for handicap races: `weight_lbs`, `weight_vs_avg`, `is_top_weight`, `weight_change`.
+
+Integration points and constraints
+- The Racing API: HTTP Basic Auth via `RACING_API_USERNAME` / `RACING_API_PASSWORD` (see `examples/api_example.py` and `scripts/fetch_racecards_api.py`).
+- The Odds API: API key in `ODDS_API_KEY` passed as `?apiKey=...` (see `examples/odds_api_example.py` and `scripts/fetch_odds.py`).
+- Rate limits: both APIs are limited (500 calls/month). Cache aggressively and document call counts in long-running scripts.
+
+Testing notes
+- Use fixtures in `tests/fixtures/` (e.g., saved racecards) and monkeypatch network calls in `tests/conftest.py`.
+- Offline-first tests: prefer `data/raw/` test fixtures over live requests.
+
+Streamlit and UI gotchas
+- Newer Streamlit: `use_container_width` removed. Replace `use_container_width=True` -> `width='stretch'`, `False` -> `width='content'` across `predictions.py` and `examples/` if upgrading.
+- Timezone: set `APP_TIMEZONE` to force server-side day boundaries; `predictions.py` respects `APP_TIMEZONE`.
+
+Quick file map (where to start)
+- `predictions.py` — Streamlit UI and display logic (Exacta/Trifecta approximations, cumulative probabilities)
+- `scripts/predict_todays_races.py` — single-day prediction runner
+- `scripts/batch_generate_predictions.py` — batch runner that scans `data/raw/`
+- `scripts/phase2_score_races.py`, `scripts/phase3_build_horse_model.py` — scoring & training logic
+- `examples/api_example.py`, `examples/odds_api_example.py` — API usage patterns and auth examples
+
+If you change code
+- Update `requirements.txt` and `.env.example` as needed.
+- Avoid adding live API calls to tests; add fixtures to `tests/fixtures/` instead.
+
+If anything here is unclear or you want me to expand an area (CI, caching helpers, or specific script internals), tell me which part and I will update this file further.
+
+# Horse Racing Predictions - AI Coding Agent Instructions
 
 ## Project Overview
 

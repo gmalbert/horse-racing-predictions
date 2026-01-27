@@ -12,6 +12,12 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 import os
+import threading
+import time
+import gc
+import csv
+import tracemalloc
+import psutil
 
 try:
     from xgboost import XGBClassifier
@@ -77,6 +83,64 @@ METADATA_FILE = BASE_DIR / "models" / "model_metadata.pkl"
 SCORED_FIXTURES_FILE = BASE_DIR / "data" / "processed" / "scored_fixtures_calendar.csv"
 
 
+def start_memory_profiling(path: str | os.PathLike = None, interval: int = 5):
+    """Start a background thread that records memory usage periodically.
+
+    Writes CSV rows: timestamp (UTC), rss_mb, vms_mb, tracemalloc_current_kb, tracemalloc_peak_kb, gc_counts
+    Controlled by environment variable `APP_MEM_PROFILING=1` or called directly from the app.
+    """
+    try:
+        if path is None:
+            path = BASE_DIR / 'tmp' / 'memory_snapshots.csv'
+        else:
+            path = Path(path)
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        stop_event = threading.Event()
+
+        def _loop():
+            proc = psutil.Process(os.getpid())
+            # Start tracemalloc to capture Python-level memory (optional but useful)
+            try:
+                tracemalloc.start()
+            except Exception:
+                pass
+
+            header_written = path.exists() and path.stat().st_size > 0
+            with open(path, 'a', newline='') as f:
+                writer = csv.writer(f)
+                if not header_written:
+                    writer.writerow(['timestamp_utc', 'rss_mb', 'vms_mb', 'tracemalloc_current_kb', 'tracemalloc_peak_kb', 'gc_counts'])
+                    f.flush()
+
+                while not stop_event.is_set():
+                    try:
+                        mem = proc.memory_info()
+                        rss = mem.rss / (1024 * 1024)
+                        vms = mem.vms / (1024 * 1024)
+                        try:
+                            current, peak = tracemalloc.get_traced_memory()
+                            current_kb = current / 1024
+                            peak_kb = peak / 1024
+                        except Exception:
+                            current_kb = peak_kb = 0
+
+                        writer.writerow([datetime.utcnow().isoformat(), f"{rss:.2f}", f"{vms:.2f}", f"{current_kb:.1f}", f"{peak_kb:.1f}", repr(gc.get_count())])
+                        f.flush()
+                    except Exception:
+                        # Keep loop alive even if a single measurement fails
+                        pass
+                    time.sleep(interval)
+
+        t = threading.Thread(target=_loop, daemon=True, name='mem-profiler')
+        t.start()
+
+        return stop_event
+    except Exception:
+        return None
+
+
 @st.cache_data
 def load_model():
     """Load trained ML model and metadata"""
@@ -107,39 +171,75 @@ def load_model():
         return None, None, None
 
 @st.cache_data
-def load_data():
-    """Load and cache the UK horse races dataset (Parquet preferred).
+def load_data(use_pyarrow: bool = False, start_date: str | None = '2021-01-01', columns: list | None = None):
+    """Load and cache the UK horse races dataset.
 
-    The function will prefer `all_gb_races.parquet` if present for faster
-    loading and smaller storage. Falls back to CSV if Parquet is missing.
+    By default this loads the full Parquet/CSV and applies the repo's
+    memory optimizations (same behavior as before). Set `use_pyarrow=True`
+    to use `pyarrow.dataset` to read a subset of `columns` and filter by
+    `start_date` which can significantly reduce peak memory during load.
     """
-    if PARQUET_FILE.exists():
-        df = pd.read_parquet(PARQUET_FILE)
-    elif CSV_FILE.exists():
-        df = pd.read_csv(CSV_FILE)
-    else:
-        raise FileNotFoundError(f"Dataset not found: {PARQUET_FILE} or {CSV_FILE}")
+    df = None
 
+    # Try pyarrow.dataset path when requested and parquet exists
+    if use_pyarrow and PARQUET_FILE.exists():
+        try:
+            import pyarrow.dataset as ds
+            import pyarrow as pa
+            # default small column set used by the UI
+            if columns is None:
+                columns = ['date', 'course', 'race_name', 'horse', 'pos', 'jockey', 'trainer', 'rpr', 'or', 'prize', 'class', 'dist', 'going', 'time']
+
+            dataset = ds.dataset(str(PARQUET_FILE), format='parquet')
+            expr = None
+            if start_date:
+                try:
+                    dt = pd.to_datetime(start_date)
+                    expr = ds.field('date') >= pa.scalar(int(dt.timestamp() * 1e9), type=pa.timestamp('ns'))
+                except Exception:
+                    expr = None
+
+            if expr is not None:
+                table = dataset.to_table(columns=columns, filter=expr)
+            else:
+                table = dataset.to_table(columns=columns)
+
+            df = table.to_pandas()
+        except Exception:
+            df = None
+
+    # Fallback: full read via pandas
+    if df is None:
+        if PARQUET_FILE.exists():
+            df = pd.read_parquet(PARQUET_FILE)
+        elif CSV_FILE.exists():
+            df = pd.read_csv(CSV_FILE)
+        else:
+            raise FileNotFoundError(f"Dataset not found: {PARQUET_FILE} or {CSV_FILE}")
+
+    # Ensure date column exists and parsed
     if 'date' in df.columns:
-        df["date"] = pd.to_datetime(df["date"])
-    
-    # Filter to recent data to reduce memory usage (2021 onwards - last 5 years)
-    df = df[df["date"] >= pd.Timestamp('2021-01-01')]
-    
+        df["date"] = pd.to_datetime(df["date"], errors='coerce')
+
+    # Filter to recent data to reduce memory usage (default start_date)
+    if start_date and 'date' in df.columns:
+        try:
+            df = df[df["date"] >= pd.Timestamp(start_date)]
+        except Exception:
+            pass
+
     # Optimize memory usage
-    # Convert object columns with low cardinality to category
     low_card_cols = ['course', 'class', 'type', 'pattern', 'age_band', 'rating_band', 'course_detail', 'region', 'going', 'sex']
     for col in low_card_cols:
         if col in df.columns and df[col].dtype == 'object':
             df[col] = df[col].astype('category')
-    
-    # Downcast numeric types
+
     for col in df.select_dtypes(include=['int64']).columns:
         df[col] = pd.to_numeric(df[col], downcast='integer')
     for col in df.select_dtypes(include=['float64']).columns:
         df[col] = pd.to_numeric(df[col], downcast='float')
-    
-    # Rename columns to be more readable
+
+    # Rename columns to be more readable (keep same mapping)
     column_rename = {
         "date": "Date",
         "course": "Course",
@@ -165,7 +265,7 @@ def load_data():
         "off": "Off Time"
     }
     df = df.rename(columns=column_rename)
-    
+
     return df
 
 def get_dataframe_height(df, row_height=35, header_height=38, padding=2, max_height=600):
@@ -200,6 +300,31 @@ def main():
         layout="wide",
         initial_sidebar_state="collapsed"
     )
+    # Memory profiling controls: enable via env `APP_MEM_PROFILING=1` or the sidebar checkbox
+    try:
+        prof_env = os.environ.get('APP_MEM_PROFILING') == '1'
+    except Exception:
+        prof_env = False
+
+    try:
+        if 'mem_profiler_stop' not in st.session_state:
+            st.session_state['mem_profiler_stop'] = None
+    except Exception:
+        pass
+
+    profiler_checkbox = st.sidebar.checkbox("Enable memory profiling (writes tmp/memory_snapshots.csv)", value=prof_env)
+    if profiler_checkbox and st.session_state.get('mem_profiler_stop') is None:
+        stop_ev = start_memory_profiling()
+        st.session_state['mem_profiler_stop'] = stop_ev
+        st.sidebar.info(f"Memory profiling running — writing to {BASE_DIR / 'tmp' / 'memory_snapshots.csv'}")
+    if not profiler_checkbox and st.session_state.get('mem_profiler_stop') is not None:
+        try:
+            ev = st.session_state.get('mem_profiler_stop')
+            if ev:
+                ev.set()
+        except Exception:
+            pass
+        st.session_state['mem_profiler_stop'] = None
     
     # Helper to show filter instruction
     def show_filter_hint():
