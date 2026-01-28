@@ -5,11 +5,11 @@ Purpose: concise, repo-specific guidance for AI coding agents working on the hor
 Key idea (big picture)
 - Data pipeline: raw API racecards -> data/raw/ -> processing & feature engineering (scripts/) -> data/processed/ (Parquet/CSV) -> model artifacts in models/ -> predictions outputs in data/processed/predictions_YYYY-MM-DD.csv
 - ML model: XGBoost horse-win classifier trained via `scripts/phase3_build_horse_model.py`; features computed with pure functions and expanding-window career stats to avoid lookahead bias.
-- UI: Streamlit app (`predictions.py`) displays Today/Tomorrow predictions, race detail views, and value-betting tools.
+- UI: Multipage Streamlit app with lightweight main page (predictions.py - 733 lines) for Today/Tomorrow predictions and heavy data explorer page (pages/data_explorer.py - 767 lines) for historical analysis. Common utilities in shared/utils.py (257 lines).
 
 Critical workflows (commands)
 - Setup: create/activate `.venv/` and `pip install -r requirements.txt`
-- Run UI: `streamlit run predictions.py` (loads `data/processed/race_scores.parquet` and `data/logo.png`)
+- Run UI: `streamlit run predictions.py` (multipage app: main predictions page + data explorer)
 - Generate predictions (single day): `python scripts/predict_todays_races.py --date YYYY-MM-DD`
 - Batch generate: `python scripts/batch_generate_predictions.py` (scans `data/raw/`)
 - Fetch racecards (example): `python scripts/fetch_racecards.py --date YYYY-MM-DD` (saves `data/raw/racecards_YYYY-MM-DD.json`)
@@ -35,7 +35,9 @@ Streamlit and UI gotchas
 - Timezone: set `APP_TIMEZONE` to force server-side day boundaries; `predictions.py` respects `APP_TIMEZONE`.
 
 Quick file map (where to start)
-- `predictions.py` — Streamlit UI and display logic (Exacta/Trifecta approximations, cumulative probabilities)
+- `predictions.py` — Streamlit main page (lightweight, 733 lines): Today/Tomorrow predictions, Model Insights
+- `pages/data_explorer.py` — Historical data explorer (767 lines): Horses, Courses, Jockeys, Overall, Raw Data, Predicted Fixtures, Betting Watchlist
+- `shared/utils.py` — Common utilities (257 lines): load_model, load_data, get_dataframe_height, safe_st_call, memory profiling
 - `scripts/predict_todays_races.py` — single-day prediction runner
 - `scripts/batch_generate_predictions.py` — batch runner that scans `data/raw/`
 - `scripts/phase2_score_races.py`, `scripts/phase3_build_horse_model.py` — scoring & training logic
