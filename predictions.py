@@ -10,7 +10,7 @@ from pathlib import Path
 import pickle
 import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import threading
 import time
@@ -126,7 +126,7 @@ def start_memory_profiling(path: str | os.PathLike = None, interval: int = 5):
                         except Exception:
                             current_kb = peak_kb = 0
 
-                        writer.writerow([datetime.utcnow().isoformat(), f"{rss:.2f}", f"{vms:.2f}", f"{current_kb:.1f}", f"{peak_kb:.1f}", repr(gc.get_count())])
+                        writer.writerow([datetime.now(timezone.utc).isoformat(), f"{rss:.2f}", f"{vms:.2f}", f"{current_kb:.1f}", f"{peak_kb:.1f}", repr(gc.get_count())])
                         f.flush()
                     except Exception:
                         # Keep loop alive even if a single measurement fails
@@ -293,6 +293,17 @@ def get_dataframe_height(df, row_height=35, header_height=38, padding=2, max_hei
         return min(calculated_height, max_height)
     return calculated_height
 
+
+def safe_st_call(func, *args, **kwargs):
+    """Call a Streamlit display function but strip string `width` values for
+    older Streamlit versions that expect an integer `width`.
+
+    Usage: `safe_st_call(st.dataframe, df, hide_index=True, height=100, width='stretch')`
+    """
+    if 'width' in kwargs and isinstance(kwargs['width'], str):
+        kwargs.pop('width')
+    return func(*args, **kwargs)
+
 def main():
     st.set_page_config(
         page_title="Horse Racing Predictions",
@@ -426,53 +437,73 @@ def main():
         try:
             fixtures = pd.read_csv(fixtures_file)
             # Parse Date column if present and sort chronologically
+            upcoming = pd.DataFrame()
             if "Date" in fixtures.columns:
                 fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
                 fixtures = fixtures.sort_values("Date")
-                
-                # Filter to upcoming races only
+
+                # Filter to upcoming races only (safely)
                 today = pd.Timestamp.today().normalize()
-                upcoming = fixtures[fixtures["Date"] >= today].copy()
+                try:
+                    upcoming = fixtures[fixtures["Date"] >= today].copy()
+                except Exception:
+                    # If comparison fails, coerce and try again
+                    fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
+                    upcoming = fixtures[fixtures["Date"] >= today].copy()
 
             with st.expander("📅 Upcoming Schedule (Class 1-4 Races)", expanded=False):
                 st.caption("Complete fixture calendar for premium races")
-                
-                if len(upcoming) > 0:
+
+                if not upcoming.empty:
                     # Summary metrics
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
-                        st.metric("📊 Total Fixtures", f"{len(upcoming):,}")
+                        try:
+                            total_fixtures = int(len(upcoming))
+                        except Exception:
+                            total_fixtures = len(upcoming)
+                        st.metric("📊 Total Fixtures", f"{total_fixtures:,}")
                     with col2:
-                        unique_courses = upcoming["Course"].nunique() if "Course" in upcoming.columns else 0
+                        unique_courses = int(upcoming["Course"].nunique()) if "Course" in upcoming.columns else 0
                         st.metric("🏇 Courses", unique_courses)
                     with col3:
                         if "Surface" in upcoming.columns:
-                            turf_count = (upcoming["Surface"] == "Turf").sum()
+                            turf_count = int((upcoming["Surface"] == "Turf").sum())
                             st.metric("🌱 Turf Races", f"{turf_count:,}")
                     with col4:
-                        date_range = upcoming["Date"].max() - upcoming["Date"].min()
-                        span = f"{date_range.days} days" if not pd.isna(date_range) else "N/A"
+                        try:
+                            min_date = upcoming["Date"].min()
+                            max_date = upcoming["Date"].max()
+                            if pd.isna(min_date) or pd.isna(max_date):
+                                span = "N/A"
+                            else:
+                                date_range = max_date - min_date
+                                span = f"{int(getattr(date_range, 'days', 0))} days"
+                        except Exception:
+                            span = "N/A"
                         st.metric("📆 Calendar Span", span)
-                    
+
                     st.markdown("---")
-                    
+
                     # Display table
                     show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in upcoming.columns]
                     fixtures_display = upcoming[show_cols].head(200).copy()
-                    
+
                     # Format date column
                     if "Date" in fixtures_display.columns:
                         fixtures_display["Date"] = fixtures_display["Date"].apply(lambda x: x.strftime("%a %d %b %Y") if pd.notna(x) else "Invalid Date")
-                    
+
                     st.markdown(f"##### Next {len(fixtures_display)} Upcoming Fixtures")
                     height = get_dataframe_height(fixtures_display, max_height=400)
-                    st.dataframe(fixtures_display, hide_index=True, height=height, width='stretch')
-                    
+                    safe_st_call(st.dataframe, fixtures_display, hide_index=True, height=height, width='stretch')
+
                     st.caption("💡 **Tip:** Use the 'Predicted Fixtures' tab to see profitability scores for these races")
                 else:
                     st.info("✨ No upcoming fixtures in calendar")
         except Exception as e:
-            st.warning(f"Could not load upcoming schedule: {e}")
+            import traceback
+            tb = traceback.format_exc()
+            st.warning(f"Could not load upcoming schedule: {e}\n{tb}")
 
     # Sidebar filters
     st.sidebar.header("Filters")
@@ -981,7 +1012,7 @@ def main():
                         yaxis={'categoryorder':'total ascending'}
                     )
                     
-                    st.plotly_chart(fig, width='stretch')
+                    safe_st_call(st.plotly_chart, fig, width='stretch')
                 else:
                     # Fallback to simple bar chart
                     st.bar_chart(top_features.set_index('feature')['importance'])
@@ -1243,7 +1274,7 @@ def main():
                         }
                     )
                     fig.update_layout(height=400)
-                    st.plotly_chart(fig, width='stretch')
+                    safe_st_call(st.plotly_chart, fig, width='stretch')
                 else:
                     st.info("Install plotly to see score distribution chart")
                 
@@ -1387,7 +1418,7 @@ def main():
                         
                         tier2_display.columns = [c.title() for c in tier2_display.columns]
                         with st.expander("Show Tier 2 Races", expanded=False):
-                            st.dataframe(tier2_display, hide_index=True, width='stretch')
+                            safe_st_call(st.dataframe, tier2_display, hide_index=True, width='stretch')
                     
                     # Betting workflow guidance
                     st.markdown("---")
@@ -1428,7 +1459,7 @@ def main():
                             tier_stats = tier_stats.sort_values('Avg Score', ascending=False)
                             
                             st.write("**Race counts and average scores by betting tier:**")
-                            st.dataframe(tier_stats, hide_index=True, width='stretch')
+                            safe_st_call(st.dataframe, tier_stats, hide_index=True, width='stretch')
                             
                             st.caption("Note: Historical tiers use strict criteria. Upcoming predictions use relaxed criteria due to limited data.")
                 
@@ -1783,7 +1814,7 @@ def main():
                 top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
             
             height = get_dataframe_height(top_per_day)
-            st.dataframe(top_per_day, hide_index=True, width='stretch', height=height)
+            safe_st_call(st.dataframe, top_per_day, hide_index=True, width='stretch', height=height)
             
             # if not has_odds:
                 # st.info("💡 **Add live odds:** Run `python scripts/fetch_odds.py --date " + today_str + "` to fetch bookmaker odds and enable value bet detection")
@@ -2323,7 +2354,7 @@ def main():
                     display_df['race_score'] = display_df['race_score'].apply(lambda x: f"{x:.0f}")
                     display_df.columns = ['Date', 'Course', 'Class', 'Distance', 'Prize', 'Score']
                     
-                    st.dataframe(display_df, hide_index=True, width='stretch')
+                    safe_st_call(st.dataframe, display_df, hide_index=True, width='stretch')
                     
                     st.markdown("---")
                     st.caption("⏰ **Tip:** Fetch racecards 24-48 hours before race date for best results")
