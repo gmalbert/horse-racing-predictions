@@ -1,0 +1,65 @@
+name: Precompute Daily Predictions
+
+on:
+  schedule:
+    # daily at 07:00 UTC (runs after racecards pulled at 06:30)
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to generate predictions for (YYYY-MM-DD). If omitted, uses today (UTC).'
+        required: false
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Determine date
+        id: date
+        run: |
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            echo "date=${{ github.event.inputs.date }}" >> $GITHUB_OUTPUT
+          else
+            echo "date=$(date -u +%F)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run prediction script
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          set -e
+          echo "Generating predictions for ${{ steps.date.outputs.date }}"
+          python scripts/predict_todays_races.py --date ${{ steps.date.outputs.date }}
+
+      - name: Commit generated predictions
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add data/processed/predictions_${{ steps.date.outputs.date }}.* || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: precompute predictions for ${{ steps.date.outputs.date }} [skip ci]" || true
+            git push
+          fi
