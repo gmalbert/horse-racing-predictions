@@ -276,6 +276,7 @@ The project includes automated workflows for continuous model training and predi
 - **Schedule**: Every Monday at 02:00 ET (07:00 UTC)
 - **Tasks**:
   - Race profitability scoring (`phase2_score_races.py`)
+  - Apply betting strategy tiers (`apply_betting_strategy.py`)
   - ML model retraining (`phase3_build_horse_model.py`)
   - Fixture calendar scoring (`score_fixture_calendar.py`)
 - **Smart Execution**: Only runs when new race data is detected

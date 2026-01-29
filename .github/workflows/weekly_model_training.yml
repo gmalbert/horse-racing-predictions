@@ -19,6 +19,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
+
+      - name: Verify LFS files
+        run: |
+          echo "Checking LFS files..."
+          if [ ! -f "data/processed/all_gb_races_cleaned.parquet" ]; then
+            echo "❌ LFS file not downloaded: all_gb_races_cleaned.parquet"
+            exit 1
+          fi
+          file_size=$(stat -f%z "data/processed/all_gb_races_cleaned.parquet" 2>/dev/null || stat -c%s "data/processed/all_gb_races_cleaned.parquet")
+          if [ "$file_size" -lt 1000000 ]; then
+            echo "❌ LFS file too small: $file_size bytes (expected >1MB)"
+            exit 1
+          fi
+          echo "✅ LFS files verified ($file_size bytes)"
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -66,6 +81,15 @@ jobs:
           echo "🔢 Running Phase 2: Race profitability scoring..."
           python scripts/phase2_score_races.py
 
+      - name: Apply betting strategy tiers
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "🎯 Running betting strategy classification..."
+          python scripts/apply_betting_strategy.py
+
       - name: Retrain ML model (Phase 3)
         if: steps.check_data.outputs.has_new_data == 'true'
         env:
@@ -102,7 +126,7 @@ jobs:
           git config user.email "$GIT_AUTHOR_EMAIL"
 
           # Add updated model artifacts and data
-          git add models/ data/processed/race_scores.parquet data/processed/scored_fixtures_calendar.csv .last_weekly_run || true
+          git add models/ data/processed/race_scores.parquet data/processed/race_scores_with_betting_tiers.parquet data/processed/scored_fixtures_calendar.csv .last_weekly_run || true
 
           if git diff --staged --quiet; then
             echo "No model changes to commit"
@@ -117,6 +141,7 @@ jobs:
           if [ "${{ steps.check_data.outputs.has_new_data }}" = "true" ]; then
             echo "✅ Weekly training completed successfully"
             echo "   - Race scores updated"
+            echo "   - Betting tiers applied"
             echo "   - ML model retrained"
             echo "   - Fixtures rescored"
             echo "   - Changes committed to repository"
