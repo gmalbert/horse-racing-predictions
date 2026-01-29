@@ -15,12 +15,20 @@ import argparse
 import json
 import pickle
 import sys
+import warnings
 from datetime import datetime
 from pathlib import Path
 import pytz
 
 import pandas as pd
 import numpy as np
+
+# Check for XGBoost availability
+try:
+    from xgboost import XGBClassifier
+    HAS_XGBOOST = True
+except ImportError:
+    HAS_XGBOOST = False
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -32,7 +40,7 @@ from odds_converter import probability_to_decimal_odds, probability_to_fractiona
 
 # Paths
 DATA_DIR = project_root / "data"
-WIN_MODEL_FILE = project_root / "models" / "horse_win_predictor.pkl"
+WIN_MODEL_FILE = project_root / "models" / ("horse_win_predictor.json" if HAS_XGBOOST else "horse_win_predictor.pkl")
 PLACE_MODEL_FILE = project_root / "models" / "horse_place_predictor.pkl"
 SHOW_MODEL_FILE = project_root / "models" / "horse_show_predictor.pkl"
 FEATURE_COLS_FILE = project_root / "models" / "feature_columns.txt"
@@ -43,14 +51,32 @@ def load_models():
     """Load trained ML models (win, place, show) and feature columns"""
     print("\nLoading ML models...")
     
-    with open(WIN_MODEL_FILE, 'rb') as f:
-        win_model = pickle.load(f)
-    
-    with open(PLACE_MODEL_FILE, 'rb') as f:
-        place_model = pickle.load(f)
-    
-    with open(SHOW_MODEL_FILE, 'rb') as f:
-        show_model = pickle.load(f)
+    # Suppress XGBoost warnings about model version compatibility
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        
+        if HAS_XGBOOST:
+            from xgboost import XGBClassifier
+            win_model = XGBClassifier()
+            win_model.load_model(WIN_MODEL_FILE)
+        else:
+            with open(WIN_MODEL_FILE, 'rb') as f:
+                win_model = pickle.load(f)
+        
+        # Place and show models are always pickled (if they exist)
+        try:
+            with open(PLACE_MODEL_FILE, 'rb') as f:
+                place_model = pickle.load(f)
+        except FileNotFoundError:
+            print(f"[!] Place model not found: {PLACE_MODEL_FILE}")
+            place_model = None
+        
+        try:
+            with open(SHOW_MODEL_FILE, 'rb') as f:
+                show_model = pickle.load(f)
+        except FileNotFoundError:
+            print(f"[!] Show model not found: {SHOW_MODEL_FILE}")
+            show_model = None
     
     with open(FEATURE_COLS_FILE, 'r') as f:
         feature_cols = [line.strip() for line in f]
@@ -439,15 +465,20 @@ def predict_race(racecard, historical_df, win_model, place_model, show_model, fe
         X = np.array(feature_vector).reshape(1, -1)
         win_prob = win_model.predict_proba(X)[0][1]
         # Place/show models may be absent or have different feature shapes
-        try:
-            place_prob = place_model.predict_proba(X)[0][1]
-        except Exception:
-            # Fallback: estimate place as a fraction of win probability
+        if place_model is not None:
+            try:
+                place_prob = place_model.predict_proba(X)[0][1]
+            except Exception:
+                place_prob = min(1.0, win_prob * 0.6)
+        else:
             place_prob = min(1.0, win_prob * 0.6)
-        try:
-            show_prob = show_model.predict_proba(X)[0][1]
-        except Exception:
-            # Fallback: estimate show as a smaller fraction
+        
+        if show_model is not None:
+            try:
+                show_prob = show_model.predict_proba(X)[0][1]
+            except Exception:
+                show_prob = min(1.0, win_prob * 0.4)
+        else:
             show_prob = min(1.0, win_prob * 0.4)
         
         # Store prediction
