@@ -140,6 +140,10 @@ def main():
     
     with tab3:
         display_model_insights()
+    
+    # Add footer at the bottom of the page
+    from footer import add_betting_oracle_footer
+    add_betting_oracle_footer()
 
 
 def display_predictions_tab():
@@ -606,7 +610,7 @@ def display_all_horses_table(race_preds):
     
     display_df = display_df.sort_values('Win Rank')
     
-    st.dataframe(display_df, hide_index=True, width=800)
+    st.dataframe(display_df, hide_index=True, width='stretch', height=get_dataframe_height(display_df))
 
 
 def display_value_bet_calculator(race_preds, selected_race_idx):
@@ -839,7 +843,7 @@ def display_predicted_fixtures_tab():
             course_stats.columns = ['Total Races', 'Avg Score', 'Max Score', 'Tier 1 Count']
             course_stats = course_stats.sort_values('Max Score', ascending=False).head(15)
             height = get_dataframe_height(course_stats)
-            st.dataframe(course_stats, height=height)
+            st.dataframe(course_stats, height=height, width=600)
             
             # Filterable table of all fixtures
             st.subheader("All Predicted Fixtures")
