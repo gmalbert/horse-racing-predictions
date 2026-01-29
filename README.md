@@ -262,6 +262,35 @@ streamlit run predictions.py
 
 ---
 
+## 🤖 GitHub Actions Automation
+
+The project includes automated workflows for continuous model training and prediction generation:
+
+### Daily Predictions (`precompute_predictions.yml`)
+- **Schedule**: Daily at 07:00 UTC
+- **Task**: Generates predictions for upcoming races
+- **Trigger**: Can also be run manually with custom dates
+- **Output**: `data/processed/predictions_YYYY-MM-DD.csv`
+
+### Weekly Model Training (`weekly_model_training.yml`)
+- **Schedule**: Every Monday at 02:00 ET (07:00 UTC)
+- **Tasks**:
+  - Race profitability scoring (`phase2_score_races.py`)
+  - ML model retraining (`phase3_build_horse_model.py`)
+  - Fixture calendar scoring (`score_fixture_calendar.py`)
+- **Smart Execution**: Only runs when new race data is detected
+- **Manual Trigger**: Can force retraining with `force_retrain: true`
+
+### Required Secrets
+Set these in your GitHub repository settings:
+- `RACING_API_USERNAME` - Racing API username
+- `RACING_API_PASSWORD` - Racing API password
+- `ODDS_API_KEY` - Odds API key
+
+[Back to Top](#table-of-contents)
+
+---
+
 ## Project Structure
 
 ```

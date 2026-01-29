@@ -1,0 +1,125 @@
+name: Weekly Model Training & Scoring
+
+on:
+  schedule:
+    # Every Monday at 02:00 ET (07:00 UTC, after weekend racing)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      force_retrain:
+        description: 'Force model retraining even if no new data (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  weekly-training:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check for new race data
+        id: check_data
+        run: |
+          # Check if we have new race data since last run
+          LAST_RUN_FILE=".last_weekly_run"
+          CURRENT_DATE=$(date -u +%F)
+
+          if [ -f "$LAST_RUN_FILE" ]; then
+            LAST_RUN=$(cat "$LAST_RUN_FILE")
+            echo "Last run: $LAST_RUN"
+
+            # Check for new racecard files since last run
+            NEW_RACECARDS=$(find data/raw -name "racecards_*.json" -newer "$LAST_RUN_FILE" 2>/dev/null | wc -l)
+            echo "New racecards since last run: $NEW_RACECARDS"
+
+            if [ "$NEW_RACECARDS" -gt 0 ] || [ "${{ github.event.inputs.force_retrain }}" = "true" ]; then
+              echo "has_new_data=true" >> $GITHUB_OUTPUT
+              echo "✅ Found new race data or force retrain requested"
+            else
+              echo "has_new_data=false" >> $GITHUB_OUTPUT
+              echo "⏭️ No new race data found, skipping training"
+            fi
+          else
+            echo "has_new_data=true" >> $GITHUB_OUTPUT
+            echo "🔄 First run or missing timestamp, proceeding with training"
+          fi
+
+      - name: Score historical races (Phase 2)
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "🔢 Running Phase 2: Race profitability scoring..."
+          python scripts/phase2_score_races.py
+
+      - name: Retrain ML model (Phase 3)
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "🤖 Running Phase 3: ML model retraining..."
+          python scripts/phase3_build_horse_model.py
+
+      - name: Score upcoming fixtures
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "📅 Running fixture scoring..."
+          python scripts/score_fixture_calendar.py
+
+      - name: Update last run timestamp
+        if: steps.check_data.outputs.has_new_data == 'true'
+        run: |
+          echo "📝 Updating last run timestamp..."
+          date -u +%F > .last_weekly_run
+          echo "Last run timestamp updated to $(cat .last_weekly_run)"
+
+      - name: Commit model updates
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+
+          # Add updated model artifacts and data
+          git add models/ data/processed/race_scores.parquet data/processed/scored_fixtures_calendar.csv .last_weekly_run || true
+
+          if git diff --staged --quiet; then
+            echo "No model changes to commit"
+          else
+            git commit -m "chore: weekly model training and race scoring [skip ci]" || true
+            git push
+            echo "✅ Model updates committed and pushed"
+          fi
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check_data.outputs.has_new_data }}" = "true" ]; then
+            echo "✅ Weekly training completed successfully"
+            echo "   - Race scores updated"
+            echo "   - ML model retrained"
+            echo "   - Fixtures rescored"
+            echo "   - Changes committed to repository"
+          else
+            echo "⏭️ Weekly training skipped (no new data)"
+          fi
