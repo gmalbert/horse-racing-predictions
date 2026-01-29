@@ -14,6 +14,7 @@ Critical workflows (commands)
 - Batch generate: `python scripts/batch_generate_predictions.py` (scans `data/raw/`)
 - Fetch racecards (example): `python scripts/fetch_racecards.py --date YYYY-MM-DD` (saves `data/raw/racecards_YYYY-MM-DD.json`)
 - Tests: `pytest tests/` (tests avoid live network calls; use fixtures)
+- GitHub Actions: Daily predictions (07:00 UTC) and weekly model training (Monday 07:00 UTC)
 
 Repository conventions & patterns
 - Environment & secrets: use `.venv/`, store secrets in `.env` (gitignored), mirror any new vars in `.env.example`.
