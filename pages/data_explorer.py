@@ -37,13 +37,13 @@ def main():
     
     # Helper to show filter instruction
     def show_filter_hint():
-        st.info("📊 **Filters available:** Adjust filters in the left sidebar to narrow down results", icon="ℹ️")
+        pass
     
     # Load data
     df = load_data()
     
     # Inform user about data scope
-    st.info("📊 **Recent Data Only**: To keep the app fast, we're showing the last 5 years of races. Don't worry—the AI model learned from all past races for smart predictions!", icon="ℹ️")
+    st.info("📊 **Recent Data Only**: To keep the app fast, we're showing the last 5 years of races.", icon="ℹ️")
     
     # Sidebar filters
     st.sidebar.header("Filters")
@@ -329,6 +329,10 @@ def main():
     with tab6:
 
         display_betting_watchlist_tab()
+    
+    # Add footer at the bottom of the page
+    from footer import add_betting_oracle_footer
+    add_betting_oracle_footer()
 
 
 def display_horses_tab(df, filtered_df, selected_years, selected_courses, horse_name, selected_positions, show_filter_hint):
