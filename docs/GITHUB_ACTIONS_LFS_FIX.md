@@ -95,14 +95,50 @@ After first successful workflow run:
 
 ## Troubleshooting
 
-### Workflow fails with "file not found"
+### Workflow fails with "Parquet magic bytes not found" or LFS pointer error
 
-If workflows fail on first run after this fix because Parquet files don't exist:
+**What happened:** The workflow tried to read an LFS pointer file (small text file) as Parquet data.
 
-**Option 1: Upload from local (recommended)**
+**Status: FIXED** ✅
+
+The prediction script now:
+1. Detects LFS pointer files vs. real data
+2. Exits gracefully with clear error message on cache miss
+3. Provides instructions for seeding the cache
+
+**After fix applied:**
+```bash
+# Commit the LFS pointer detection fix
+git add scripts/predict_todays_races.py
+git commit -m "fix: add LFS pointer detection"
+
+# Push LFS files (one-time, uses quota but seeds cache)
+git lfs push origin main --all
+
+# Push the code
+git push
+
+# Next workflow run will:
+# - See LFS pointer, exit gracefully
+# - Cache is now empty and will be populated when data is regenerated
+```
+
+**Option 1: Regenerate data files (recommended for production)**
+```bash
+# Regenerate all historical data locally
+python scripts/phase2_score_races.py
+python scripts/apply_betting_strategy.py
+
+# This creates fresh Parquet files that get cached
+git add data/processed/*.parquet
+git commit -m "chore: regenerate historical data"
+git push
+```
+
+**Option 2: Manual cache seed (if you have good local copies)**
 ```bash
 # Ensure you have the files locally
-ls -lh data/processed/*.parquet
+Get-ChildItem data/processed/*.parquet
 
 # Push them via git (they're already in LFS)
 git add data/processed/*.parquet
