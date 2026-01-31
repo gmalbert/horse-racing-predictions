@@ -18,7 +18,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
+          lfs: false  # Disable LFS to avoid bandwidth quota
+
+      - name: Cache historical race data
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/processed/all_gb_races.parquet
+            data/processed/all_gb_races_cleaned.parquet
+            data/processed/race_scores.parquet
+            data/processed/race_scores_with_betting_tiers.parquet
+          key: horse-racing-data-v1
+          restore-keys: |
+            horse-racing-data-
 
       - name: Setup Python
         uses: actions/setup-python@v4
