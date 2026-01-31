@@ -115,10 +115,62 @@ def load_racecards(date_str):
     return racecards
 
 
+def is_lfs_pointer(filepath):
+    """Check if file is an LFS pointer instead of actual data.
+    
+    LFS pointer files are small text files (<200 bytes) that look like:
+    version https://git-lfs.github.com/spec/v1
+    oid sha256:...
+    size 12345
+    """
+    if not filepath.exists():
+        return False
+    
+    try:
+        # LFS pointers are always < 200 bytes, real Parquet files are MB-GB
+        file_size = filepath.stat().st_size
+        if file_size < 1000:
+            # Double-check by reading first line
+            with open(filepath, 'rb') as f:
+                first_line = f.read(50)
+                if b'version https://git-lfs.github.com' in first_line:
+                    return True
+            return True  # Suspiciously small file
+        return False
+    except Exception:
+        return False
+
+
 def load_historical_data():
     """Load historical race data for feature engineering"""
     print("\nLoading historical data...")
-    df = pd.read_parquet(HISTORICAL_DATA)
+    
+    # Check if file is an LFS pointer
+    if not HISTORICAL_DATA.exists():
+        print(f"[!] Historical data file not found: {HISTORICAL_DATA}")
+        print("[!] This is expected on first GitHub Actions run with cache disabled.")
+        print("[!] The cache will be built after data files are available.")
+        sys.exit(0)  # Exit gracefully, not an error
+    
+    if is_lfs_pointer(HISTORICAL_DATA):
+        file_size = HISTORICAL_DATA.stat().st_size
+        print(f"[!] Historical data file is an LFS pointer ({file_size} bytes), not actual data")
+        print("[!] This happens when:")
+        print("    - LFS is disabled in GitHub Actions (lfs: false)")
+        print("    - The cache is empty (first run)")
+        print("[!] Solution: The historical Parquet files need to be available either:")
+        print("    1. Via GitHub Actions cache (built on first successful run)")
+        print("    2. Generated locally and committed")
+        print("[!] Exiting gracefully - no predictions generated")
+        sys.exit(0)  # Exit gracefully, not an error
+    
+    try:
+        df = pd.read_parquet(HISTORICAL_DATA)
+    except Exception as e:
+        print(f"[!] Error reading Parquet file: {e}")
+        print(f"[!] File size: {HISTORICAL_DATA.stat().st_size} bytes")
+        print("[!] The file may be corrupted or is not a valid Parquet file")
+        sys.exit(1)
     
     # Convert date to datetime
     df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
