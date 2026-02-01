@@ -44,7 +44,7 @@ WIN_MODEL_FILE = project_root / "models" / ("horse_win_predictor.json" if HAS_XG
 PLACE_MODEL_FILE = project_root / "models" / "horse_place_predictor.pkl"
 SHOW_MODEL_FILE = project_root / "models" / "horse_show_predictor.pkl"
 FEATURE_COLS_FILE = project_root / "models" / "feature_columns.txt"
-HISTORICAL_DATA = DATA_DIR / "processed" / "race_scores_with_betting_tiers.parquet"
+HISTORICAL_DATA = DATA_DIR / "processed" / "race_scores_with_all_features_no_leakage.parquet"
 
 
 def load_models():
@@ -243,7 +243,159 @@ def parse_weight_lbs(weight_str):
             return 140
 
 
-def build_horse_features_from_racecard(runner, race_info, historical_df):
+def classify_pace_style_from_history(horse_history, dist_f):
+    """Classify horse's running style from historical patterns"""
+    if len(horse_history) < 3:
+        return 'UNKNOWN'
+    
+    # Sprint races (< 8f) with low draw and good finishes = likely front-runner
+    sprint_races = horse_history[horse_history['dist_f'] < 8]
+    if len(sprint_races) >= 3:
+        # Check if consistently finishes well in sprints
+        low_draw_wins = sprint_races[
+            (sprint_races.get('draw', 999) <= 3) & 
+            (sprint_races['pos'] <= 3)
+        ]
+        if len(low_draw_wins) / len(sprint_races) > 0.4:
+            return 'LEADER'
+    
+    # Consistent top-3 finishes = presser
+    top3_rate = (horse_history['pos'] <= 3).mean()
+    consistency = horse_history['pos'].std()
+    
+    if top3_rate > 0.40 and consistency < 3.0:
+        return 'PRESSER'
+    
+    # Large variance = closer
+    if consistency > 5.0:
+        return 'CLOSER'
+    
+    # Middle ground
+    if top3_rate > 0.25:
+        return 'MIDPACK'
+    
+    return 'UNKNOWN'
+
+
+def calculate_pedigree_features(runner, historical_df, prediction_date):
+    """Calculate pedigree features using expanding windows (NO LEAKAGE)"""
+    features = {}
+    
+    sire_id = runner.get('sire_id')
+    sire_name = runner.get('sire')
+    
+    if not sire_id and not sire_name:
+        # No sire info - use defaults
+        return {
+            'sire_win_rate': 0.10,
+            'sire_place_rate': 0.33,
+            'sire_surface_match': 0.10,
+            'sire_distance_match': 0.10,
+            'sire_going_match': 0.10,
+            'sire_class_match': 0.10
+        }
+    
+    # Get sire's historical progeny results BEFORE prediction date
+    sire_mask = (historical_df['sire_id'] == sire_id) if sire_id else (historical_df['sire'].str.lower() == str(sire_name).lower())
+    sire_history = historical_df[
+        sire_mask & 
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    
+    if len(sire_history) < 5:
+        # Insufficient sire history
+        return {
+            'sire_win_rate': 0.10,
+            'sire_place_rate': 0.33,
+            'sire_surface_match': 0.10,
+            'sire_distance_match': 0.10,
+            'sire_going_match': 0.10,
+            'sire_class_match': 0.10
+        }
+    
+    # Overall sire stats
+    features['sire_win_rate'] = sire_history['won'].mean()
+    features['sire_place_rate'] = (sire_history['pos'] <= 3).mean()
+    
+    # Surface-specific (from race_info via runner context - needs to be passed)
+    # We'll calculate this in the main function
+    features['sire_surface_match'] = features['sire_win_rate']  # Placeholder
+    features['sire_distance_match'] = features['sire_win_rate']  # Placeholder
+    features['sire_going_match'] = features['sire_win_rate']  # Placeholder
+    features['sire_class_match'] = features['sire_win_rate']  # Placeholder
+    
+    return features
+
+
+def calculate_recent_form_features(jockey_name, trainer_name, course, historical_df, prediction_date):
+    """Calculate 14d/30d recent form for jockey and trainer"""
+    features = {}
+    
+    cutoff_14d = pd.to_datetime(prediction_date) - pd.Timedelta(days=14)
+    cutoff_30d = pd.to_datetime(prediction_date) - pd.Timedelta(days=30)
+    
+    # Jockey form
+    jockey_recent_14d = historical_df[
+        (historical_df['jockey'].str.lower() == jockey_name.lower()) &
+        (historical_df['date_dt'] >= cutoff_14d) &
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    
+    jockey_recent_30d = historical_df[
+        (historical_df['jockey'].str.lower() == jockey_name.lower()) &
+        (historical_df['date_dt'] >= cutoff_30d) &
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    
+    features['jockey_form_14d'] = jockey_recent_14d['won'].mean() if len(jockey_recent_14d) >= 3 else 0.10
+    features['jockey_form_30d'] = jockey_recent_30d['won'].mean() if len(jockey_recent_30d) >= 5 else 0.10
+    features['jockey_in_form'] = 1 if features['jockey_form_14d'] > 0.20 else 0
+    
+    # Jockey at this course
+    jockey_course = jockey_recent_30d[
+        jockey_recent_30d['course'].str.lower() == course.lower()
+    ]
+    features['jockey_course_form_30d'] = jockey_course['won'].mean() if len(jockey_course) >= 2 else features['jockey_form_30d']
+    
+    # Trainer form
+    trainer_recent_14d = historical_df[
+        (historical_df['trainer'].str.lower() == trainer_name.lower()) &
+        (historical_df['date_dt'] >= cutoff_14d) &
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    
+    trainer_recent_30d = historical_df[
+        (historical_df['trainer'].str.lower() == trainer_name.lower()) &
+        (historical_df['date_dt'] >= cutoff_30d) &
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    
+    features['trainer_form_14d'] = trainer_recent_14d['won'].mean() if len(trainer_recent_14d) >= 3 else 0.10
+    features['trainer_form_30d'] = trainer_recent_30d['won'].mean() if len(trainer_recent_30d) >= 5 else 0.10
+    features['trainer_in_form'] = 1 if features['trainer_form_14d'] > 0.15 else 0
+    
+    # Trainer at this course
+    trainer_course = trainer_recent_30d[
+        trainer_recent_30d['course'].str.lower() == course.lower()
+    ]
+    features['trainer_course_form_30d'] = trainer_course['won'].mean() if len(trainer_course) >= 2 else features['trainer_form_30d']
+    
+    # Jockey-trainer combination
+    jockey_trainer = historical_df[
+        (historical_df['jockey'].str.lower() == jockey_name.lower()) &
+        (historical_df['trainer'].str.lower() == trainer_name.lower()) &
+        (historical_df['date_dt'] >= cutoff_30d) &
+        (historical_df['date_dt'] < pd.to_datetime(prediction_date))
+    ]
+    features['jockey_trainer_form_30d'] = jockey_trainer['won'].mean() if len(jockey_trainer) >= 2 else features['jockey_form_30d']
+    
+    # Both in form?
+    features['connections_in_form'] = 1 if (features['jockey_in_form'] == 1 and features['trainer_in_form'] == 1) else 0
+    
+    return features
+
+
+def build_horse_features_from_racecard(runner, race_info, historical_df, prediction_date=None):
     """Build features for a specific horse from racecard data
     
     Matches the 24 features used in the trained model (18 original + 6 jockey):
@@ -487,11 +639,110 @@ def build_horse_features_from_racecard(runner, race_info, historical_df):
     except Exception:
         features['draw_group_win_rate'] = 0.0
     
+    # ===== NEW FEATURES (25 total) =====
+    
+    if prediction_date is None:
+        prediction_date = race_info.get('date', datetime.now().strftime('%Y-%m-%d'))
+    
+    # Pedigree features (6)
+    pedigree_feats = calculate_pedigree_features(runner, historical_df, prediction_date)
+    features.update(pedigree_feats)
+    
+    # Pace features (9)
+    pace_style = classify_pace_style_from_history(horse_history, dist_f)
+    features['pace_style_leader'] = 1 if pace_style == 'LEADER' else 0
+    features['pace_style_presser'] = 1 if pace_style == 'PRESSER' else 0
+    features['pace_style_closer'] = 1 if pace_style == 'CLOSER' else 0
+    features['pace_style_midpack'] = 1 if pace_style == 'MIDPACK' else 0
+    
+    # Race-level pace features (calculated after all horses - set defaults for now)
+    features['race_leader_count'] = 0  # Will be updated in predict_race
+    features['race_closer_count'] = 0  # Will be updated in predict_race
+    features['style_advantage'] = 0  # Will be updated in predict_race
+    
+    # Distance specialization
+    sprint_races = horse_history[horse_history['dist_f'] < 7]
+    staying_races = horse_history[horse_history['dist_f'] >= 12]
+    features['sprint_specialist'] = 1 if (len(sprint_races) >= 3 and (sprint_races['pos'] <= 3).mean() > 0.35) else 0
+    features['staying_specialist'] = 1 if (len(staying_races) >= 3 and (staying_races['pos'] <= 3).mean() > 0.35) else 0
+    
+    # Recent form features (10)
+    form_feats = calculate_recent_form_features(
+        jockey_name, trainer_name, course, historical_df, prediction_date
+    )
+    features.update(form_feats)
+    
+    # Add age-related features (should already be in model from training)
+    # These need to be in the racecard or calculated
+    horse_age = runner.get('age', 4)  # Default to 4
+    features['age'] = int(horse_age) if horse_age else 4
+    features['is_peak_age'] = 1 if 3 <= features['age'] <= 5 else 0
+    features['is_3yo'] = 1 if features['age'] == 3 else 0
+    features['is_veteran'] = 1 if features['age'] >= 7 else 0
+    features['age_vs_avg'] = 0  # Will calculate from race average
+    
+    # Beaten lengths features
+    if len(horse_history) > 0 and 'btn' in horse_history.columns:
+        # Parse btn column
+        def parse_btn(btn_str):
+            if pd.isna(btn_str) or btn_str in ['', '-', 'W', 'won']:
+                return 0.0
+            try:
+                btn_str = str(btn_str).strip().lower()
+                if 'nk' in btn_str:
+                    return 0.25
+                if 'hd' in btn_str or 'head' in btn_str:
+                    return 0.1
+                if 'dist' in btn_str:
+                    return 30.0
+                return float(btn_str)
+            except:
+                return 0.0
+        
+        horse_history['btn_numeric'] = horse_history['btn'].apply(parse_btn)
+        features['avg_btn_last_3'] = horse_history.head(3)['btn_numeric'].mean()
+        features['unlucky_last'] = 1 if (len(horse_history) > 0 and horse_history.head(1)['btn_numeric'].iloc[0] <= 1.0 and horse_history.head(1)['btn_numeric'].iloc[0] > 0) else 0
+    else:
+        features['avg_btn_last_3'] = 0.0
+        features['unlucky_last'] = 0
+    
+    # Gear/headgear features
+    headgear = runner.get('headgear', '').lower()
+    features['has_blinkers'] = 1 if 'b' in headgear else 0
+    features['has_visor'] = 1 if 'v' in headgear else 0
+    
+    prev_headgear = horse_history.head(1).get('headgear', '').iloc[0] if len(horse_history) > 0 and 'headgear' in horse_history.columns else ''
+    features['first_time_blinkers'] = 1 if (features['has_blinkers'] == 1 and 'b' not in str(prev_headgear).lower()) else 0
+    features['gear_changed'] = 1 if (headgear != str(prev_headgear).lower()) else 0
+    
+    # Race condition features
+    race_type = race_info.get('type', '')
+    features['is_handicap'] = 1 if 'handicap' in race_type.lower() or 'hcap' in race_type.lower() else 0
+    features['is_maiden'] = 1 if 'maiden' in race_type.lower() else 0
+    features['is_pattern'] = 1 if race_info.get('pattern') else 0
+    
+    # Prize money (log scale)
+    try:
+        prize_str = str(race_info.get('prize', '0')).replace('£', '').replace(',', '')
+        prize_val = float(prize_str) if prize_str else 0
+        features['prize_log'] = np.log1p(prize_val)
+    except:
+        features['prize_log'] = 0.0
+    
+    # Distance categories
+    features['is_sprint'] = 1 if dist_f < 7 else 0
+    features['is_mile'] = 1 if 7 <= dist_f < 9 else 0
+    features['is_middle'] = 1 if 9 <= dist_f < 12 else 0
+    features['is_staying'] = 1 if dist_f >= 12 else 0
+    
     return features
 
 
-def predict_race(racecard, historical_df, win_model, place_model, show_model, feature_cols):
+def predict_race(racecard, historical_df, win_model, place_model, show_model, feature_cols, prediction_date=None):
     """Generate predictions for all horses in a race"""
+    
+    if prediction_date is None:
+        prediction_date = racecard.get('date', datetime.now().strftime('%Y-%m-%d'))
     
     # Collect all weights for weight_vs_avg calculation
     all_weights = []
@@ -504,11 +755,42 @@ def predict_race(racecard, historical_df, win_model, place_model, show_model, fe
     racecard = racecard.copy()
     racecard['all_weights'] = all_weights
     
+    # First pass: build features for all horses
+    all_features = []
+    for runner in racecard.get('runners', []):
+        features = build_horse_features_from_racecard(runner, racecard, historical_df, prediction_date)
+        all_features.append(features)
+    
+    # Second pass: calculate race-level pace features
+    leader_count = sum(1 for f in all_features if f.get('pace_style_leader', 0) == 1)
+    closer_count = sum(1 for f in all_features if f.get('pace_style_closer', 0) == 1)
+    field_size = len(all_features)
+    
+    # Update pace features for all horses
+    for features in all_features:
+        features['race_leader_count'] = leader_count
+        features['race_closer_count'] = closer_count
+        
+        # Style advantage: closer benefits from fast pace (many leaders)
+        # Leader benefits from slow pace (few leaders)
+        if features.get('pace_style_closer', 0) == 1 and leader_count >= 3:
+            features['style_advantage'] = 1
+        elif features.get('pace_style_leader', 0) == 1 and leader_count <= 1:
+            features['style_advantage'] = 1
+        else:
+            features['style_advantage'] = 0
+    
+    # Calculate age average for age_vs_avg
+    all_ages = [f.get('age', 4) for f in all_features]
+    avg_age = sum(all_ages) / len(all_ages) if all_ages else 4
+    for features in all_features:
+        features['age_vs_avg'] = features.get('age', 4) - avg_age
+    
+    # Third pass: make predictions
     race_predictions = []
     
-    for runner in racecard.get('runners', []):
-        # Build features
-        features = build_horse_features_from_racecard(runner, racecard, historical_df)
+    for idx, (runner, features) in enumerate(zip(racecard.get('runners', []), all_features)):
+        # Features already built above in first pass with all updates from second pass
         
         # Create feature vector in correct order
         feature_vector = [features.get(col, 0) for col in feature_cols]
