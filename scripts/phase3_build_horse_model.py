@@ -38,11 +38,16 @@ def load_data():
     """Load scored race data with ALL NEW FEATURES (no leakage version)"""
     data_dir = Path('data/processed')
     
-    # Prefer no-leakage version
+    # Prefer latest version with all enhancements
+    connections_v2_path = data_dir / 'race_scores_connections_v2.parquet'
     no_leak_path = data_dir / 'race_scores_with_all_features_no_leakage.parquet'
     legacy_path = data_dir / 'race_scores.parquet'
     
-    if no_leak_path.exists():
+    if connections_v2_path.exists():
+        print(f"\n✓ Loading: {connections_v2_path}")
+        df = pd.read_parquet(connections_v2_path)
+        print(f"  Contains: All features + Enhanced Form + Connections V2")
+    elif no_leak_path.exists():
         print(f"\n✓ Loading: {no_leak_path}")
         df = pd.read_parquet(no_leak_path)
         print(f"  Contains: Pedigree (no leak) + Pace + Recent Form features")
@@ -812,7 +817,21 @@ def prepare_training_data(df):
         # Recent form features (10)
         'jockey_form_14d', 'jockey_form_30d', 'jockey_in_form', 'jockey_course_form_30d',
         'trainer_form_14d', 'trainer_form_30d', 'trainer_in_form', 'trainer_course_form_30d',
-        'jockey_trainer_form_30d', 'connections_in_form'
+        'jockey_trainer_form_30d', 'connections_in_form',
+        
+        # ===== ENHANCED FEATURES V2 (19 total) =====
+        
+        # Enhanced form features (6)
+        'weighted_pos_avg', 'pos_pct_last_3', 'form_consistency',
+        'form_trend', 'form_at_class', 'runs_at_class',
+        
+        # Enhanced connections form V2 (13)
+        'jockey_form_14d_v2', 'jockey_form_30d_v2', 'jockey_hot_v2',
+        'trainer_form_14d_v2', 'trainer_form_30d_v2', 'trainer_hot_v2',
+        'combo_form_30d_v2', 'combo_hot_v2',
+        'jockey_runs_14d_v2', 'jockey_runs_30d_v2',
+        'trainer_runs_14d_v2', 'trainer_runs_30d_v2',
+        'combo_runs_30d_v2'
     ]
     
     # Target variable

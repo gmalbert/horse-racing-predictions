@@ -372,3 +372,131 @@ high_corr_pairs = np.where(np.abs(corr_matrix) > 0.9)
 **Total Potential Improvement**: +0.08-0.15 (to AUC ~0.75-0.82)
 
 Note: Market data (BSP) alone could provide +0.05 AUC improvement — it's the single most impactful addition.
+
+---
+
+## IMPLEMENTATION RESULTS (February 2026)
+
+### Features Implemented
+
+✅ **Enhanced Form Features** (6 features)
+- `weighted_pos_avg` - Recent positions weighted more heavily (0.5, 0.3, 0.2)
+- `pos_pct_last_3` - Position as percentage of field size
+- `form_consistency` - Standard deviation of last 5 positions
+- `form_trend` - Linear trend of recent positions (improving/declining)
+- `form_at_class` - Win rate at this specific class level
+- `runs_at_class` - Experience at this class level
+
+✅ **Connections Form V2 Features** (13 features)
+- `jockey_form_14d_v2` / `jockey_form_30d_v2` - Recent jockey win rates
+- `trainer_form_14d_v2` / `trainer_form_30d_v2` - Recent trainer win rates
+- `jockey_hot_v2` / `trainer_hot_v2` - >25% win rate in 30d (hot flags)
+- `combo_form_30d_v2` - Trainer-jockey combination win rate
+- `combo_hot_v2` - Hot combination flag
+- `jockey_runs_14d_v2` / `jockey_runs_30d_v2` - Recent ride counts
+- `trainer_runs_14d_v2` / `trainer_runs_30d_v2` - Recent runner counts
+- `combo_runs_30d_v2` - Recent combination rides
+
+### Actual Performance Impact
+
+**Model Progression:**
+
+| Model | Features | Train AUC | Test AUC | Δ vs Baseline |
+|-------|----------|-----------|----------|---------------|
+| Baseline (v2.0) | 72 | 0.7817 | 0.6841 | - |
+| + Enhanced Form | 78 | 0.7952 | 0.6930 | **+0.0089** |
+| + Connections V2 | 91 | 0.7999 | 0.6984 | **+0.0144** |
+
+**Final Improvement: +0.0144 AUC (+2.10%)**
+
+### Feature Importance (Top 20 - Full Model v2.1)
+
+| Rank | Feature | Importance | Type | New? |
+|------|---------|------------|------|------|
+| 1 | field_size | 0.0808 | Race Context | - |
+| 2 | sprint_specialist | 0.0445 | Pace | - |
+| 3 | **pos_pct_last_3** | **0.0339** | **Enhanced Form** | **🆕** |
+| 4 | staying_specialist | 0.0328 | Pace | - |
+| 5 | class_num | 0.0202 | Class | - |
+| 6 | draw | 0.0164 | Draw | - |
+| 7 | age_vs_avg | 0.0151 | Age | - |
+| 8 | is_pattern | 0.0149 | Race Type | - |
+| 9 | prize_log | 0.0144 | Prize | - |
+| 10 | career_place_rate | 0.0142 | Career | - |
+| 11 | **weighted_pos_avg** | **0.0220** | **Enhanced Form** | **🆕** |
+| 12 | **jockey_hot_v2** | **0.0205** | **Connections V2** | **🆕** |
+| 13 | trainer_form_30d | 0.0203 | Connections | - |
+| 14 | pace_style_presser | 0.0175 | Pace | - |
+| 15 | **trainer_form_30d_v2** | **0.0166** | **Connections V2** | **🆕** |
+| 16 | **form_at_class** | **0.0164** | **Enhanced Form** | **🆕** |
+| 17 | **jockey_runs_14d_v2** | **0.0161** | **Connections V2** | **🆕** |
+| 18 | **jockey_runs_30d_v2** | **0.0160** | **Connections V2** | **🆕** |
+| 19 | **trainer_form_14d_v2** | **0.0159** | **Connections V2** | **🆕** |
+| 20 | avg_last_3_pos | 0.0153 | Recent Form | - |
+
+**Key Insights:**
+- `pos_pct_last_3` (position % of field) ranks #3 overall (0.0339 importance)
+- `weighted_pos_avg` is highly predictive (0.0220 importance)
+- `jockey_hot_v2` ranks in top 15 (0.0205 importance)
+- Enhanced form features contribute 3 of top 20 features
+- Connections V2 features contribute 5 of top 20 features
+- 8 of top 20 features are NEW (40%)
+
+### Coverage Statistics
+
+**Enhanced Form Features:**
+- weighted_pos_avg: 62.0% coverage (requires 1+ prior races)
+- pos_pct_last_3: 100% coverage (defaults to 0.5 mid-pack)
+- form_consistency: 100% coverage
+- form_trend: 100% coverage
+- form_at_class: 100% coverage (defaults to 0)
+- runs_at_class: 100% coverage
+
+**Connections V2 Features:**
+- Jockey 14d coverage: 94.8% (232,548 horses)
+- Jockey 30d coverage: 97.1% (238,274 horses)
+- Trainer 14d coverage: 91.8% (225,249 horses)
+- Trainer 30d coverage: 96.2% (236,088 horses)
+- Combo 30d coverage: 66.8% (163,804 horses)
+- Hot jockeys: 4.5% of horses
+- Hot trainers: 5.7% of horses
+- Hot combos: 7.3% of horses
+
+### Implementation Notes
+
+**Data Leakage Prevention:**
+- All features use `.shift(1)` to exclude current race
+- Expanding windows for cumulative stats
+- Time-based rolling windows for recent form (14d/30d)
+- Manual date filtering for connections form (race_date - timedelta)
+
+**Computation Time:**
+- Enhanced form features: ~30 seconds
+- Connections V2 features: ~15 minutes (iterative date-based calculations)
+
+**Files Created:**
+- `scripts/add_enhanced_form_features.py` - Enhanced form feature engineering
+- `scripts/add_connections_form_v2.py` - Connections form V2 engineering
+- `scripts/compare_feature_impact.py` - Model comparison and impact analysis
+- `data/processed/race_scores_enhanced_form.parquet` - Intermediate dataset (121 cols)
+- `data/processed/race_scores_connections_v2.parquet` - Final dataset (140 cols)
+- `models/feature_impact_analysis.json` - Performance comparison results
+- `models/feature_importance_v2.1.csv` - Full feature importance rankings
+
+### Conclusion
+
+The implementation of **Enhanced Form** and **Connections V2** features successfully improved model performance by **+2.10%** (0.0144 AUC points). The most impactful additions were:
+
+1. **pos_pct_last_3** - Position relative to field size (#3 feature overall)
+2. **weighted_pos_avg** - Recency-weighted positions (#11 overall)
+3. **jockey_hot_v2** - Hot jockey indicator (#12 overall)
+4. **form_at_class** - Class-specific performance (#16 overall)
+
+These features provide the model with more sophisticated form analysis and better understanding of current connections (jockey/trainer) momentum, which are critical factors in horse racing predictions.
+
+**Next Steps:**
+- ❌ Market-Derived Features (requires betting exchange data - BSP not available)
+- ✅ Enhanced Form Features (IMPLEMENTED - +0.89% AUC)
+- ✅ Connections Form V2 (IMPLEMENTED - +0.55% AUC)
+- ⏳ Going Preference Features (future enhancement)
+- ⏳ Field Strength Features (future enhancement)

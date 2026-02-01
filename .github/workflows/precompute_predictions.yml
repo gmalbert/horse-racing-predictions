@@ -28,7 +28,9 @@ jobs:
             data/processed/all_gb_races_cleaned.parquet
             data/processed/race_scores.parquet
             data/processed/race_scores_with_betting_tiers.parquet
-          key: horse-racing-data-v1
+            data/processed/race_scores_with_all_features_no_leakage.parquet
+            data/processed/race_scores_connections_v2.parquet
+          key: horse-racing-data-v2
           restore-keys: |
             horse-racing-data-
 
