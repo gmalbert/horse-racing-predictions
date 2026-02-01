@@ -44,7 +44,29 @@ WIN_MODEL_FILE = project_root / "models" / ("horse_win_predictor.json" if HAS_XG
 PLACE_MODEL_FILE = project_root / "models" / "horse_place_predictor.pkl"
 SHOW_MODEL_FILE = project_root / "models" / "horse_show_predictor.pkl"
 FEATURE_COLS_FILE = project_root / "models" / "feature_columns.txt"
-HISTORICAL_DATA = DATA_DIR / "processed" / "race_scores_with_all_features_no_leakage.parquet"
+
+def get_historical_data_path():
+    """Get the best available historical data file (same logic as training)"""
+    data_dir = DATA_DIR / "processed"
+    
+    # Prefer latest version with all enhancements
+    connections_v2_path = data_dir / 'race_scores_connections_v2.parquet'
+    no_leak_path = data_dir / 'race_scores_with_all_features_no_leakage.parquet'
+    legacy_path = data_dir / 'race_scores.parquet'
+    
+    if connections_v2_path.exists():
+        print(f"✓ Using latest data: {connections_v2_path.name} (91 features)")
+        return connections_v2_path
+    elif no_leak_path.exists():
+        print(f"✓ Using enhanced data: {no_leak_path.name} (77 features)")
+        return no_leak_path
+    elif legacy_path.exists():
+        print(f"✓ Using legacy data: {legacy_path.name} (72 features)")
+        return legacy_path
+    else:
+        raise FileNotFoundError("No historical race data found in data/processed/")
+
+HISTORICAL_DATA = get_historical_data_path()
 
 
 def load_models():

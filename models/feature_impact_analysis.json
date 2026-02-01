@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-02-01T15:41:12.692147",
+  "models": [
+    {
+      "model_name": "Baseline (v2.0)",
+      "n_features": 32,
+      "train_auc": 0.7816765379459488,
+      "test_auc": 0.6840865588966316,
+      "train_acc": 0.8885784783539632,
+      "test_acc": 0.8917422978307761
+    },
+    {
+      "model_name": "Baseline + Enhanced Form",
+      "n_features": 38,
+      "train_auc": 0.7951987431082521,
+      "test_auc": 0.6929769749794841,
+      "train_acc": 0.88891494524766,
+      "test_acc": 0.8916405518700907
+    },
+    {
+      "model_name": "Full Model (v2.1)",
+      "n_features": 51,
+      "train_auc": 0.799920438907072,
+      "test_auc": 0.6984458322766016,
+      "train_acc": 0.889730622565713,
+      "test_acc": 0.8913963615644459
+    }
+  ],
+  "baseline_auc": 0.6840865588966316,
+  "final_auc": 0.6984458322766016,
+  "total_improvement": 0.014359273379970006,
+  "relative_improvement_pct": 2.0990433437444214
+}
