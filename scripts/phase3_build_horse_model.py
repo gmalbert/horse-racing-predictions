@@ -35,11 +35,25 @@ from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
 
 def load_data():
-    """Load scored race data"""
+    """Load scored race data with ALL NEW FEATURES (no leakage version)"""
     data_dir = Path('data/processed')
-    df = pd.read_parquet(data_dir / 'race_scores.parquet')
-    print(f"Loaded {len(df):,} horse-race records")
-    print(f"Date range: {df['date'].min()} to {df['date'].max()}")
+    
+    # Prefer no-leakage version
+    no_leak_path = data_dir / 'race_scores_with_all_features_no_leakage.parquet'
+    legacy_path = data_dir / 'race_scores.parquet'
+    
+    if no_leak_path.exists():
+        print(f"\n✓ Loading: {no_leak_path}")
+        df = pd.read_parquet(no_leak_path)
+        print(f"  Contains: Pedigree (no leak) + Pace + Recent Form features")
+    else:
+        print(f"\n⚠️  WARNING: Using legacy data without new features")
+        print(f"  Loading: {legacy_path}")
+        df = pd.read_parquet(legacy_path)
+    
+    print(f"  Loaded {len(df):,} horse-race records")
+    print(f"  Columns: {len(df.columns)}")
+    print(f"  Date range: {df['date'].min()} to {df['date'].max()}")
     return df
 
 def engineer_career_features(df):
@@ -761,6 +775,7 @@ def prepare_training_data(df):
         
         # Race quality (from scorer)
         'race_score',
+        
         # Draw related
         'draw', 'draw_pct', 'draw_group_win_rate',
         
@@ -781,11 +796,40 @@ def prepare_training_data(df):
         'is_sprint', 'is_mile', 'is_middle', 'is_staying',
         
         # Jockey features (runs only - win rates excluded as they leak same-day outcomes)
-        'jockey_career_runs', 'jockey_course_runs', 'jockey_trainer_runs'
+        'jockey_career_runs', 'jockey_course_runs', 'jockey_trainer_runs',
+        
+        # ===== NEW FEATURES (33 total) =====
+        
+        # Pedigree features (6 - NO LEAKAGE, using expanding windows)
+        'sire_win_rate', 'sire_place_rate', 'sire_surface_match',
+        'sire_distance_match', 'sire_going_match', 'sire_class_match',
+        
+        # Pace/running style features (9 - categorical pace_style excluded, using binary flags)
+        'pace_style_leader', 'pace_style_presser', 'pace_style_closer', 'pace_style_midpack',
+        'race_leader_count', 'race_closer_count',
+        'style_advantage', 'sprint_specialist', 'staying_specialist',
+        
+        # Recent form features (10)
+        'jockey_form_14d', 'jockey_form_30d', 'jockey_in_form', 'jockey_course_form_30d',
+        'trainer_form_14d', 'trainer_form_30d', 'trainer_in_form', 'trainer_course_form_30d',
+        'jockey_trainer_form_30d', 'connections_in_form'
     ]
     
     # Target variable
     target_col = 'won'
+    
+    # Filter features to only those present in dataframe
+    available_features = [col for col in feature_cols if col in df_train.columns]
+    missing_features = [col for col in feature_cols if col not in df_train.columns]
+    
+    if missing_features:
+        print(f"\n⚠️  WARNING: {len(missing_features)} features not found in data:")
+        for feat in missing_features[:10]:  # Show first 10
+            print(f"     - {feat}")
+        if len(missing_features) > 10:
+            print(f"     ... and {len(missing_features) - 10} more")
+        print(f"\n  Using {len(available_features)} available features instead")
+        feature_cols = available_features
     
     # Select features and target
     X = df_train[feature_cols].copy()
