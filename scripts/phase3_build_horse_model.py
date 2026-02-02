@@ -39,11 +39,26 @@ def load_data():
     data_dir = Path('data/processed')
     
     # Prefer latest version with all enhancements
+    or_context_path = data_dir / 'race_scores_or_context.parquet'
+    going_pref_path = data_dir / 'race_scores_going_pref.parquet'
+    pedigree_path = data_dir / 'race_scores_pedigree.parquet'
     connections_v2_path = data_dir / 'race_scores_connections_v2.parquet'
     no_leak_path = data_dir / 'race_scores_with_all_features_no_leakage.parquet'
     legacy_path = data_dir / 'race_scores.parquet'
     
-    if connections_v2_path.exists():
+    if or_context_path.exists():
+        print(f"\n✓ Loading: {or_context_path}")
+        df = pd.read_parquet(or_context_path)
+        print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree + Going Preferences + OR Context")
+    elif going_pref_path.exists():
+        print(f"\n✓ Loading: {going_pref_path}")
+        df = pd.read_parquet(going_pref_path)
+        print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree + Going Preferences")
+    elif pedigree_path.exists():
+        print(f"\n✓ Loading: {pedigree_path}")
+        df = pd.read_parquet(pedigree_path)
+        print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree")
+    elif connections_v2_path.exists():
         print(f"\n✓ Loading: {connections_v2_path}")
         df = pd.read_parquet(connections_v2_path)
         print(f"  Contains: All features + Enhanced Form + Connections V2")
@@ -404,7 +419,10 @@ def engineer_gear_features(df):
     # b = blinkers, v = visor, h = hood, t = tongue strap
     # p = cheekpieces, e = eye shield
     
-    if 'headgear' in df.columns:
+    # Use 'hg' column (headgear) from the dataset
+    if 'hg' in df.columns:
+        df['headgear'] = df['hg'].fillna('').str.lower()
+    elif 'headgear' in df.columns:
         df['headgear'] = df['headgear'].fillna('').str.lower()
     else:
         df['headgear'] = ''
@@ -805,9 +823,24 @@ def prepare_training_data(df):
         
         # ===== NEW FEATURES (33 total) =====
         
-        # Pedigree features (6 - NO LEAKAGE, using expanding windows)
-        'sire_win_rate', 'sire_place_rate', 'sire_surface_match',
-        'sire_distance_match', 'sire_going_match', 'sire_class_match',
+        # Pedigree features V2.3 (12 features - temporal expanding windows)
+        'sire_win_rate_v2', 'sire_place_rate_v2', 'sire_turf_win_rate', 'sire_aw_win_rate',
+        'sire_surface_pref', 'sire_avg_win_dist', 'sire_sprint_pct', 'sire_stayer_pct',
+        'sire_class_avg', 'dam_offspring_count', 'dam_offspring_win_rate', 'damsire_stamina_score',
+        
+        # Going preference features V2.3 (6 features - horse/sire going preferences)
+        # Note: going_category and horse_best_going excluded (categorical - use win_rates instead)
+        'horse_heavy_win_rate', 'horse_soft_win_rate', 'horse_good_win_rate',
+        'horse_firm_win_rate', 'going_match_score', 'going_is_preferred',
+        'sire_heavy_win_rate', 'sire_soft_win_rate', 'sire_good_win_rate', 'sire_firm_win_rate',
+        'sire_going_match_v2',
+        
+        # OR context features V2.3 (13 features - race-level OR comparisons)
+        'race_or_max', 'race_or_mean', 'race_or_min', 'race_or_std',
+        'or_vs_race_max', 'or_vs_race_avg', 'or_vs_race_min', 'is_highest_rated',
+        'or_vs_class_typical', 'is_well_handicapped', 'or_percentile',
+        'or_career_high', 'or_at_career_high', 'or_below_career_high',
+        'or_improving_3', 'or_volatility', 'or_race_percentile',
         
         # Pace/running style features (9 - categorical pace_style excluded, using binary flags)
         'pace_style_leader', 'pace_style_presser', 'pace_style_closer', 'pace_style_midpack',

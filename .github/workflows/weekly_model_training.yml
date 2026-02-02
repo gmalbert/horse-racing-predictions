@@ -99,6 +99,33 @@ jobs:
           echo "🔗 Running connections form V2 features (13 new features)..."
           python scripts/add_connections_form_v2.py
 
+      - name: Add pedigree features
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "🧬 Running pedigree features (12 new features)..."
+          python scripts/add_pedigree_features.py
+
+      - name: Add going preference features
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "🌦️  Running going preference features (6 new features)..."
+          python scripts/add_going_preference_features.py
+
+      - name: Add OR context features
+        if: steps.check_data.outputs.has_new_data == 'true'
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
+        run: |
+          echo "📈 Running OR context features (13 new features)..."
+          python scripts/add_or_context_features.py
+
       - name: Apply betting strategy tiers
         if: steps.check_data.outputs.has_new_data == 'true'
         env:

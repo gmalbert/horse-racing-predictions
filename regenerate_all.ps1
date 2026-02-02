@@ -91,7 +91,7 @@ if (-not $env:VIRTUAL_ENV) {
 }
 
 # Step 1: Phase 1 Data Cleaning
-Write-Step "STEP 1/6: Phase 1 - Data Cleaning & Filtering"
+Write-Step "STEP 1/10: Phase 1 - Data Cleaning & Filtering"
 $Step1Start = Get-Date
 try {
     python scripts/phase1_data_cleaning.py
@@ -103,7 +103,7 @@ try {
 }
 
 # Step 2: Phase 2 Race Scoring
-Write-Step "STEP 2/6: Phase 2 - Race Profitability Scoring"
+Write-Step "STEP 2/10: Phase 2 - Race Profitability Scoring"
 $Step2Start = Get-Date
 try {
     python scripts/phase2_score_races.py
@@ -115,7 +115,7 @@ try {
 }
 
 # Step 3: Enhanced Form Features
-Write-Step "STEP 3/6: Enhanced Form Features (6 new features)"
+Write-Step "STEP 3/10: Enhanced Form Features (6 new features)"
 $Step3Start = Get-Date
 try {
     python scripts/add_enhanced_form_features.py
@@ -127,7 +127,7 @@ try {
 }
 
 # Step 4: Connections Form V2 Features
-Write-Step "STEP 4/6: Connections Form V2 (13 new features)"
+Write-Step "STEP 4/10: Connections Form V2 (13 new features)"
 $Step4Start = Get-Date
 Write-Info "This step may take 15-20 minutes..."
 try {
@@ -139,22 +139,59 @@ try {
     exit 1
 }
 
-# Step 5: Phase 3 Model Training
-Write-Step "STEP 5/6: Phase 3 - Model Training (91 features)"
+# Step 5: Pedigree Features
+Write-Step "STEP 5/10: Pedigree Features (12 new features)"
 $Step5Start = Get-Date
+Write-Info "This step may take 10-15 minutes..."
+try {
+    python scripts/add_pedigree_features.py
+    $Step5Duration = (Get-Date) - $Step5Start
+    Write-Success "Pedigree features completed in $($Step5Duration.TotalMinutes.ToString('0.00')) minutes"
+} catch {
+    Write-Error-Message "Pedigree features failed: $_"
+    exit 1
+}
+
+# Step 6: Going Preference Features
+Write-Step "STEP 6/10: Going Preference Features (6 new features)"
+$Step6Start = Get-Date
+try {
+    python scripts/add_going_preference_features.py
+    $Step6Duration = (Get-Date) - $Step6Start
+    Write-Success "Going preference features completed in $($Step6Duration.TotalMinutes.ToString('0.00')) minutes"
+} catch {
+    Write-Error-Message "Going preference features failed: $_"
+    exit 1
+}
+
+# Step 7: OR Context Features
+Write-Step "STEP 7/10: OR Context Features (13 new features)"
+$Step7Start = Get-Date
+try {
+    python scripts/add_or_context_features.py
+    $Step7Duration = (Get-Date) - $Step7Start
+    Write-Success "OR context features completed in $($Step7Duration.TotalMinutes.ToString('0.00')) minutes"
+} catch {
+    Write-Error-Message "OR context features failed: $_"
+    exit 1
+}
+
+# Step 8: Phase 3 Model Training
+Write-Step "STEP 8/10: Phase 3 - Model Training (122 features)"
+$Step8Start = Get-Date
 try {
     python scripts/phase3_build_horse_model.py
-    $Step5Duration = (Get-Date) - $Step5Start
-    Write-Success "Model training completed in $($Step5Duration.TotalMinutes.ToString('0.00')) minutes"
+    $Step8Duration = (Get-Date) - $Step8Start
+    Write-Success "Model training completed in $($Step7Duration.TotalMinutes.ToString('0.00')) minutes"
 } catch {
     Write-Error-Message "Model training failed: $_"
     exit 1
 }
 
-# Step 6: Generate Predictions (optional)
+# Step 9: Generate Predictions (optional)
 if (-not $SkipPredictions) {
-    Write-Step "STEP 6/6: Generate Predictions"
-    $Step6Start = Get-Date
+    Write-Step "STEP 9/10: Generate Predictions"
+    $Step9Start = Get-Date
     try {
         if ($DateForPredictions) {
             Write-Info "Generating predictions for: $DateForPredictions"
@@ -163,8 +200,8 @@ if (-not $SkipPredictions) {
             Write-Info "Generating predictions for today"
             python scripts/predict_todays_races.py
         }
-        $Step6Duration = (Get-Date) - $Step6Start
-        Write-Success "Predictions generated in $($Step6Duration.TotalMinutes.ToString('0.00')) minutes"
+        $Step9Duration = (Get-Date) - $Step9Start
+        Write-Success "Predictions generated in $($Step9Duration.TotalMinutes.ToString('0.00')) minutes"
     } catch {
         Write-Error-Message "Prediction generation failed: $_"
         exit 1
@@ -191,9 +228,12 @@ Write-Host "   Step 1 (Data Cleaning):        $($Step1Duration.TotalMinutes.ToSt
 Write-Host "   Step 2 (Race Scoring):         $($Step2Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
 Write-Host "   Step 3 (Enhanced Form):        $($Step3Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
 Write-Host "   Step 4 (Connections V2):       $($Step4Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
-Write-Host "   Step 5 (Model Training):       $($Step5Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
+Write-Host "   Step 5 (Pedigree Features):    $($Step5Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
+Write-Host "   Step 6 (Going Preferences):    $($Step6Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
+Write-Host "   Step 7 (OR Context):           $($Step7Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
+Write-Host "   Step 8 (Model Training):       $($Step8Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
 if (-not $SkipPredictions) {
-    Write-Host "   Step 6 (Predictions):          $($Step6Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
+    Write-Host "   Step 9 (Predictions):          $($Step9Duration.TotalMinutes.ToString('0.00')) min" -ForegroundColor White
 }
 Write-Host "   ──────────────────────────────────────" -ForegroundColor DarkGray
 Write-Host "   TOTAL:                         $($TotalDuration.TotalMinutes.ToString('0.00')) min" -ForegroundColor Yellow

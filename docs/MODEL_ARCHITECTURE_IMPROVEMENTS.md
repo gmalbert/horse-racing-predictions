@@ -29,6 +29,79 @@ model = XGBClassifier().fit(X, target)
 
 ---
 
+## Evaluation Metrics
+
+### Current Model: Binary Classification
+```python
+# Primary metric: AUC
+from sklearn.metrics import roc_auc_score
+auc = roc_auc_score(y_true, y_pred_proba)
+```
+
+### Learning-to-Rank Models
+```python
+# Primary metric: NDCG (Normalized Discounted Cumulative Gain)
+from sklearn.metrics import ndcg_score
+
+# For each race, compute NDCG
+def compute_race_ndcg(y_true_race, y_pred_race):
+    """Compute NDCG for a single race"""
+    # y_true_race: actual finishing positions (1=1st, 2=2nd, etc.)
+    # y_pred_race: predicted scores (higher = better predicted rank)
+    
+    # Convert positions to relevance (1st place = highest relevance)
+    relevance = 1.0 / y_true_race  # 1st=1.0, 2nd=0.5, 3rd=0.33, etc.
+    
+    return ndcg_score([relevance], [y_pred_race], k=len(y_true_race))
+
+# Secondary metric: Top-N Accuracy
+def top_n_accuracy(y_true, y_pred_scores, n=3):
+    """Fraction of races where top N predictions include actual winner"""
+    correct = 0
+    total = 0
+    
+    for race_id in y_true['race_id'].unique():
+        race_mask = y_true['race_id'] == race_id
+        race_true = y_true[race_mask]
+        race_pred = y_pred_scores[race_mask]
+        
+        # Get predicted top N
+        top_n_indices = np.argsort(race_pred)[-n:]
+        actual_winner = (race_true == 1).idxmax()
+        
+        if actual_winner in top_n_indices:
+            correct += 1
+        total += 1
+    
+    return correct / total
+```
+
+### Position Prediction (MAE)
+```python
+# Only if predicting exact finishing positions
+from sklearn.metrics import mean_absolute_error
+
+# Convert predictions to position estimates
+def scores_to_positions(scores):
+    """Convert prediction scores to estimated positions"""
+    return pd.Series(scores).rank(ascending=False).astype(int)
+
+mae = mean_absolute_error(actual_positions, predicted_positions)
+```
+
+### Recommended Metrics by Model Type
+
+| Model Type | Primary Metric | Secondary Metrics | MAE Appropriate? |
+|------------|----------------|-------------------|------------------|
+| **Binary Classifier** | AUC | Precision@TopK, Top-N Acc | ❌ Not applicable |
+| **Learning-to-Rank** | NDCG@5 | Top-3 Accuracy, Mean Reciprocal Rank | ❌ Predicts ranking, not exact positions |
+| **Position Predictor** | MAE | Spearman's ρ, Kendall's τ | ✅ If predicting exact positions 1,2,3... |
+| **Ensemble** | AUC + NDCG | Calibration Error, Brier Score | ❌ Mixed objectives |
+
+**Bottom Line:** MAE would only be appropriate if we switch to predicting exact finishing positions (1st, 2nd, 3rd, etc.) rather than win probabilities or rankings.
+
+---
+
 ## Proposed Architecture Changes
 
 ### 1. Learning-to-Rank (LambdaMART)
