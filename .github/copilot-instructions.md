@@ -21,6 +21,16 @@ Repository conventions & patterns
 - Data caching: Always prefer offline cached API responses in `data/raw/` for development and tests. Tests must not do live API calls.
 - Models: artifacts live in `models/` and are gitignored; training logic lives in `scripts/`.
 - Feature engineering: functions should be pure where possible and use expanding/windowed aggregations to prevent leakage. Weight-related features exist for handicap races: `weight_lbs`, `weight_vs_avg`, `is_top_weight`, `weight_change`.
+- **DATA LEAKAGE PREVENTION (CRITICAL)**: When adding new temporal features, ALWAYS:
+  1. Sort by grouping variable (horse/sire/jockey) AND date before calculations
+  2. Use `shift(1)` to exclude the current race from expanding/rolling windows
+  3. If filtering data (e.g., by going type), re-sort by [group_var, date] after filtering
+  4. Never use cumulative functions without shift(1) first
+  5. Verify race-level features only compare within the same race (no cross-race contamination)
+  6. Document temporal integrity in function docstrings
+  7. **MANDATORY**: After adding ANY new features, run `python scripts/verify_no_leakage.py` to verify temporal integrity
+  8. **MANDATORY**: When evaluating model performance, ALWAYS use temporal split (not random split) to prevent leakage
+  9. **VERIFICATION**: Use `scripts/verify_no_leakage.py` to check for common leakage patterns before committing feature changes
 
 Integration points and constraints
 - The Racing API: HTTP Basic Auth via `RACING_API_USERNAME` / `RACING_API_PASSWORD` (see `examples/api_example.py` and `scripts/fetch_racecards_api.py`).
