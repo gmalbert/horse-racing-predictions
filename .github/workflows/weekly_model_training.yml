@@ -72,6 +72,17 @@ jobs:
             echo "🔄 First run or missing timestamp, proceeding with training"
           fi
 
+      - name: Validate cached data
+        if: steps.check_data.outputs.has_new_data == 'true'
+        run: |
+          echo "Validating cached data..."
+          if python -c "import pandas as pd; pd.read_parquet('data/processed/all_gb_races_cleaned.parquet')" 2>/dev/null; then
+            echo "✅ Cleaned data is valid"
+          else
+            echo "❌ Cleaned data is invalid, regenerating..."
+            python scripts/phase1_data_cleaning.py
+          fi
+
       - name: Score historical races (Phase 2)
         if: steps.check_data.outputs.has_new_data == 'true'
         env:
