@@ -2,12 +2,12 @@ name: Precompute Daily Predictions
 
 on:
   schedule:
-    # daily at 07:00 UTC (runs after racecards pulled at 06:30)
-    - cron: '0 7 * * *'
+    # daily at 07:00 AM ET (12:00 UTC, runs after racecards pulled at 06:30 AM ET)
+    - cron: '0 12 * * *'
   workflow_dispatch:
     inputs:
       date:
-        description: 'Date to generate predictions for (YYYY-MM-DD). Will also generate for the following day. If omitted, uses today and tomorrow (UTC).'
+        description: 'Date to generate predictions for (YYYY-MM-DD). Will also generate for the following day. If omitted, uses today and tomorrow (ET).'
         required: false
 
 jobs:
@@ -49,10 +49,10 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.date }}" ]; then
             echo "today=${{ github.event.inputs.date }}" >> $GITHUB_OUTPUT
-            echo "tomorrow=$(date -d "${{ github.event.inputs.date }} +1 day" +%F)" >> $GITHUB_OUTPUT
+            echo "tomorrow=$(TZ=America/New_York date -d "${{ github.event.inputs.date }} +1 day" +%F)" >> $GITHUB_OUTPUT
           else
-            echo "today=$(date -u +%F)" >> $GITHUB_OUTPUT
-            echo "tomorrow=$(date -u -d '+1 day' +%F)" >> $GITHUB_OUTPUT
+            echo "today=$(TZ=America/New_York date +%F)" >> $GITHUB_OUTPUT
+            echo "tomorrow=$(TZ=America/New_York date -d '+1 day' +%F)" >> $GITHUB_OUTPUT
           fi
 
       - name: Run prediction script
