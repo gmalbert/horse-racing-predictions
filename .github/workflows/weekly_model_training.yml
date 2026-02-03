@@ -73,18 +73,64 @@ jobs:
           fi
 
       - name: Validate cached data
+        id: validate_cache
         if: steps.check_data.outputs.has_new_data == 'true'
         run: |
           echo "Validating cached data..."
-          if python -c "import pandas as pd; pd.read_parquet('data/processed/all_gb_races_cleaned.parquet')" 2>/dev/null; then
-            echo "✅ Cleaned data is valid"
-          else
-            echo "❌ Cleaned data is invalid, regenerating..."
+          
+          # Function to validate a parquet file
+          validate_parquet() {
+            local file=$1
+            local name=$2
+            if [ -f "$file" ]; then
+              if python -c "import pandas as pd; df = pd.read_parquet('$file'); print(f'Rows: {len(df):,}')" 2>/dev/null; then
+                echo "✅ $name is valid"
+                return 0
+              else
+                echo "❌ $name is corrupted (Parquet magic bytes error)"
+                return 1
+              fi
+            else
+              echo "⚠️  $name does not exist"
+              return 1
+            fi
+          }
+          
+          # Check for required base data file
+          if ! validate_parquet "data/processed/all_gb_races.parquet" "Raw historical data"; then
+            echo "🗑️  Removing corrupted file if it exists..."
+            rm -f data/processed/all_gb_races.parquet
+            
+            echo ""
+            echo "╔════════════════════════════════════════════════════════════╗"
+            echo "║  ⚠️  CACHE MISS: Historical data not available             ║"
+            echo "╚════════════════════════════════════════════════════════════╝"
+            echo ""
+            echo "The all_gb_races.parquet file is missing or corrupted."
+            echo "This file contains ~640K historical race records (~74MB)."
+            echo ""
+            echo "To rebuild the cache:"
+            echo "  1. Run data aggregation locally to generate all_gb_races.parquet"
+            echo "  2. Manually upload to GitHub Actions cache, or"
+            echo "  3. Commit a fresh version to Git LFS (if bandwidth available)"
+            echo ""
+            echo "This workflow run will be skipped."
+            echo "has_data=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Validate cleaned data (can be regenerated)
+          if ! validate_parquet "data/processed/all_gb_races_cleaned.parquet" "Cleaned data"; then
+            echo "🗑️  Removing corrupted cleaned data..."
+            rm -f data/processed/all_gb_races_cleaned.parquet
+            echo "🔄 Regenerating cleaned data from Phase 1..."
             python scripts/phase1_data_cleaning.py
           fi
+          
+          echo "has_data=true" >> $GITHUB_OUTPUT
 
       - name: Score historical races (Phase 2)
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -93,7 +139,7 @@ jobs:
           python scripts/phase2_score_races.py
 
       - name: Add enhanced form features (V2.1)
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -102,7 +148,7 @@ jobs:
           python scripts/add_enhanced_form_features.py
 
       - name: Add connections form features (V2.1)
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -111,7 +157,7 @@ jobs:
           python scripts/add_connections_form_v2.py
 
       - name: Add pedigree features
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -120,7 +166,7 @@ jobs:
           python scripts/add_pedigree_features.py
 
       - name: Add going preference features
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -129,7 +175,7 @@ jobs:
           python scripts/add_going_preference_features.py
 
       - name: Add OR context features
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -138,7 +184,7 @@ jobs:
           python scripts/add_or_context_features.py
 
       - name: Apply betting strategy tiers
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -147,7 +193,7 @@ jobs:
           python scripts/apply_betting_strategy.py
 
       - name: Retrain ML model (Phase 3)
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -156,7 +202,7 @@ jobs:
           python scripts/phase3_build_horse_model.py
 
       - name: Score upcoming fixtures
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -165,14 +211,14 @@ jobs:
           python scripts/score_fixture_calendar.py
 
       - name: Update last run timestamp
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         run: |
           echo "📝 Updating last run timestamp..."
           date -u +%F > .last_weekly_run
           echo "Last run timestamp updated to $(cat .last_weekly_run)"
 
       - name: Commit model updates
-        if: steps.check_data.outputs.has_new_data == 'true'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true'
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
@@ -194,13 +240,28 @@ jobs:
 
       - name: Summary
         run: |
-          if [ "${{ steps.check_data.outputs.has_new_data }}" = "true" ]; then
+          if [ "${{ steps.validate_cache.outputs.has_data }}" != "true" ]; then
+            echo "⚠️  Weekly training skipped: Cache corruption detected"
+            echo ""
+            echo "The historical race data cache is missing or corrupted."
+            echo "This is usually due to GitHub Actions cache expiry or corruption."
+            echo ""
+            echo "To restore the cache:"
+            echo "  1. Ensure you have all_gb_races.parquet locally (~74MB, ~640K rows)"
+            echo "  2. Push updated data files to repository"
+            echo "  3. Re-run this workflow"
+            echo ""
+            echo "See docs/GITHUB_ACTIONS_LFS_FIX.md for more details"
+          elif [ "${{ steps.check_data.outputs.has_new_data }}" = "true" ]; then
             echo "✅ Weekly training completed successfully"
             echo "   - Race scores updated"
             echo "   - Enhanced form features added (6 new)"
             echo "   - Connections form V2 features added (13 new)"
+            echo "   - Pedigree features added (12 new)"
+            echo "   - Going preference features added (6 new)"
+            echo "   - OR context features added (13 new)"
             echo "   - Betting tiers applied"
-            echo "   - ML model retrained (91 features)"
+            echo "   - ML model retrained (120 features)"
             echo "   - Fixtures rescored"
             echo "   - Changes committed to repository"
           else

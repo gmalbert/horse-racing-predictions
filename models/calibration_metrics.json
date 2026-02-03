@@ -1,0 +1,31 @@
+{
+  "calibration_date": "2026-02-02T19:12:07.357526",
+  "calibration_data_start": "2025-09-16T00:00:00",
+  "calibration_data_end": "2025-12-16T00:00:00",
+  "n_calibration_samples": 5007,
+  "n_training_samples": 240291,
+  "metrics": {
+    "brier_score_uncalibrated": 0.129357825916398,
+    "brier_score_calibrated": 0.09246358522792379,
+    "brier_improvement_pct": 28.521073562505904,
+    "log_loss_uncalibrated": 0.40825914881122577,
+    "log_loss_calibrated": 0.32224643648880064,
+    "log_loss_improvement_pct": 21.068165299633346
+  },
+  "calibration_curve": {
+    "prob_true": [
+      0.05089675230247213,
+      0.1421015514809591,
+      0.23863636363636365,
+      0.3125,
+      0.5
+    ],
+    "prob_pred": [
+      0.05089675220044648,
+      0.14210155061400156,
+      0.23863635957241058,
+      0.3125,
+      0.5
+    ]
+  }
+}
