@@ -723,9 +723,127 @@ def display_model_insights():
             with col3:
                 st.metric("Trained", metadata.get('trained_date', 'Unknown')[:10])
         
+        # Display calibration status and metrics
+        st.markdown("---")
+        st.markdown("### 📊 Model Calibration")
+        
+        calibrated_model_file = BASE_DIR / "models" / "horse_win_predictor_calibrated.pkl"
+        calibration_metrics_file = BASE_DIR / "models" / "calibration_metrics.json"
+        
+        if calibrated_model_file.exists():
+            st.success("✅ Calibrated model available")
+            
+            if calibration_metrics_file.exists():
+                try:
+                    import json
+                    with open(calibration_metrics_file, 'r') as f:
+                        cal_metrics = json.load(f)
+                    
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        brier_calib = cal_metrics['metrics']['brier_score_calibrated']
+                        st.metric("Brier Score", f"{brier_calib:.4f}", help="Lower is better. Measures probability accuracy.")
+                    with col2:
+                        brier_improv = cal_metrics['metrics']['brier_improvement_pct']
+                        st.metric("Calibration Gain", f"+{brier_improv:.1f}%", help="Improvement from calibration")
+                    with col3:
+                        n_samples = cal_metrics['n_calibration_samples']
+                        st.metric("Cal. Samples", f"{n_samples:,}", help="Number of races used for calibration")
+                    with col4:
+                        cal_date = cal_metrics['calibration_date'][:10]
+                        st.metric("Calibrated", cal_date, help="Date model was calibrated")
+                    
+                    # Show calibration curve
+                    with st.expander("📈 View Calibration Curve", expanded=False):
+                        calibration_plot = BASE_DIR / "models" / "calibration_plot.png"
+                        if calibration_plot.exists():
+                            st.image(str(calibration_plot), use_container_width=True)
+                            st.caption("Left: Before calibration | Right: After calibration. Points should lie on diagonal for perfect calibration.")
+                        else:
+                            st.info("Calibration plot not found")
+                
+                except Exception as e:
+                    st.warning(f"Could not load calibration metrics: {e}")
+        else:
+            st.info("ℹ️ Model not yet calibrated")
+            if st.button("🎯 Calibrate Model", type="secondary"):
+                with st.spinner("Calibrating model... This may take 1-2 minutes."):
+                    try:
+                        result = subprocess.run(
+                            [sys.executable, "scripts/calibrate_model.py"],
+                            cwd=str(BASE_DIR),
+                            capture_output=True,
+                            text=True
+                        )
+                        
+                        if result.returncode == 0:
+                            st.success("✅ Model calibrated successfully!")
+                            st.text("Calibration Output:")
+                            st.code(result.stdout[-2000:], language="text")
+                            st.info("Refresh the page to see calibration metrics.")
+                        else:
+                            st.error(f"❌ Calibration failed with error code {result.returncode}")
+                            st.code(result.stderr, language="text")
+                    except Exception as e:
+                        st.error(f"Error running calibration script: {e}")
+        
+        # Display latest diagnostics
+        st.markdown("---")
+        st.markdown("### 🔍 Latest Prediction Diagnostics")
+        
+        diagnostics_file = BASE_DIR / "data" / "processed" / "model_diagnostics.json"
+        if diagnostics_file.exists():
+            try:
+                import json
+                with open(diagnostics_file, 'r') as f:
+                    diagnostics = json.load(f)
+                
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Prediction Date", diagnostics['date'])
+                with col2:
+                    st.metric("Total Races", diagnostics['total_races'])
+                with col3:
+                    st.metric("Total Horses", diagnostics['total_horses'])
+                with col4:
+                    avg_field = diagnostics['avg_field_size']
+                    st.metric("Avg Field Size", f"{avg_field:.1f}")
+                
+                st.markdown("#### Probability Distribution")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    prob_mean = diagnostics['probability_distribution']['mean']
+                    st.metric("Mean Win Prob", f"{prob_mean:.1%}")
+                with col2:
+                    prob_max = diagnostics['probability_distribution']['max']
+                    st.metric("Highest Prob", f"{prob_max:.1%}")
+                with col3:
+                    top_pick_mean = diagnostics['top_pick_probabilities']['mean']
+                    st.metric("Avg Top Pick", f"{top_pick_mean:.1%}", help="Average win probability of top pick per race")
+                
+                if 'cold_start_horses' in diagnostics:
+                    st.markdown("#### Cold Start Analysis")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        cold_pct = diagnostics['cold_start_horses']['percentage']
+                        st.metric("Cold Start Horses", f"{cold_pct:.1f}%", help="Horses with 0 career runs")
+                    with col2:
+                        cold_count = diagnostics['cold_start_horses']['count']
+                        st.metric("Count", cold_count)
+                
+                with st.expander("📋 View Full Diagnostics", expanded=False):
+                    st.json(diagnostics)
+                
+            except Exception as e:
+                st.warning(f"Could not load diagnostics: {e}")
+        else:
+            st.info("ℹ️ No diagnostics available yet. Generate predictions to create diagnostics.")
+        
         st.markdown("---")
         
         if feature_importance is not None and not feature_importance.empty:
+            st.markdown("### 🎯 Feature Importance")
+            
             if 'rank' not in feature_importance.columns:
                 feature_importance = feature_importance.sort_values('importance', ascending=False).reset_index(drop=True)
                 feature_importance['rank'] = range(1, len(feature_importance) + 1)

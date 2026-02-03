@@ -41,9 +41,12 @@ from odds_converter import probability_to_decimal_odds, probability_to_fractiona
 # Paths
 DATA_DIR = project_root / "data"
 WIN_MODEL_FILE = project_root / "models" / ("horse_win_predictor.json" if HAS_XGBOOST else "horse_win_predictor.pkl")
+CALIBRATED_MODEL_FILE = project_root / "models" / "horse_win_predictor_calibrated.pkl"
 PLACE_MODEL_FILE = project_root / "models" / "horse_place_predictor.pkl"
 SHOW_MODEL_FILE = project_root / "models" / "horse_show_predictor.pkl"
 FEATURE_COLS_FILE = project_root / "models" / "feature_columns.txt"
+DIAGNOSTICS_FILE = DATA_DIR / "processed" / "model_diagnostics.json"
+CALIBRATION_METRICS_FILE = project_root / "models" / "calibration_metrics.json"
 
 def get_historical_data_path():
     """Get the best available historical data file (same logic as training)"""
@@ -73,6 +76,16 @@ def load_models():
     """Load trained ML models (win, place, show) and feature columns"""
     print("\nLoading ML models...")
     
+    # Try to load calibrated model first
+    calibrated_model = None
+    if CALIBRATED_MODEL_FILE.exists():
+        try:
+            import joblib
+            calibrated_model = joblib.load(CALIBRATED_MODEL_FILE)
+            print(f"[OK] Loaded calibrated model: {CALIBRATED_MODEL_FILE.name}")
+        except Exception as e:
+            print(f"[!] Could not load calibrated model: {e}")
+    
     # Suppress XGBoost warnings about model version compatibility
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -84,6 +97,11 @@ def load_models():
         else:
             with open(WIN_MODEL_FILE, 'rb') as f:
                 win_model = pickle.load(f)
+        
+        # Use calibrated model if available
+        if calibrated_model is not None:
+            win_model = calibrated_model
+            print(f"[OK] Using calibrated model for predictions")
         
         # Place and show models are always pickled (if they exist)
         try:
@@ -982,9 +1000,89 @@ def main():
     
     print("\n" + race_max_probs.to_string(index=False))
     
+    # Generate and save diagnostics
+    print("\n" + "="*60)
+    print("GENERATING DIAGNOSTICS")
+    print("="*60)
+    
+    diagnostics = generate_diagnostics(predictions_df, target_date)
+    save_diagnostics(diagnostics, target_date)
+    
     print("\n" + "="*60)
     print("PREDICTIONS COMPLETE")
     print("="*60)
+
+
+def generate_diagnostics(predictions_df, date_str):
+    """Generate diagnostic metrics for predictions."""
+    diagnostics = {
+        'date': date_str,
+        'generated_at': datetime.now().isoformat(),
+        'total_races': predictions_df['course'].nunique(),
+        'total_horses': len(predictions_df),
+        'avg_field_size': predictions_df.groupby(['course', 'race_time']).size().mean(),
+        'probability_distribution': {
+            'min': float(predictions_df['win_probability'].min()),
+            'max': float(predictions_df['win_probability'].max()),
+            'mean': float(predictions_df['win_probability'].mean()),
+            'median': float(predictions_df['win_probability'].median()),
+            'std': float(predictions_df['win_probability'].std()),
+        },
+        'top_pick_probabilities': {
+            'min': float(predictions_df.groupby(['course', 'race_time'])['win_probability'].max().min()),
+            'max': float(predictions_df.groupby(['course', 'race_time'])['win_probability'].max().max()),
+            'mean': float(predictions_df.groupby(['course', 'race_time'])['win_probability'].max().mean()),
+        },
+        'feature_coverage': {},
+        'model_info': {
+            'using_calibrated': CALIBRATED_MODEL_FILE.exists(),
+            'has_calibration_metrics': CALIBRATION_METRICS_FILE.exists(),
+        }
+    }
+    
+    # Feature coverage analysis
+    feature_cols = ['career_runs', 'career_win_rate', 'cd_win_rate', 'avg_last_3_pos', 'or_numeric']
+    for col in feature_cols:
+        if col in predictions_df.columns:
+            diagnostics['feature_coverage'][col] = {
+                'null_pct': float(predictions_df[col].isna().mean() * 100),
+                'zero_pct': float((predictions_df[col] == 0).mean() * 100),
+            }
+    
+    # Cold start analysis
+    if 'career_runs' in predictions_df.columns:
+        cold_start_count = (predictions_df['career_runs'] == 0).sum()
+        diagnostics['cold_start_horses'] = {
+            'count': int(cold_start_count),
+            'percentage': float(cold_start_count / len(predictions_df) * 100),
+        }
+    
+    # Class distribution
+    if 'race_class' in predictions_df.columns:
+        class_dist = predictions_df['race_class'].value_counts().to_dict()
+        diagnostics['class_distribution'] = {str(k): int(v) for k, v in class_dist.items()}
+    
+    print(f"  [OK] Generated diagnostics for {diagnostics['total_races']} races, {diagnostics['total_horses']} horses")
+    print(f"  [OK] Top pick probability range: {diagnostics['top_pick_probabilities']['min']:.1%} - {diagnostics['top_pick_probabilities']['max']:.1%}")
+    if 'cold_start_horses' in diagnostics:
+        print(f"  [OK] Cold start horses: {diagnostics['cold_start_horses']['percentage']:.1f}%")
+    
+    return diagnostics
+
+
+def save_diagnostics(diagnostics, date_str):
+    """Save diagnostics to JSON file."""
+    # Save current diagnostics
+    current_file = DATA_DIR / "processed" / f"diagnostics_{date_str}.json"
+    with open(current_file, 'w') as f:
+        json.dump(diagnostics, f, indent=2)
+    print(f"  [OK] Saved diagnostics: {current_file}")
+    
+    # Also update latest diagnostics
+    latest_file = DATA_DIR / "processed" / "model_diagnostics.json"
+    with open(latest_file, 'w') as f:
+        json.dump(diagnostics, f, indent=2)
+    print(f"  [OK] Updated latest: {latest_file}")
 
 
 if __name__ == '__main__':

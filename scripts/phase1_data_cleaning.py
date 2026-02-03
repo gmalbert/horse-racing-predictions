@@ -199,10 +199,25 @@ def main():
     print("PHASE 1: DATA CLEANING")
     print("=" * 60)
     
-    # Load data
+    # Check if input file exists
+    if not INPUT_FILE.exists():
+        print(f"\n❌ ERROR: Input file not found: {INPUT_FILE}")
+        print(f"\nThis file should contain all GB races data.")
+        print(f"Please ensure the data aggregation step has been completed first.")
+        print(f"\nExpected file location: {INPUT_FILE}")
+        return
+    
+    # Load data with error handling
     print(f"\nLoading data from {INPUT_FILE}...")
-    df = pd.read_parquet(INPUT_FILE)
-    print(f"Loaded {len(df):,} records with {len(df.columns)} columns")
+    try:
+        df = pd.read_parquet(INPUT_FILE)
+        print(f"Loaded {len(df):,} records with {len(df.columns)} columns")
+    except Exception as e:
+        print(f"\n❌ ERROR: Failed to load input file: {e}")
+        print(f"\nThe file may be corrupted. Try:")
+        print(f"1. Delete the corrupted file: {INPUT_FILE}")
+        print(f"2. Re-run the data aggregation step to regenerate it")
+        return
     
     # Apply cleaning functions
     df = clean_distance(df)
