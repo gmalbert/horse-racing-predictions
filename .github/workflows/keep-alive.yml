@@ -1,0 +1,70 @@
+name: Keep Streamlit App Alive
+
+# This workflow pings the Streamlit app to prevent it from going to sleep
+# due to inactivity on Streamlit Community Cloud.
+#
+# Features:
+# - Runs twice daily with configurable schedule
+# - Adds random 0-20 minute delay to vary timing (looks more natural in logs)
+# - Tolerates failures without breaking the workflow
+#
+# To use in another repository:
+# 1. Copy this file to .github/workflows/
+# 2. Update the STREAMLIT_APP_URL below with your app's URL
+# 3. Adjust the schedule if needed (currently runs twice daily)
+# 4. Adjust DELAY calculation to change random window (currently 0-20 min)
+
+on:
+  schedule:
+    # Run twice daily: 9 AM and 9 PM UTC (4 AM and 4 PM ET)
+    # Adjust times based on your primary user timezone
+    - cron: '0 9,21 * * *'
+  
+  workflow_dispatch:  # Allow manual trigger for testing
+
+env:
+  # UPDATE THIS: Replace with your Streamlit app URL
+  STREAMLIT_APP_URL: 'https://equine-edge.streamlit.app/'
+
+jobs:
+  ping-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25  # Allow for 20-minute random delay + ping time
+
+    steps:
+      - name: Random delay (0-20 minutes)
+        run: |
+          # Add random delay to vary timing and make logs look more natural
+          DELAY=$((RANDOM % 1200))  # 0-1200 seconds (0-20 minutes)
+          echo "⏳ Waiting ${DELAY} seconds before ping..."
+          sleep $DELAY
+      
+      - name: Ping Streamlit App
+        run: |
+          echo "🔔 Pinging Streamlit app at: ${{ env.STREAMLIT_APP_URL }}"
+          echo "   Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          
+          # Make HTTP request with timeout
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 5 \
+            "${{ env.STREAMLIT_APP_URL }}")
+          
+          echo "   Response code: $RESPONSE"
+          
+          # Check if request was successful (2xx or 3xx status codes)
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 400 ]; then
+            echo "✅ App is alive and responding!"
+            exit 0
+          else
+            echo "⚠️  App returned status code: $RESPONSE"
+            echo "   This might be temporary - will retry on next schedule"
+            exit 0  # Don't fail the workflow, just log the issue
+          fi
+
+      - name: Log completion
+        if: always()
+        run: |
+          echo "📊 Keep-alive ping completed"
+          echo "   Next scheduled run: Check the Actions tab for schedule"
