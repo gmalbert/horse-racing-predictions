@@ -105,6 +105,12 @@ def main():
         type=str,
         help="Only process racecards up to this date (YYYY-MM-DD)"
     )
+    parser.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Assume yes to confirmation prompts (non-interactive / CI friendly)"
+    )
     
     args = parser.parse_args()
     
@@ -174,10 +180,14 @@ def main():
     
     # Confirm
     if len(to_process) > 5 and not args.force:
-        response = input(f"\n⚠ Process {len(to_process)} dates? [y/N]: ")
-        if response.lower() != 'y':
-            print("Cancelled.")
-            return
+        # Auto-confirm when --yes provided or when running non-interactively (scheduled tasks/CI)
+        if args.yes or not sys.stdin.isatty():
+            print(f"\n⚠ Non-interactive session or --yes provided — proceeding to process {len(to_process)} dates.")
+        else:
+            response = input(f"\n⚠ Process {len(to_process)} dates? [y/N]: ")
+            if response.lower() != 'y':
+                print("Cancelled.")
+                return
     
     # Process each date
     print("\n" + "="*70)
