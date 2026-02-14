@@ -4,8 +4,8 @@ python-dotenv>=1.0.0
 betfairlightweight>=2.19.0
 
 # Data Processing
-pandas>=2.0.0
-numpy>=1.24.0
+pandas==2.3.2
+numpy==2.3.2
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
 psutil>=5.9.0
@@ -14,8 +14,8 @@ psutil>=5.9.0
 pytz>=2023.3
 
 # Machine Learning
-scikit-learn>=1.3.0
-xgboost>=2.0.0
+scikit-learn==1.8.0
+xgboost==3.0.4
 
 # Visualization
 matplotlib>=3.7.0
@@ -27,7 +27,7 @@ pytest>=7.4.0
 pytest-cov>=4.1.0
 
 # Web UI
-streamlit>=1.51.0
+streamlit==1.51.0
 
 # Web Scraping (optional - for Selenium-based scripts)
 selenium>=4.15.0

@@ -439,7 +439,12 @@ def display_race_by_race(predictions):
     # Fill NaN race names with empty string for display
     races['race_name'] = races['race_name'].fillna('')
     
-    race_options = [f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']}" + (f" - {row['race_name'][:40]}" if row['race_name'] else "") for _, row in races.iterrows()]
+    # Build race options safely to avoid indexing issues with iterrows()
+    race_options = []
+    for idx, row in races.iterrows():
+        race_name = row['race_name'] if pd.notna(row['race_name']) and row['race_name'] else ''
+        race_name_part = f" - {race_name[:40]}" if race_name else ""
+        race_options.append(f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']}{race_name_part}")
     
     selected_race_idx = st.selectbox(
         "Select a race to see detailed predictions:",
