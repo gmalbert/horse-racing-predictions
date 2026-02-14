@@ -58,13 +58,13 @@ def get_historical_data_path():
     legacy_path = data_dir / 'race_scores.parquet'
     
     if connections_v2_path.exists():
-        print(f"✓ Using latest data: {connections_v2_path.name} (91 features)")
+        print(f"[OK] Using latest data: {connections_v2_path.name} (91 features)")
         return connections_v2_path
     elif no_leak_path.exists():
-        print(f"✓ Using enhanced data: {no_leak_path.name} (77 features)")
+        print(f"[OK] Using enhanced data: {no_leak_path.name} (77 features)")
         return no_leak_path
     elif legacy_path.exists():
-        print(f"✓ Using legacy data: {legacy_path.name} (72 features)")
+        print(f"[OK] Using legacy data: {legacy_path.name} (72 features)")
         return legacy_path
     else:
         raise FileNotFoundError("No historical race data found in data/processed/")

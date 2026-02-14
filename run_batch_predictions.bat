@@ -12,7 +12,7 @@ REM Activate virtual environment
 call .venv\Scripts\activate.bat
 
 REM Run batch script
-python scripts\batch_generate_predictions.py %*
+python scripts\batch_generate_predictions.py --yes %*
 
 REM Keep window open if run by double-clicking
 if "%1"=="" pause

@@ -1,20 +1,20 @@
 {
-  "date": "2026-02-14",
-  "generated_at": "2026-02-13T19:01:42.741360",
-  "total_races": 5,
-  "total_horses": 273,
-  "avg_field_size": 8.53125,
+  "date": "2026-02-08",
+  "generated_at": "2026-02-13T18:58:53.331227",
+  "total_races": 1,
+  "total_horses": 47,
+  "avg_field_size": 6.714285714285714,
   "probability_distribution": {
-    "min": 0.07335907220840454,
-    "max": 0.15811209380626678,
-    "mean": 0.1457271640335684,
-    "median": 0.15662650763988495,
-    "std": 0.02166120048420516
-  },
-  "top_pick_probabilities": {
     "min": 0.10608020424842834,
     "max": 0.15811209380626678,
-    "mean": 0.1563003989867866
+    "mean": 0.1535422887573851,
+    "median": 0.15811209380626678,
+    "std": 0.013045551551171795
+  },
+  "top_pick_probabilities": {
+    "min": 0.15811209380626678,
+    "max": 0.15811209380626678,
+    "mean": 0.15811209380626678
   },
   "feature_coverage": {
     "career_runs": {
@@ -35,7 +35,7 @@
     },
     "or_numeric": {
       "null_pct": 0.0,
-      "zero_pct": 12.82051282051282
+      "zero_pct": 8.51063829787234
     }
   },
   "model_info": {
@@ -43,15 +43,12 @@
     "has_calibration_metrics": true
   },
   "cold_start_horses": {
-    "count": 273,
+    "count": 47,
     "percentage": 100.0
   },
   "class_distribution": {
-    "2": 62,
-    "1": 58,
-    "5": 55,
-    "3": 42,
-    "4": 39,
-    "6": 17
+    "6": 37,
+    "5": 6,
+    "4": 4
   }
 }

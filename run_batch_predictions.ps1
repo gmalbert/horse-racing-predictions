@@ -12,4 +12,4 @@ Write-Host ""
 & .venv\Scripts\Activate.ps1
 
 # Run batch script
-python scripts\batch_generate_predictions.py $args
+python scripts\batch_generate_predictions.py --yes $args

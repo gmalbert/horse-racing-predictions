@@ -65,7 +65,7 @@ python scripts/watch_racecards.py
 ## Manual Batch Processing
 
 If you prefer to process all racecards at once instead of watching:
-
+> Note: The script no longer prompts for confirmation — it always proceeds (auto-yes).
 ### Option 1: One-Command (PowerShell)
 ```powershell
 .\run_batch_predictions.ps1
@@ -194,6 +194,7 @@ Date            Status               Racecard File
 | `--force` | Regenerate predictions even if they already exist |
 | `--start-date YYYY-MM-DD` | Only process racecards from this date onwards |
 | `--end-date YYYY-MM-DD` | Only process racecards up to this date |
+| `-y, --yes` | (kept for backward compatibility) previously auto-confirmed prompts — confirmation is now removed |
 
 ### Watcher Script Options
 
