@@ -20,7 +20,7 @@ from datetime import datetime
 
 # Paths
 DATA_DIR = Path('data/processed')
-INPUT_FILE = DATA_DIR / 'race_scores_with_all_features_no_leakage.parquet'
+INPUT_FILE = DATA_DIR / 'race_scores_or_context.parquet'  # Skip slow pace features, use OR context  
 OUTPUT_FILE = DATA_DIR / 'race_scores_enhanced_form.parquet'
 
 
@@ -69,6 +69,10 @@ def engineer_enhanced_form_features(df):
         df['avg_last_3_pos'] = df.groupby('horse')['pos_clean'].transform(
             lambda x: x.shift(1).rolling(3, min_periods=1).mean()
         )
+    
+    # Create field_size from 'ran' column if not present
+    if 'field_size' not in df.columns and 'ran' in df.columns:
+        df['field_size'] = df['ran']
     
     # Position relative to field size (1st of 5 vs 1st of 15)
     # Need avg field size from last 3 races

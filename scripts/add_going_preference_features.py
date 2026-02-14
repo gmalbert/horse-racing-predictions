@@ -21,7 +21,7 @@ print(f"{'='*70}\n")
 
 # Paths
 DATA_DIR = Path('data/processed')
-INPUT_FILE = DATA_DIR / 'race_scores_pedigree.parquet'  # Updated to use pedigree features output
+INPUT_FILE = DATA_DIR / 'race_scores_with_pedigree_no_leakage.parquet'  # Use no-leakage version with full data
 OUTPUT_FILE = DATA_DIR / 'race_scores_going_pref.parquet'
 
 # Load data

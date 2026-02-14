@@ -17,10 +17,6 @@ from datetime import datetime
 import argparse
 import sys
 
-# Import odds converter
-sys.path.insert(0, os.path.dirname(__file__))
-from odds_converter import probability_to_fractional_odds
-
 # Load feature columns that model expects
 def load_feature_columns():
     """Load the 47 feature names the model was actually trained on"""
@@ -314,40 +310,11 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
             print(f"ERROR predicting {horse_name}: {e}")
             win_prob = 0.158  # Default
         
-        # Calculate cumulative place and show probabilities
-        # Place = P(finish in top 2), Show = P(finish in top 3)
-        # These are CUMULATIVE probabilities: place >= win, show >= place
-        
-        # For strong favorites, there's less room to improve place/show chances
-        # For weaker contenders, there's more upside
-        base_place_boost = win_prob * (1 - win_prob) * 0.8
-        base_show_boost = win_prob * (1 - win_prob) * 0.3
-        
-        place_prob = win_prob + base_place_boost
-        show_prob = place_prob + base_show_boost
-        
-        # Ensure logical constraints: win <= place <= show <= 1.0
-        place_prob = max(win_prob, min(place_prob, 0.98))
-        show_prob = max(place_prob, min(show_prob, 0.99))
-        
-        # Convert probabilities to fractional odds
-        win_odds_frac = probability_to_fractional_odds(win_prob)
-        place_odds_frac = probability_to_fractional_odds(place_prob)
-        show_odds_frac = probability_to_fractional_odds(show_prob)
-        
         predictions.append({
             'horse': horse_name,
-            'jockey': runner.get('jockey', ''),
-            'ofr': runner.get('ofr', 0),
-            'age': runner.get('age', 0),
-            'weight_lbs': runner.get('lbs', 0),
-            'form': runner.get('form', ''),
             'win_probability': win_prob,
-            'win_odds_fractional': win_odds_frac,
-            'place_probability': place_prob,
-            'place_odds_fractional': place_odds_frac,
-            'show_probability': show_prob,
-            'show_odds_fractional': show_odds_frac
+            'place_probability': win_prob * 0.6,  # Estimate
+            'show_probability': win_prob * 0.4   # Estimate
         })
     
     return predictions
@@ -394,16 +361,14 @@ def main():
                 first_value = next(iter(nested_dict.values()))
                 if isinstance(first_value, dict) and 'runners' in first_value:
                     # This is course level, values are races
-                    for time_key, race_data in nested_dict.items():
-                        race_data['time'] = time_key  # Preserve the time
+                    for race_data in nested_dict.values():
                         racecards.append(race_data)
                 else:
                     # This is region level, recurse into courses
                     for course_dict in nested_dict.values():
                         if isinstance(course_dict, dict):
-                            for time_key, race_data in course_dict.items():
+                            for race_data in course_dict.values():
                                 if isinstance(race_data, dict):
-                                    race_data['time'] = time_key  # Preserve the time
                                     racecards.append(race_data)
     elif isinstance(racecards_raw, list):
         racecards = racecards_raw
@@ -426,9 +391,6 @@ def main():
         course = racecard.get('course', 'Unknown')
         time = racecard.get('time', 'Unknown')
         runners_count = len(racecard.get('runners', []))
-        race_class = racecard.get('race_class', None)
-        distance_f = racecard.get('distance_f', 0)
-        race_name = racecard.get('race_name', '')
         
         print(f"[{idx}/{len(racecards)}] {time} {course} ({runners_count} runners)")
         
@@ -439,9 +401,6 @@ def main():
             pred['course'] = course
             pred['race_time'] = time
             pred['date'] = args.date
-            pred['race_class'] = race_class
-            pred['distance_f'] = distance_f
-            pred['race_name'] = race_name
         
         all_predictions.extend(preds)
         

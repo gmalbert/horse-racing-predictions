@@ -1,41 +1,41 @@
 {
   "date": "2026-02-14",
-  "generated_at": "2026-02-13T19:01:42.741360",
-  "total_races": 5,
-  "total_horses": 273,
-  "avg_field_size": 8.53125,
+  "generated_at": "2026-02-14T15:30:15.954417",
+  "total_races": 13,
+  "total_horses": 737,
+  "avg_field_size": 10.380281690140846,
   "probability_distribution": {
-    "min": 0.07335907220840454,
-    "max": 0.15811209380626678,
-    "mean": 0.1457271640335684,
-    "median": 0.15662650763988495,
-    "std": 0.02166120048420516
+    "min": 0.10608020424842834,
+    "max": 0.3125,
+    "mean": 0.1626032815899907,
+    "median": 0.15811209380626678,
+    "std": 0.0199448289325244
   },
   "top_pick_probabilities": {
-    "min": 0.10608020424842834,
-    "max": 0.15811209380626678,
-    "mean": 0.1563003989867866
+    "min": 0.15811209380626678,
+    "max": 0.3125,
+    "mean": 0.19072085199221758
   },
   "feature_coverage": {
     "career_runs": {
       "null_pct": 0.0,
-      "zero_pct": 100.0
+      "zero_pct": 0.0
     },
     "career_win_rate": {
       "null_pct": 0.0,
-      "zero_pct": 100.0
+      "zero_pct": 23.202170963364992
     },
     "cd_win_rate": {
       "null_pct": 0.0,
-      "zero_pct": 100.0
+      "zero_pct": 45.1831750339213
     },
     "avg_last_3_pos": {
-      "null_pct": 0.0,
+      "null_pct": 2.578018995929444,
       "zero_pct": 0.0
     },
     "or_numeric": {
       "null_pct": 0.0,
-      "zero_pct": 12.82051282051282
+      "zero_pct": 33.242876526458616
     }
   },
   "model_info": {
@@ -43,15 +43,8 @@
     "has_calibration_metrics": true
   },
   "cold_start_horses": {
-    "count": 273,
-    "percentage": 100.0
+    "count": 0,
+    "percentage": 0.0
   },
-  "class_distribution": {
-    "2": 62,
-    "1": 58,
-    "5": 55,
-    "3": 42,
-    "4": 39,
-    "6": 17
-  }
+  "class_distribution": {}
 }
