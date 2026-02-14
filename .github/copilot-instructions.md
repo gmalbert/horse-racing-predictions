@@ -42,7 +42,9 @@ Testing notes
 - Offline-first tests: prefer `data/raw/` test fixtures over live requests.
 
 Streamlit and UI gotchas
-- Newer Streamlit: `use_container_width` removed. Replace `use_container_width=True` -> `width='stretch'`, `False` -> `width='content'` across `predictions.py` and `examples/` if upgrading.
+- Newer Streamlit: the `use_container_width` parameter has been removed in newer Streamlit versions.
+  - Replacement mapping: `use_container_width=True` → `width='stretch'`, `use_container_width=False` → `width='content'`.
+  - IMPORTANT: **Do NOT re-add `use_container_width` anywhere** — it is deprecated/removed and may raise runtime errors; always use `width='stretch'` or `width='content'` instead.
 - Timezone: set `APP_TIMEZONE` to force server-side day boundaries; `predictions.py` respects `APP_TIMEZONE`.
 
 Quick file map (where to start)
@@ -160,7 +162,7 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **ML pipeline**: `scripts/phase2_score_races.py` (race scoring), `scripts/phase3_build_horse_model.py` (XGBoost training)
 
 ## Streamlit API changes (effective 2025+)
-- The `use_container_width` parameter has been removed in newer Streamlit versions.
+- The `use_container_width` parameter has been removed in newer Streamlit versions. **Do NOT re-add `use_container_width` anywhere** — it is deprecated and will fail in current Streamlit releases; use `width='stretch'` or `width='content'` instead.
 - **Replacement mapping**:
   - `use_container_width=True` → `width='stretch'`
   - `use_container_width=False` → `width='content'`

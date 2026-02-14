@@ -45,7 +45,7 @@ def render_prediction_history():
         history.groupby('date')['won'].mean().rolling(7).mean(),
         title="7-Day Rolling Strike Rate"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Recent results table
     st.subheader("Recent Predictions")
