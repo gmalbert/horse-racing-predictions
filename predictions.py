@@ -429,15 +429,27 @@ def display_race_by_race(predictions):
     """Display race-by-race predictions with detailed analysis"""
     st.markdown("##### 📋 Race-by-Race Predictions")
     
-    races = predictions.groupby(['date', 'day_label', 'race_time', 'course', 'race_name'], observed=False).size().reset_index()[['date', 'day_label', 'race_time', 'course', 'race_name']]
+    races = predictions.groupby(['date', 'day_label', 'race_time', 'course', 'race_name'], observed=False, dropna=False).size().reset_index()[['date', 'day_label', 'race_time', 'course', 'race_name']]
     
-    race_options = [f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']} - {row['race_name'][:40]}" for _, row in races.iterrows()]
+    # Check if we have any races
+    if len(races) == 0:
+        st.warning("No races available for detailed view.")
+        return
+    
+    # Fill NaN race names with empty string for display
+    races['race_name'] = races['race_name'].fillna('')
+    
+    race_options = [f"{row['day_label']} ({row['date']}) - {row['race_time']} - {row['course']}" + (f" - {row['race_name'][:40]}" if row['race_name'] else "") for _, row in races.iterrows()]
     
     selected_race_idx = st.selectbox(
         "Select a race to see detailed predictions:",
-        range(len(race_options)),
+        list(range(len(race_options))),
         format_func=lambda i: race_options[i]
     )
+    
+    # Ensure selected_race_idx is valid
+    if selected_race_idx is None or not isinstance(selected_race_idx, int) or selected_race_idx >= len(races):
+        selected_race_idx = 0
     
     selected_race_info = races.iloc[selected_race_idx]
     
@@ -552,21 +564,27 @@ def display_exacta_trifecta(race_preds):
         st.markdown("##### 🏆 Top Selection Probabilities")
         st.caption(f"Likelihood that **{top_3.iloc[0]['horse']}** (the favorite) finishes in the money")
         
-        top_horse_win_prob = top_3.iloc[0]['win_probability']
-        top_horse_place_prob = top_3.iloc[0]['place_probability'] if 'place_probability' in top_3.iloc[0] else 0
-        top_horse_show_prob = top_3.iloc[0]['show_probability'] if 'show_probability' in top_3.iloc[0] else 0
+        # These probabilities are ALREADY CUMULATIVE from the prediction script
+        # place_probability = P(top 2), show_probability = P(top 3)
+        prob_win = top_3.iloc[0]['win_probability']
+        prob_top_2 = top_3.iloc[0]['place_probability'] if 'place_probability' in top_3.iloc[0] else prob_win * 1.5
+        prob_top_3 = top_3.iloc[0]['show_probability'] if 'show_probability' in top_3.iloc[0] else prob_top_2 * 1.2
         
-        prob_top_1 = top_horse_win_prob
-        prob_top_2 = top_horse_win_prob + top_horse_place_prob
-        prob_top_3 = top_horse_win_prob + top_horse_place_prob + top_horse_show_prob
+        # Cap at reasonable values
+        prob_top_2 = min(prob_top_2, 0.95)
+        prob_top_3 = min(prob_top_3, 0.98)
+        
+        # Calculate incremental probabilities for display
+        incremental_place = prob_top_2 - prob_win
+        incremental_show = prob_top_3 - prob_top_2
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("🥇 Win (1st)", f"{prob_top_1:.1%}")
+            st.metric("🥇 Win (1st)", f"{prob_win:.1%}")
         with col2:
-            st.metric("🥇🥈 Win or Place", f"{prob_top_2:.1%} (+{top_horse_place_prob:.1%})")
+            st.metric("🥇🥈 Win or Place", f"{prob_top_2:.1%} (+{incremental_place:.1%})")
         with col3:
-            st.metric("🥇🥈🥉 Win, Place, or Show", f"{prob_top_3:.1%} (+{top_horse_show_prob:.1%})")
+            st.metric("🥇🥈🥉 Win, Place, or Show", f"{prob_top_3:.1%} (+{incremental_show:.1%})")
 
 
 def display_all_horses_table(race_preds):

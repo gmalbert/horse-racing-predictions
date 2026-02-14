@@ -236,12 +236,17 @@ if __name__ == '__main__':
     # Load data
     print("Loading race data...")
     
+    # Priority order: OR context > pedigree no-leak > features > pedigree > base
+    or_context_path = Path('data/processed/race_scores_or_context.parquet')
     no_leak_pedigree = Path('data/processed/race_scores_with_pedigree_no_leakage.parquet')
     features_path = Path('data/processed/race_scores_with_features.parquet')
     pedigree_path = Path('data/processed/race_scores_with_pedigree.parquet')
     base_path = Path('data/processed/race_scores.parquet')
     
-    if no_leak_pedigree.exists():
+    if or_context_path.exists():
+        print(f"  Loading from {or_context_path} (with all prior features)")
+        df = pd.read_parquet(or_context_path)
+    elif no_leak_pedigree.exists():
         print(f"  Loading from {no_leak_pedigree} (no leakage version)")
         df = pd.read_parquet(no_leak_pedigree)
     elif features_path.exists():

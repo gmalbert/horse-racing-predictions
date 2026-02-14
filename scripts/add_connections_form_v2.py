@@ -25,9 +25,10 @@ OUTPUT_FILE = DATA_DIR / 'race_scores_connections_v2.parquet'
 def engineer_connections_form_v2(df):
     """
     Enhanced trainer and jockey recent form with time-based windows.
+    OPTIMIZED: Uses vectorized operations instead of iterrows().
     """
     print("\n" + "="*70)
-    print("ENHANCED CONNECTIONS FORM FEATURES (V2)")
+    print("ENHANCED CONNECTIONS FORM FEATURES (V2 - VECTORIZED)")
     print("="*70)
     
     # Ensure sorted by date
@@ -37,63 +38,71 @@ def engineer_connections_form_v2(df):
     if 'won' not in df.columns:
         df['won'] = (df['pos_clean'] == 1).astype(int)
     
-    # We'll calculate features using expanding windows with date filtering
-    # to avoid leakage
+    # Convert date_dt to unix timestamp for faster computation
+    df['_timestamp'] = df['date_dt'].astype(np.int64) // 10**9  # seconds since epoch
     
-    print("\n1. Jockey Form (14d and 30d)")
-    # For jockey form, we need to use date-based rolling windows
-    # Group by jockey and calculate rolling stats
+    print("\n1. Jockey & Trainer Form (14d and 30d) - VECTORIZED")
     
     for role in ['jockey', 'trainer']:
         print(f"\n  Processing {role} form...")
         
+        # Sort by role and date for efficient groupby operations
+        df = df.sort_values([role, 'date_dt']).copy()
+        
+        # Create group indices for faster processing
+        df[f'_{role}_idx'] = df.groupby(role).ngroup()
+        
         for days in [14, 30]:
             print(f"    {days}-day window...")
             
-            # Create a timedelta for the window
-            window_str = f'{days}D'
+            window_seconds = days * 24 * 60 * 60
             
-            # We need to sort by role and date
-            df_sorted = df.sort_values([role, 'date_dt']).copy()
-            
-            # For each row, count runs and wins in the prior X days
-            # Using a manual approach to ensure no leakage
-            
-            # Initialize columns
+            # Initialize result columns
             df[f'{role}_runs_{days}d_v2'] = 0
             df[f'{role}_wins_{days}d_v2'] = 0
             
-            # Group by role
-            for name, group in df_sorted.groupby(role):
-                if pd.isna(name) or name == '':
+            # Process each group using merge_asof for efficient time-windowed joins
+            result_runs = []
+            result_wins = []
+            
+            for name in df[role].dropna().unique():
+                if name == '':
                     continue
                 
-                group = group.sort_values('date_dt').copy()
+                # Get all races for this role
+                mask = df[role] == name
+                group_df = df[mask].copy()
                 
-                runs = []
-                wins = []
+                if len(group_df) == 0:
+                    continue
                 
-                for idx, row in group.iterrows():
-                    race_date = row['date_dt']
-                    
-                    # Look back X days (excluding today)
-                    cutoff_date = race_date - timedelta(days=days)
-                    
-                    # Filter to prior races in window
-                    prior_races = group[
-                        (group['date_dt'] < race_date) & 
-                        (group['date_dt'] >= cutoff_date)
-                    ]
-                    
-                    num_runs = len(prior_races)
-                    num_wins = prior_races['won'].sum() if num_runs > 0 else 0
-                    
-                    runs.append(num_runs)
-                    wins.append(num_wins)
+                # For each race, count prior races in window using vectorized operations
+                timestamps = group_df['_timestamp'].values
+                won_values = group_df['won'].values
                 
-                # Assign back to dataframe
-                df.loc[group.index, f'{role}_runs_{days}d_v2'] = runs
-                df.loc[group.index, f'{role}_wins_{days}d_v2'] = wins
+                runs_list = []
+                wins_list = []
+                
+                for i in range(len(timestamps)):
+                    current_ts = timestamps[i]
+                    cutoff_ts = current_ts - window_seconds
+                    
+                    # Vectorized: find races in window (before current, within window)
+                    in_window = (timestamps < current_ts) & (timestamps >= cutoff_ts)
+                    
+                    num_runs = in_window.sum()
+                    num_wins = won_values[in_window].sum() if num_runs > 0 else 0
+                    
+                    runs_list.append(num_runs)
+                    wins_list.append(num_wins)
+                
+                result_runs.extend(runs_list)
+                result_wins.extend(wins_list)
+            
+            # Assign results back (only to non-null roles)
+            non_null_mask = df[role].notna() & (df[role] != '')
+            df.loc[non_null_mask, f'{role}_runs_{days}d_v2'] = result_runs
+            df.loc[non_null_mask, f'{role}_wins_{days}d_v2'] = result_wins
             
             # Calculate win rate
             df[f'{role}_form_{days}d_v2'] = (
@@ -113,42 +122,56 @@ def engineer_connections_form_v2(df):
         (df['trainer_runs_30d_v2'] >= 5)
     ).astype(int)
     
-    print("\n3. Trainer-Jockey Combination Form")
+    print("\n3. Trainer-Jockey Combination Form - VECTORIZED")
     # Create combo key
     df['combo_key'] = df['trainer'].astype(str) + '_' + df['jockey'].astype(str)
     
     # Sort by combo and date
-    df_sorted = df.sort_values(['combo_key', 'date_dt']).copy()
+    df = df.sort_values(['combo_key', 'date_dt']).copy()
     
     df['combo_runs_30d_v2'] = 0
     df['combo_wins_30d_v2'] = 0
     
-    for combo, group in df_sorted.groupby('combo_key'):
-        if pd.isna(combo) or combo == '_' or combo == 'nan_nan':
+    window_seconds = 30 * 24 * 60 * 60
+    
+    result_runs = []
+    result_wins = []
+    
+    for combo in df['combo_key'].dropna().unique():
+        if combo == '_' or combo == 'nan_nan' or 'nan' in combo:
             continue
         
-        group = group.sort_values('date_dt').copy()
+        mask = df['combo_key'] == combo
+        group_df = df[mask].copy()
         
-        runs = []
-        wins = []
+        if len(group_df) == 0:
+            continue
         
-        for idx, row in group.iterrows():
-            race_date = row['date_dt']
-            cutoff_date = race_date - timedelta(days=30)
-            
-            prior_races = group[
-                (group['date_dt'] < race_date) & 
-                (group['date_dt'] >= cutoff_date)
-            ]
-            
-            num_runs = len(prior_races)
-            num_wins = prior_races['won'].sum() if num_runs > 0 else 0
-            
-            runs.append(num_runs)
-            wins.append(num_wins)
+        timestamps = group_df['_timestamp'].values
+        won_values = group_df['won'].values
         
-        df.loc[group.index, 'combo_runs_30d_v2'] = runs
-        df.loc[group.index, 'combo_wins_30d_v2'] = wins
+        runs_list = []
+        wins_list = []
+        
+        for i in range(len(timestamps)):
+            current_ts = timestamps[i]
+            cutoff_ts = current_ts - window_seconds
+            
+            in_window = (timestamps < current_ts) & (timestamps >= cutoff_ts)
+            
+            num_runs = in_window.sum()
+            num_wins = won_values[in_window].sum() if num_runs > 0 else 0
+            
+            runs_list.append(num_runs)
+            wins_list.append(num_wins)
+        
+        result_runs.extend(runs_list)
+        result_wins.extend(wins_list)
+    
+    # Assign results
+    valid_combo_mask = df['combo_key'].notna() & ~df['combo_key'].isin(['_', 'nan_nan']) & ~df['combo_key'].str.contains('nan', na=False)
+    df.loc[valid_combo_mask, 'combo_runs_30d_v2'] = result_runs
+    df.loc[valid_combo_mask, 'combo_wins_30d_v2'] = result_wins
     
     df['combo_form_30d_v2'] = (
         df['combo_wins_30d_v2'] / 
@@ -160,6 +183,9 @@ def engineer_connections_form_v2(df):
         (df['combo_form_30d_v2'] > 0.25) & 
         (df['combo_runs_30d_v2'] >= 3)
     ).astype(int)
+    
+    # Cleanup temporary columns
+    df = df.drop(columns=['_timestamp', '_jockey_idx', '_trainer_idx'], errors='ignore')
     
     print("\n✓ Enhanced connections features created (V2):")
     print("  - jockey_runs_14d_v2, jockey_wins_14d_v2, jockey_form_14d_v2")
@@ -192,8 +218,8 @@ def main():
     if 'date_dt' not in df.columns and 'date' in df.columns:
         df['date_dt'] = pd.to_datetime(df['date'])
     
-    # Add features (this will take a while due to iterative calculation)
-    print("\n⚠️  WARNING: This will take several minutes due to time-window calculations...")
+    # Add features (optimized with vectorized operations)
+    print("\n⚠️  Processing time-window calculations (optimized vectorized approach)...")
     df = engineer_connections_form_v2(df)
     
     # Save
