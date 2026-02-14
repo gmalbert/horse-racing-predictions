@@ -5,6 +5,13 @@ ROOT CAUSE FIX:
 - Old version: Manually calculated ~47 features, ignoring 73 features in historical data
 - New version: Calculates the 47 features the model was trained on from historical data
 - Result: Proper feature vectors → varied predictions instead of identical 15.8%
+
+PROBABILITY CALIBRATION (v2):
+- Issue: XGBoost outputs overconfident probabilities (mean 70%, max 98%)
+- Solution: Apply shrinkage calibration to compress toward realistic range
+- Formula: calibrated = (raw + prior*k) / (1 + k) where prior = 1/field_size, k = 3.5
+- Result: Realistic probabilities (mean ~25%, max ~40%) suitable for horse racing
+- Effect: Strong favorites become 30-40%, not 90-95%
 """
 
 import pandas as pd
@@ -285,6 +292,7 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
         historical_df['horse_clean'] = historical_df['horse'].apply(lambda x: strip_country_suffix(x).lower())
     
     predictions = []
+    field_size = len(racecard.get('runners', []))
     
     for runner in racecard.get('runners', []):
         horse_name = runner.get('name') or runner.get('horse', 'Unknown')
@@ -307,34 +315,14 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
         # Create DataFrame with correct column order
         X = pd.DataFrame([features])[feature_cols]
         
-        # Predict
+        # Predict (raw, uncalibrated)
         try:
-            win_prob = model.predict_proba(X)[0, 1]
+            raw_win_prob = model.predict_proba(X)[0, 1]
         except Exception as e:
             print(f"ERROR predicting {horse_name}: {e}")
-            win_prob = 0.158  # Default
+            raw_win_prob = 0.158  # Default
         
-        # Calculate cumulative place and show probabilities
-        # Place = P(finish in top 2), Show = P(finish in top 3)
-        # These are CUMULATIVE probabilities: place >= win, show >= place
-        
-        # For strong favorites, there's less room to improve place/show chances
-        # For weaker contenders, there's more upside
-        base_place_boost = win_prob * (1 - win_prob) * 0.8
-        base_show_boost = win_prob * (1 - win_prob) * 0.3
-        
-        place_prob = win_prob + base_place_boost
-        show_prob = place_prob + base_show_boost
-        
-        # Ensure logical constraints: win <= place <= show <= 1.0
-        place_prob = max(win_prob, min(place_prob, 0.98))
-        show_prob = max(place_prob, min(show_prob, 0.99))
-        
-        # Convert probabilities to fractional odds
-        win_odds_frac = probability_to_fractional_odds(win_prob)
-        place_odds_frac = probability_to_fractional_odds(place_prob)
-        show_odds_frac = probability_to_fractional_odds(show_prob)
-        
+        # Store raw prediction temporarily
         predictions.append({
             'horse': horse_name,
             'jockey': runner.get('jockey', ''),
@@ -342,13 +330,46 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
             'age': runner.get('age', 0),
             'weight_lbs': runner.get('lbs', 0),
             'form': runner.get('form', ''),
-            'win_probability': win_prob,
-            'win_odds_fractional': win_odds_frac,
-            'place_probability': place_prob,
-            'place_odds_fractional': place_odds_frac,
-            'show_probability': show_prob,
-            'show_odds_fractional': show_odds_frac
+            'raw_win_probability': raw_win_prob,  # Store raw for calibration
         })
+    
+    # CALIBRATION: Apply shrinkage to compress overconfident probabilities
+    # This pulls extreme values toward the field average (1/field_size)
+    shrinkage_strength = 3.5  # Higher = more conservative (range: 2-5)
+    prior = 1.0 / field_size if field_size > 0 else 0.1
+    
+    for pred in predictions:
+        raw_prob = pred['raw_win_probability']
+        
+        # Shrinkage formula: (raw + prior*k) / (1 + k)
+        calibrated_win_prob = (raw_prob + prior * shrinkage_strength) / (1 + shrinkage_strength)
+        
+        # Calculate cumulative place and show probabilities from calibrated win
+        base_place_boost = calibrated_win_prob * (1 - calibrated_win_prob) * 0.8
+        base_show_boost = calibrated_win_prob * (1 - calibrated_win_prob) * 0.3
+        
+        place_prob = calibrated_win_prob + base_place_boost
+        show_prob = place_prob + base_show_boost
+        
+        # Ensure logical constraints
+        place_prob = max(calibrated_win_prob, min(place_prob, 0.98))
+        show_prob = max(place_prob, min(show_prob, 0.99))
+        
+        # Convert probabilities to fractional odds
+        win_odds_frac = probability_to_fractional_odds(calibrated_win_prob)
+        place_odds_frac = probability_to_fractional_odds(place_prob)
+        show_odds_frac = probability_to_fractional_odds(show_prob)
+        
+        # Update prediction with calibrated values
+        pred['win_probability'] = calibrated_win_prob
+        pred['win_odds_fractional'] = win_odds_frac
+        pred['place_probability'] = place_prob
+        pred['place_odds_fractional'] = place_odds_frac
+        pred['show_probability'] = show_prob
+        pred['show_odds_fractional'] = show_odds_frac
+        
+        # Remove raw probability from final output
+        del pred['raw_win_probability']
     
     return predictions
 
