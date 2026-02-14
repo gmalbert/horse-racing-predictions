@@ -780,7 +780,7 @@ def display_model_insights():
                     with st.expander("📈 View Calibration Curve", expanded=False):
                         calibration_plot = BASE_DIR / "models" / "calibration_plot.png"
                         if calibration_plot.exists():
-                            st.image(str(calibration_plot), use_container_width=True)
+                            st.image(str(calibration_plot), width='stretch')
                             st.caption("Left: Before calibration | Right: After calibration. Points should lie on diagonal for perfect calibration.")
                         else:
                             st.info("Calibration plot not found")
