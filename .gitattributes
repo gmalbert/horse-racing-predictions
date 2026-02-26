@@ -1,3 +1,2 @@
 # Git LFS attributes: track parquet dataset files
-data/processed/*.parquet filter=lfs diff=lfs merge=lfs -text
 data/processed/all_gb_races.parquet filter=lfs diff=lfs merge=lfs -text

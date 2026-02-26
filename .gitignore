@@ -72,3 +72,23 @@ logs/
 htmlcov/
 tests/
 */old/*
+
+# Build-artifact parquet files (not needed by the Streamlit app at runtime)
+# The only parquets committed to git are:
+#   data/processed/race_scores.parquet
+#   data/processed/race_scores_with_betting_tiers.parquet
+data/processed/all_gb_races.parquet
+data/processed/all_gb_races_cleaned.parquet
+data/processed/all_gb_races_cleaned.backup.parquet
+data/processed/race_scores.backup.parquet
+data/processed/race_scores_connections_v2.parquet
+data/processed/race_scores_enhanced_form.parquet
+data/processed/race_scores_going_pref.parquet
+data/processed/race_scores_or_context.parquet
+data/processed/race_scores_pedigree.parquet
+data/processed/race_scores_with_all_features.parquet
+data/processed/race_scores_with_all_features_no_leakage.parquet
+data/processed/race_scores_with_features.parquet
+data/processed/race_scores_with_pedigree.parquet
+data/processed/race_scores_with_pedigree_no_leakage.parquet
+data/processed/backups/
