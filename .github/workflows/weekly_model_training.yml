@@ -21,20 +21,20 @@ jobs:
           fetch-depth: 0
           lfs: false  # Disable LFS to avoid bandwidth quota
 
-      - name: Cache historical race data
+      - name: Cache derived race scores
         uses: actions/cache@v4
         with:
           path: |
-            data/processed/all_gb_races.parquet
-            data/processed/all_gb_races_cleaned.parquet
             data/processed/race_scores.parquet
             data/processed/race_scores_with_betting_tiers.parquet
             data/processed/race_scores_with_all_features_no_leakage.parquet
             data/processed/race_scores_connections_v2.parquet
-          # Use run_id so the updated parquet is always saved as a new cache
-          # entry. restore-keys falls back to the most recent previous entry.
-          key: horse-racing-data-${{ github.run_id }}
+          # Stable key so the same entry is refreshed each run (avoids 7-day expiry).
+          # all_gb_races.parquet and all_gb_races_cleaned.parquet are committed to
+          # git as regular objects, so they are always present after checkout.
+          key: horse-racing-scores-v3
           restore-keys: |
+            horse-racing-scores-v3
             horse-racing-data-
 
       - name: Setup Python
@@ -98,27 +98,19 @@ jobs:
             fi
           }
           
-          # Check for required base data file
+          # Check for required base data file — this file is committed to git
+          # as a regular object (~43MB), so it must always be present after checkout.
           if ! validate_parquet "data/processed/all_gb_races.parquet" "Raw historical data"; then
-            echo "🗑️  Removing corrupted file if it exists..."
-            rm -f data/processed/all_gb_races.parquet
-            
             echo ""
             echo "╔════════════════════════════════════════════════════════════╗"
-            echo "║  ⚠️  CACHE MISS: Historical data not available             ║"
+            echo "║  ❌ FATAL: all_gb_races.parquet missing from repository    ║"
             echo "╚════════════════════════════════════════════════════════════╝"
             echo ""
-            echo "The all_gb_races.parquet file is missing or corrupted."
-            echo "This file contains ~640K historical race records (~74MB)."
+            echo "This file is tracked in git and should always be present."
+            echo "Re-push the parquet locally: git add data/processed/all_gb_races.parquet"
             echo ""
-            echo "To rebuild the cache:"
-            echo "  1. Run data aggregation locally to generate all_gb_races.parquet"
-            echo "  2. Manually upload to GitHub Actions cache, or"
-            echo "  3. Commit a fresh version to Git LFS (if bandwidth available)"
-            echo ""
-            echo "This workflow run will be skipped."
             echo "has_data=false" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
           
           # Validate cleaned data (can be regenerated)
@@ -243,17 +235,10 @@ jobs:
       - name: Summary
         run: |
           if [ "${{ steps.validate_cache.outputs.has_data }}" != "true" ]; then
-            echo "⚠️  Weekly training skipped: Cache corruption detected"
+            echo "❌ Weekly training failed: all_gb_races.parquet is missing from git checkout"
             echo ""
-            echo "The historical race data cache is missing or corrupted."
-            echo "This is usually due to GitHub Actions cache expiry or corruption."
-            echo ""
-            echo "To restore the cache:"
-            echo "  1. Ensure you have all_gb_races.parquet locally (~74MB, ~640K rows)"
-            echo "  2. Push updated data files to repository"
-            echo "  3. Re-run this workflow"
-            echo ""
-            echo "See docs/GITHUB_ACTIONS_LFS_FIX.md for more details"
+            echo "This file is committed to the repo as a regular git object."
+            echo "Ensure it was not accidentally removed from the repository."
           elif [ "${{ steps.check_data.outputs.has_new_data }}" = "true" ]; then
             echo "✅ Weekly training completed successfully"
             echo "   - Race scores updated"
