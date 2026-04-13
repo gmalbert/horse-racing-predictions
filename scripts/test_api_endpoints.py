@@ -1,6 +1,13 @@
+import os
 import requests
+from dotenv import load_dotenv
 
-auth = ('vlj0wIJtB3M1sUJxRtaQW9BM', 'nBwqfmSMKJuQuv5LkSrmzskC')
+load_dotenv()
+username = os.getenv('RACING_API_USERNAME')
+password = os.getenv('RACING_API_PASSWORD')
+if not username or not password:
+    raise SystemExit('ERROR: Set RACING_API_USERNAME and RACING_API_PASSWORD in .env')
+auth = (username, password)
 base = 'https://api.theracingapi.com/v1'
 
 endpoints = [
