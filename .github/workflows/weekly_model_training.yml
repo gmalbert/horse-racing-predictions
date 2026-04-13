@@ -31,12 +31,10 @@ jobs:
             data/processed/race_scores_with_betting_tiers.parquet
             data/processed/race_scores_with_all_features_no_leakage.parquet
             data/processed/race_scores_connections_v2.parquet
-          # Use run_id so the updated parquet (after fetch_race_results) is
-          # always saved as a new cache entry. restore-keys falls back to the
-          # most recent previous entry.
+          # Use run_id so the updated parquet is always saved as a new cache
+          # entry. restore-keys falls back to the most recent previous entry.
           key: horse-racing-data-${{ github.run_id }}
           restore-keys: |
-            horse-racing-data-v2
             horse-racing-data-
 
       - name: Setup Python
@@ -48,16 +46,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Fetch new race results
-        env:
-          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
-          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
-        run: |
-          echo "🏇 Fetching race results for missing dates from The Racing API..."
-          # Auto-detects start date from the parquet (day after last recorded result)
-          python scripts/fetch_race_results.py --region GB --no-clean
-          echo "✅ Race results fetch complete"
 
       - name: Check for new race data
         id: check_data
