@@ -380,7 +380,10 @@ def display_race_predictions(today_str, tomorrow_str, today_predictions_file, to
         st.success(f"✅ {day_label} ({day_date}): {len(day_df)} horses from {len(day_df['course'].unique())} races")
     
     st.markdown("---")
-    
+
+    # Value bets summary (shown when odds have been scraped)
+    display_value_bets_panel(predictions)
+
     # Top predictions
     display_top_predictions(predictions)
     
@@ -390,17 +393,93 @@ def display_race_predictions(today_str, tomorrow_str, today_predictions_file, to
     display_race_by_race(predictions)
 
 
+def display_value_bets_panel(predictions):
+    """Display a summary of all value bets identified across today and tomorrow."""
+    if 'is_value_bet' not in predictions.columns:
+        return
+
+    value_bets = predictions[predictions['is_value_bet'] == True].copy()
+    strong_bets = predictions[
+        predictions.get('is_strong_value', pd.Series(False, index=predictions.index)) == True
+    ].copy() if 'is_strong_value' in predictions.columns else pd.DataFrame()
+
+    if len(value_bets) == 0:
+        return
+
+    n_strong = len(strong_bets)
+    label = f"🔥 {len(value_bets)} Value Bet{'s' if len(value_bets) != 1 else ''} Found"
+    if n_strong:
+        label += f" ({n_strong} Strong)"
+
+    with st.expander(label, expanded=(n_strong > 0)):
+        cols_needed = ['day_label', 'date', 'race_time', 'course', 'horse',
+                       'win_probability', 'market_odds', 'implied_prob', 'edge',
+                       'ev_per_unit', 'best_bookmaker', 'odds_trend']
+        vcols = [c for c in cols_needed if c in value_bets.columns]
+        vb = value_bets.sort_values('edge', ascending=False)[vcols].copy()
+
+        def _pct(v):
+            try:
+                return f"{float(v):.1%}"
+            except Exception:
+                return '-'
+
+        def _dec(v, dp=2):
+            try:
+                return f"{float(v):.{dp}f}"
+            except Exception:
+                return '-'
+
+        rename = {
+            'day_label': 'Day', 'date': 'Date', 'race_time': 'Time',
+            'course': 'Course', 'horse': 'Horse',
+            'win_probability': 'Model Win %', 'market_odds': 'Mkt Odds',
+            'implied_prob': 'Mkt Implied %', 'edge': 'Edge',
+            'ev_per_unit': 'EV/£1', 'best_bookmaker': 'Best Bookie',
+            'odds_trend': 'Trend',
+        }
+        vb.rename(columns={k: v for k, v in rename.items() if k in vb.columns}, inplace=True)
+
+        for col in ['Model Win %', 'Mkt Implied %']:
+            if col in vb.columns:
+                vb[col] = vb[col].apply(_pct)
+        if 'Edge' in vb.columns:
+            vb['Edge'] = vb['Edge'].apply(lambda v: f"{float(v):+.1%}" if pd.notna(v) else '-')
+        if 'EV/£1' in vb.columns:
+            vb['EV/£1'] = vb['EV/£1'].apply(lambda v: f"{float(v):+.2f}" if pd.notna(v) else '-')
+        if 'Mkt Odds' in vb.columns:
+            vb['Mkt Odds'] = vb['Mkt Odds'].apply(lambda v: _dec(v))
+
+        st.caption(
+            "Value bets are horses where the model's win probability exceeds the "
+            "market-implied probability by >1%. Edge = model% − market%. "
+            "Strong = edge >15% AND EV >5%."
+        )
+        safe_st_call(st.dataframe, vb, hide_index=True, width='stretch',
+                     height=get_dataframe_height(vb))
+
+
 def display_top_predictions(predictions):
     """Display top 25 predictions per day"""
     st.markdown("##### 🏆 Top 25 Predictions Per Day")
-    
-    has_odds = 'bookmaker_odds' in predictions.columns
-    
-    if has_odds:
-        display_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'bookmaker_odds', 'race_class', 'distance_f', 'ofr']
-    else:
-        display_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey', 'win_probability', 'place_probability', 'show_probability', 'race_class', 'distance_f', 'ofr']
-    
+
+    has_mkt_odds = 'market_odds' in predictions.columns
+    has_edge = 'edge' in predictions.columns
+    has_trend = 'odds_trend' in predictions.columns
+
+    base_cols = ['day_label', 'date', 'race_time', 'course', 'horse', 'jockey',
+                 'win_probability', 'place_probability', 'show_probability']
+    extra_cols = []
+    if has_mkt_odds:
+        extra_cols.append('market_odds')
+    if has_edge:
+        extra_cols.append('edge')
+    if has_trend:
+        extra_cols.append('odds_trend')
+    base_cols += extra_cols + ['race_class', 'distance_f', 'ofr']
+
+    display_cols = [c for c in base_cols if c in predictions.columns]
+
     top_per_day = (
         predictions
         .sort_values(['date', 'win_probability'], ascending=[True, False])
@@ -411,18 +490,36 @@ def display_top_predictions(predictions):
     top_per_day['win_probability'] = top_per_day['win_probability'].apply(lambda x: f"{x:.1%}")
     top_per_day['place_probability'] = top_per_day['place_probability'].apply(lambda x: f"{x:.1%}")
     top_per_day['show_probability'] = top_per_day['show_probability'].apply(lambda x: f"{x:.1%}")
-    
-    if has_odds:
-        top_per_day['bookmaker_odds'] = top_per_day['bookmaker_odds'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '-')
-        top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Odds', 'Class', 'Distance', 'OR']
-    else:
-        top_per_day.columns = ['Day', 'Date', 'Time', 'Course', 'Horse', 'Jockey', 'Win %', 'Place %', 'Show %', 'Class', 'Distance', 'OR']
-    
+
+    if has_mkt_odds and 'market_odds' in top_per_day.columns:
+        top_per_day['market_odds'] = top_per_day['market_odds'].apply(
+            lambda x: f"{x:.2f}" if pd.notna(x) else '-'
+        )
+    if has_edge and 'edge' in top_per_day.columns:
+        top_per_day['edge'] = top_per_day['edge'].apply(
+            lambda x: f"{x:+.1%}" if pd.notna(x) else '-'
+        )
+
+    col_rename = {
+        'day_label': 'Day', 'date': 'Date', 'race_time': 'Time',
+        'course': 'Course', 'horse': 'Horse', 'jockey': 'Jockey',
+        'win_probability': 'Win %', 'place_probability': 'Place %',
+        'show_probability': 'Show %', 'market_odds': 'Mkt Odds',
+        'edge': 'Edge', 'odds_trend': 'Trend',
+        'race_class': 'Class', 'distance_f': 'Distance', 'ofr': 'OR',
+    }
+    top_per_day.rename(
+        columns={k: v for k, v in col_rename.items() if k in top_per_day.columns},
+        inplace=True,
+    )
+
     height = get_dataframe_height(top_per_day)
     safe_st_call(st.dataframe, top_per_day, hide_index=True, width='stretch', height=height)
-    
+
     if 'race_time_gmt' in predictions.columns:
         st.caption("⏰ Times shown in **US Eastern Time (ET)** | GMT times available in detailed view")
+    if has_edge:
+        st.caption("📊 **Edge** = model win % minus market-implied %; positive = value bet opportunity")
 
 
 def display_race_by_race(predictions):
@@ -596,60 +693,144 @@ def display_all_horses_table(race_preds):
     """Display table of all horses in the race with predictions"""
     st.markdown("##### 🐎 All Horse Predictions")
     st.caption("📊 Form shows recent race finishes (read right to left: rightmost = most recent race)")
-    st.caption("💰 Model Odds show the fair value based on probabilities")
-    
-    display_cols = ['horse', 'jockey', 'win_probability', 'win_odds_fractional', 'place_probability', 'place_odds_fractional', 'show_probability', 'show_odds_fractional', 'age', 'weight_lbs', 'ofr', 'form']
-    display_df = race_preds[display_cols].copy()
-    
+    st.caption("💰 Model Odds show the fair value based on model probabilities")
+
+    # Core model columns (always present)
+    display_cols = ['horse', 'jockey', 'win_probability', 'win_odds_fractional',
+                    'place_probability', 'place_odds_fractional',
+                    'show_probability', 'show_odds_fractional',
+                    'age', 'weight_lbs', 'ofr', 'form']
+    display_df = race_preds[[c for c in display_cols if c in race_preds.columns]].copy()
+
     display_df['top_2_prob'] = race_preds['win_probability'] + race_preds['place_probability']
-    display_df['top_3_prob'] = race_preds['win_probability'] + race_preds['place_probability'] + race_preds['show_probability']
-    
-    display_df['win_rank'] = race_preds['win_probability'].rank(ascending=False, method='min').astype(int)
-    display_df['place_rank'] = race_preds['place_probability'].rank(ascending=False, method='min').astype(int)
-    display_df['show_rank'] = race_preds['show_probability'].rank(ascending=False, method='min').astype(int)
-    
+    display_df['top_3_prob'] = (
+        race_preds['win_probability']
+        + race_preds['place_probability']
+        + race_preds['show_probability']
+    )
+    display_df['win_rank'] = (
+        race_preds['win_probability'].rank(ascending=False, method='min').astype(int)
+    )
+    display_df['place_rank'] = (
+        race_preds['place_probability'].rank(ascending=False, method='min').astype(int)
+    )
+    display_df['show_rank'] = (
+        race_preds['show_probability'].rank(ascending=False, method='min').astype(int)
+    )
+
+    # Bookmaker odds columns (present when merge_scraped_odds.py has run)
+    has_mkt = 'market_odds' in race_preds.columns
+    has_edge = 'edge' in race_preds.columns
+    has_trend = 'odds_trend' in race_preds.columns
+    has_bookie = 'best_bookmaker' in race_preds.columns
+    has_value = 'is_value_bet' in race_preds.columns
+
+    if has_mkt:
+        display_df['market_odds'] = race_preds['market_odds']
+    if has_edge:
+        display_df['edge'] = race_preds['edge']
+    if has_trend:
+        display_df['odds_trend'] = race_preds['odds_trend']
+    if has_bookie:
+        display_df['best_bookmaker'] = race_preds['best_bookmaker']
+    if has_value:
+        display_df['value_flag'] = race_preds['is_value_bet'].map(
+            {True: '✅ Value', False: ''}
+        ).fillna('')
+
+    # Format numeric columns
     display_df['win_probability'] = display_df['win_probability'].apply(lambda x: f"{x:.1%}")
     display_df['place_probability'] = display_df['place_probability'].apply(lambda x: f"{x:.1%}")
     display_df['show_probability'] = display_df['show_probability'].apply(lambda x: f"{x:.1%}")
     display_df['top_2_prob'] = display_df['top_2_prob'].apply(lambda x: f"{x:.1%}")
     display_df['top_3_prob'] = display_df['top_3_prob'].apply(lambda x: f"{x:.1%}")
-    
-    display_df = display_df[[
+
+    if has_mkt:
+        display_df['market_odds'] = display_df['market_odds'].apply(
+            lambda x: f"{x:.2f}" if pd.notna(x) else '-'
+        )
+    if has_edge:
+        display_df['edge'] = display_df['edge'].apply(
+            lambda x: f"{x:+.1%}" if pd.notna(x) else '-'
+        )
+
+    # Build ordered column list
+    ordered = [
         'horse', 'jockey',
         'win_rank', 'win_probability', 'win_odds_fractional',
         'place_rank', 'place_probability', 'place_odds_fractional',
         'show_rank', 'show_probability', 'show_odds_fractional',
         'top_2_prob', 'top_3_prob',
-        'age', 'weight_lbs', 'ofr', 'form'
-    ]]
-    display_df.columns = [
-        'Horse', 'Jockey',
-        'Win Rank', 'Win %', 'Win Odds',
-        'Place Rank', 'Place %', 'Place Odds',
-        'Show Rank', 'Show %', 'Show Odds',
-        'Top 2 %', 'Top 3 %',
-        'Age', 'Weight', 'OR', 'Recent Form'
     ]
-    
+    if has_mkt:
+        ordered.append('market_odds')
+    if has_bookie:
+        ordered.append('best_bookmaker')
+    if has_edge:
+        ordered.append('edge')
+    if has_trend:
+        ordered.append('odds_trend')
+    if has_value:
+        ordered.append('value_flag')
+    ordered += ['age', 'weight_lbs', 'ofr', 'form']
+    display_df = display_df[[c for c in ordered if c in display_df.columns]]
+
+    # Friendly header names
+    col_labels = {
+        'horse': 'Horse', 'jockey': 'Jockey',
+        'win_rank': 'Win Rank', 'win_probability': 'Win %',
+        'win_odds_fractional': 'Win Odds',
+        'place_rank': 'Place Rank', 'place_probability': 'Place %',
+        'place_odds_fractional': 'Place Odds',
+        'show_rank': 'Show Rank', 'show_probability': 'Show %',
+        'show_odds_fractional': 'Show Odds',
+        'top_2_prob': 'Top 2 %', 'top_3_prob': 'Top 3 %',
+        'market_odds': 'Mkt Odds', 'best_bookmaker': 'Best Bookie',
+        'edge': 'Edge', 'odds_trend': 'Trend', 'value_flag': 'Value',
+        'age': 'Age', 'weight_lbs': 'Weight', 'ofr': 'OR',
+        'form': 'Recent Form',
+    }
+    display_df.rename(
+        columns={k: v for k, v in col_labels.items() if k in display_df.columns},
+        inplace=True,
+    )
     display_df = display_df.sort_values('Win Rank')
-    
-    st.dataframe(display_df, hide_index=True, width='stretch', height=get_dataframe_height(display_df))
+
+    st.dataframe(display_df, hide_index=True, width='stretch',
+                 height=get_dataframe_height(display_df))
+
+    if has_edge:
+        st.caption(
+            "💹 **Mkt Odds** = best available bookmaker price | "
+            "**Edge** = model win % − market-implied %; positive = value"
+        )
 
 
 def display_value_bet_calculator(race_preds, selected_race_idx):
-    """Display value bet calculator"""
+    """Display value bet calculator, pre-populated with scraped market odds when available."""
     st.markdown("---")
     st.markdown("##### 💰 Value Bet Calculator")
     st.caption("Compare model odds to bookmaker odds to identify value betting opportunities")
-    
-    with st.expander("🧮 Calculate Value Bet (Enter Bookmaker Odds)", expanded=False):
-        st.markdown("**How to use:**")
-        st.markdown("1. Look up bookmaker's odds for a horse")
-        st.markdown("2. Enter the decimal odds below")
-        st.markdown("3. See if there's value compared to model's fair odds")
-        
+
+    has_scraped_odds = 'market_odds' in race_preds.columns
+    has_trend = 'odds_trend' in race_preds.columns
+    has_bookie = 'best_bookmaker' in race_preds.columns
+
+    expander_label = (
+        "🧮 Live Odds: Value Analysis (pre-populated with scraped bookmaker prices)"
+        if has_scraped_odds
+        else "🧮 Calculate Value Bet (Enter Bookmaker Odds)"
+    )
+
+    with st.expander(expander_label, expanded=has_scraped_odds):
+        if not has_scraped_odds:
+            st.markdown("**How to use:**")
+            st.markdown("1. Look up bookmaker's odds for a horse")
+            st.markdown("2. Enter the decimal odds below")
+            st.markdown("3. See if there\'s value compared to model\'s fair odds")
+
         col1, col2 = st.columns([2, 1])
-        
+
         with col1:
             horses_list = race_preds['horse'].tolist()
             selected_horse = st.selectbox(
@@ -657,31 +838,52 @@ def display_value_bet_calculator(race_preds, selected_race_idx):
                 horses_list,
                 key=f"vb_horse_{selected_race_idx}"
             )
-        
+
+        horse_data = race_preds[race_preds['horse'] == selected_horse].iloc[0]
+        model_prob = horse_data['win_probability']
+        model_decimal_odds = 1 / model_prob
+        model_fractional = horse_data['win_odds_fractional']
+
+        # Default odds input: use scraped market_odds if available
+        scraped_odds_val = None
+        if has_scraped_odds and pd.notna(horse_data.get('market_odds')):
+            scraped_odds_val = float(horse_data['market_odds'])
+
         with col2:
             bookmaker_odds_input = st.number_input(
                 "Bookmaker Decimal Odds",
                 min_value=1.01,
                 max_value=1000.0,
-                value=3.0,
+                value=float(scraped_odds_val) if scraped_odds_val else 3.0,
                 step=0.1,
-                key=f"vb_odds_{selected_race_idx}"
+                key=f"vb_odds_{selected_race_idx}",
+                help=(
+                    "Pre-filled from scraped ATR/RP odds. You can override manually."
+                    if scraped_odds_val else
+                    "Enter the bookmaker decimal odds (e.g. 4.0 = 3/1)"
+                )
             )
-        
-        horse_data = race_preds[race_preds['horse'] == selected_horse].iloc[0]
-        model_prob = horse_data['win_probability']
-        model_decimal_odds = 1 / model_prob
-        model_fractional = horse_data['win_odds_fractional']
-        
+
+        # Show scraped data summary next to horse selection
+        if has_scraped_odds and scraped_odds_val:
+            meta_parts = [f"Mkt: {scraped_odds_val:.2f}"]
+            if has_bookie and pd.notna(horse_data.get('best_bookmaker')):
+                meta_parts.append(f"via {horse_data['best_bookmaker']}")
+            if has_trend and pd.notna(horse_data.get('odds_trend')):
+                trend = horse_data['odds_trend']
+                emoji = {'shortening': '📉', 'drifting': '📈', 'stable': '⏸️'}.get(trend, '')
+                meta_parts.append(f"{emoji} {trend}")
+            st.caption(" | ".join(meta_parts))
+
         bookmaker_implied_prob = 1 / bookmaker_odds_input
         edge = model_prob - bookmaker_implied_prob
         edge_pct = edge * 100
-        
+
         st.markdown("---")
         st.markdown(f"**Analysis for {selected_horse}:**")
-        
+
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
             st.metric("Model Win %", f"{model_prob:.1%}")
         with col2:
@@ -691,9 +893,9 @@ def display_value_bet_calculator(race_preds, selected_race_idx):
         with col4:
             delta_color = "normal" if edge > 0 else "inverse"
             st.metric("Edge", f"{edge_pct:+.1f}%", delta=f"{edge_pct:+.1f}%", delta_color=delta_color)
-        
+
         st.markdown("---")
-        
+
         if edge >= 0.05:
             st.success(f"✅ **VALUE BET!** Edge: {edge_pct:+.1f}%")
             st.markdown(f"**Recommendation:** BACK {selected_horse}")

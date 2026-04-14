@@ -56,6 +56,7 @@ jobs:
           fi
 
       - name: Run prediction script
+        id: predict
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -67,6 +68,51 @@ jobs:
           echo "Generating predictions for ${{ steps.dates.outputs.tomorrow }}"
           python scripts/predict_todays_races.py --date ${{ steps.dates.outputs.tomorrow }}
 
+      # ── Odds scraping (graceful degradation: continue-on-error so a blocked
+      #    scrape never fails the whole predictions pipeline) ─────────────────
+
+      - name: Install Playwright browser
+        if: steps.predict.outcome == 'success'
+        run: playwright install chromium --with-deps
+        continue-on-error: true
+
+      - name: Scrape Racing Post odds — today
+        if: steps.predict.outcome == 'success'
+        run: |
+          echo "Scraping RP odds for ${{ steps.dates.outputs.today }}"
+          python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.today }}
+        continue-on-error: true
+
+      - name: Scrape Racing Post odds — tomorrow
+        if: steps.predict.outcome == 'success'
+        run: |
+          echo "Scraping RP odds for ${{ steps.dates.outputs.tomorrow }}"
+          python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.tomorrow }}
+        continue-on-error: true
+
+      - name: Scrape ATR multi-bookmaker odds — today + tomorrow
+        if: steps.predict.outcome == 'success'
+        run: |
+          echo "Scraping ATR odds for ${{ steps.dates.outputs.today }}"
+          python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.today }}
+          echo "Scraping ATR odds for ${{ steps.dates.outputs.tomorrow }}"
+          python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.tomorrow }}
+        continue-on-error: true
+
+      - name: Merge odds into predictions — today
+        if: steps.predict.outcome == 'success'
+        run: |
+          python scripts/merge_scraped_odds.py --date ${{ steps.dates.outputs.today }}
+        continue-on-error: true
+
+      - name: Merge odds into predictions — tomorrow
+        if: steps.predict.outcome == 'success'
+        run: |
+          python scripts/merge_scraped_odds.py --date ${{ steps.dates.outputs.tomorrow }}
+        continue-on-error: true
+
+      # ──────────────────────────────────────────────────────────────────────
+
       - name: Commit generated predictions
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
@@ -77,9 +123,14 @@ jobs:
           git config user.email "$GIT_AUTHOR_EMAIL"
           git add data/processed/predictions_${{ steps.dates.outputs.today }}.* || true
           git add data/processed/predictions_${{ steps.dates.outputs.tomorrow }}.* || true
+          # Also commit raw odds files (useful for debugging / auditing)
+          git add "data/raw/rp_odds_${{ steps.dates.outputs.today }}.csv" || true
+          git add "data/raw/rp_odds_${{ steps.dates.outputs.tomorrow }}.csv" || true
+          git add "data/raw/atr_odds_best_${{ steps.dates.outputs.today }}.csv" || true
+          git add "data/raw/atr_odds_best_${{ steps.dates.outputs.tomorrow }}.csv" || true
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: precompute predictions for ${{ steps.dates.outputs.today }} and ${{ steps.dates.outputs.tomorrow }} [skip ci]" || true
+            git commit -m "chore: precompute predictions + odds for ${{ steps.dates.outputs.today }} and ${{ steps.dates.outputs.tomorrow }} [skip ci]" || true
             git push
           fi
