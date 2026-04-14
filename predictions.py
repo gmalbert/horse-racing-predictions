@@ -171,7 +171,11 @@ def display_predictions_tab():
         display_fetch_generate_ui(today_str, tomorrow_str, today_needs_data, tomorrow_needs_data,
                                    today_racecards_file, tomorrow_racecards_file,
                                    today_predictions_file, tomorrow_predictions_file)
-    
+
+    # Live odds section — always visible (scraping is separate from predictions)
+    display_live_odds_controls(today_str, tomorrow_str,
+                               today_predictions_file, tomorrow_predictions_file)
+
     # Load and display predictions
     display_race_predictions(today_str, tomorrow_str, today_predictions_file, tomorrow_predictions_file)
 
@@ -393,9 +397,120 @@ def display_race_predictions(today_str, tomorrow_str, today_predictions_file, to
     display_race_by_race(predictions)
 
 
+def display_live_odds_controls(today_str, tomorrow_str,
+                                today_predictions_file, tomorrow_predictions_file):
+    """Always-visible panel letting users scrape / refresh live bookmaker odds."""
+    RAW_DIR = BASE_DIR / "data" / "raw"
+
+    today_rp   = RAW_DIR / f"rp_odds_{today_str}.csv"
+    today_atr  = RAW_DIR / f"atr_odds_best_{today_str}.csv"
+    tmrw_rp    = RAW_DIR / f"rp_odds_{tomorrow_str}.csv"
+    tmrw_atr   = RAW_DIR / f"atr_odds_best_{tomorrow_str}.csv"
+
+    today_has_odds  = today_rp.exists()  or today_atr.exists()
+    tmrw_has_odds   = tmrw_rp.exists()   or tmrw_atr.exists()
+
+    status_icon = "🟢" if (today_has_odds or tmrw_has_odds) else "🔴"
+    label = (
+        f"{status_icon} Live Bookmaker Odds — "
+        + ("loaded" if (today_has_odds or tmrw_has_odds) else "not yet scraped")
+    )
+
+    with st.expander(label, expanded=not (today_has_odds or tmrw_has_odds)):
+        st.caption(
+            "Scrapes live prices from Racing Post (single bookie + trend) and "
+            "At The Races (6-10 bookmakers). Enables value-bet analysis and "
+            "pre-fills the per-horse Value Bet Calculator."
+        )
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.markdown("**Today** " + ("✅" if today_has_odds else "❌"))
+            if today_predictions_file.exists():
+                if st.button("🎰 Scrape Today's Odds", key="scrape_odds_today"):
+                    _run_odds_scraping(today_str, label="today")
+            else:
+                st.caption("Generate predictions first")
+
+        with col2:
+            st.markdown("**Tomorrow** " + ("✅" if tmrw_has_odds else "❌"))
+            if tomorrow_predictions_file.exists():
+                if st.button("🎰 Scrape Tomorrow's Odds", key="scrape_odds_tmrw"):
+                    _run_odds_scraping(tomorrow_str, label="tomorrow")
+            else:
+                st.caption("Generate predictions first")
+
+        with col3:
+            if st.button("🔃 Refresh", key="odds_refresh"):
+                st.rerun()
+
+        # Status detail
+        def _odds_age(path):
+            if not path.exists():
+                return "missing"
+            age = pd.Timestamp.now() - pd.Timestamp.fromtimestamp(path.stat().st_mtime)
+            mins = int(age.total_seconds() / 60)
+            return f"{mins}m ago" if mins < 60 else f"{int(mins/60)}h ago"
+
+        status_rows = []
+        for label, rp, atr in [
+            ("Today", today_rp, today_atr),
+            ("Tomorrow", tmrw_rp, tmrw_atr),
+        ]:
+            status_rows.append({
+                "Day": label,
+                "Racing Post": _odds_age(rp),
+                "ATR Multi-Bookie": _odds_age(atr),
+            })
+        st.dataframe(
+            pd.DataFrame(status_rows), hide_index=True, width="content"
+        )
+
+    st.markdown("---")
+
+
+def _run_odds_scraping(date_str, label=""):
+    """Run RP + ATR scrapers then merge into predictions for *date_str*."""
+    scripts = [
+        ([sys.executable, "scripts/scrape_rp_odds.py",    "--date", date_str], "RP odds"),
+        ([sys.executable, "scripts/scrape_atr_odds.py",   "--date", date_str], "ATR odds"),
+        ([sys.executable, "scripts/merge_scraped_odds.py", "--date", date_str], "odds merge"),
+    ]
+    for cmd, desc in scripts:
+        with st.spinner(f"⚙️  Running {desc} for {label} ({date_str})..."):
+            try:
+                res = subprocess.run(
+                    cmd, cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300
+                )
+                if res.returncode == 0:
+                    st.success(f"✅ {desc} completed")
+                else:
+                    st.warning(
+                        f"⚠️  {desc} failed (exit {res.returncode}) — "
+                        "odds grid may not be available for this race day"
+                    )
+                    if res.stderr:
+                        with st.expander(f"{desc} error detail"):
+                            st.code(res.stderr[-1000:], language="text")
+                    # Continue — a partially failed scrape is still useful
+            except subprocess.TimeoutExpired:
+                st.warning(f"⚠️  {desc} timed out — skipping")
+            except Exception as exc:
+                st.warning(f"⚠️  {desc} error: {exc}")
+    st.info("🔄 Reload the page to see updated odds")
+    st.rerun()
+
+
 def display_value_bets_panel(predictions):
     """Display a summary of all value bets identified across today and tomorrow."""
     if 'is_value_bet' not in predictions.columns:
+        # Odds haven't been scraped yet — show a visible prompt
+        st.info(
+            "💰 **Value bet analysis requires live odds.** "
+            "Use the 🎰 **Scrape Odds** button above to fetch bookmaker prices — "
+            "the app will then automatically calculate edges and flag value bets here."
+        )
         return
 
     value_bets = predictions[predictions['is_value_bet'] == True].copy()
