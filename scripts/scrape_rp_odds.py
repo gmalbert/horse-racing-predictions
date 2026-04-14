@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """Scrape live Racing Post odds: fractional prices + 4-snapshot history → trend.
 
-Uses Playwright (headless Chromium) to handle JS-rendered odds.
+Uses Playwright with system Chrome (non-headless) to bypass bot detection.
+Racing Post detects headless Chromium and serves an empty page; the visible
+chrome channel passes cleanly.
 
 Output: data/raw/rp_odds_YYYY-MM-DD.csv
 Columns: venue, race_time, horse_name, odds_live, odds_decimal,
          odds_1, odds_2, odds_3, odds_4, odds_trend
 
 Usage:
-    python scripts/scrape_rp_odds.py                   # tomorrow
+    python scripts/scrape_rp_odds.py                   # tomorrow (visible Chrome)
     python scripts/scrape_rp_odds.py --date 2026-04-22 # specific date
-    python scripts/scrape_rp_odds.py --no-headless      # visible browser (debug)
+    python scripts/scrape_rp_odds.py --headless         # headless (CI, likely fails)
 
 Prerequisites:
-    pip install playwright
+    pip install playwright playwright-stealth
     playwright install chromium
+    System Chrome is used when available (channel='chrome').
 """
 
 import argparse
@@ -98,38 +101,41 @@ def _accept_cookies(page):
 # ─────────────────────────────────────────────
 
 def get_race_urls(page, date_str):
-    """Return a deduplicated list of individual racecard URLs for *date_str*."""
+    """Return a deduplicated list of individual racecard URLs for *date_str*.
+
+    Navigates the RP date-listing page and finds all race links in the format
+    /racecards/{course_uid}/{course_key}/{date}/{race_id}.
+    """
     listing_url = f"{BASE_URL}/racecards/{date_str}/"
     print(f"Fetching race list: {listing_url}")
 
     try:
-        page.goto(listing_url, wait_until="domcontentloaded", timeout=35000)
-        page.wait_for_timeout(3500)   # React hydration
+        page.goto(listing_url, wait_until="load", timeout=35000)
+        # Wait for racecard links to appear (JS-rendered via React)
+        page.wait_for_selector('a[href*="/racecards/"]', timeout=12000)
+        page.wait_for_timeout(2000)   # extra JS settle time
         _accept_cookies(page)
 
-        links = page.evaluate("""() => {
-            const BASE = 'https://www.racingpost.com';
-            // Primary: links that carry the race-is-over attribute
-            let anchors = Array.from(document.querySelectorAll('a[data-race-is-over]'));
-            // Fallback: any racecard deep link (date/course/time/id)
-            if (anchors.length === 0) {
-                anchors = Array.from(
-                    document.querySelectorAll('a[href*="/racecards/"]')
-                ).filter(a => (a.getAttribute('href') || '').split('/').length >= 5);
-            }
-            const seen = new Set();
-            const out = [];
-            anchors.forEach(a => {
-                const h = a.getAttribute('href');
-                if (!h || seen.has(h)) return;
-                seen.add(h);
-                out.push(h.startsWith('http') ? h : BASE + h);
-            });
-            return out;
-        }""")
+        # All racecard anchor tags
+        all_links = page.eval_on_selector_all(
+            'a[href*="racecards"]',
+            'els => els.map(e => e.href)'
+        )
+        # Keep only individual race pages: /racecards/{num}/{course}/{date}/{race_id}
+        # URLs without a numeric race_id at the end are "show all meeting" pages (duplicates).
+        seen = set()
+        race_links = []
+        for href in all_links:
+            # Must match: /racecards/{digit+}/{slug}/{YYYY-MM-DD}/{digit+}
+            if re.search(r'/racecards/\d+/[^/]+/\d{4}-\d{2}-\d{2}/\d+', href):
+                # Normalise: strip trailing slash / query string
+                clean = href.rstrip('/').split('?')[0]
+                if clean not in seen:
+                    seen.add(clean)
+                    race_links.append(clean)
 
-        print(f"  Found {len(links)} race URLs")
-        return links
+        print(f"  Found {len(race_links)} individual race URLs")
+        return race_links
 
     except Exception as exc:
         print(f"  Error fetching race list: {exc}")
@@ -143,59 +149,93 @@ def get_race_urls(page, date_str):
 def scrape_race_odds(page, race_url):
     """Extract runners + odds from a single RP racecard URL.
 
+    Uses targeted data-test-selector attributes verified against the live RP page.
+    Horse names and current prices are queried directly (not inside .RC-runnerRow
+    which proved unreliable); history-price items are linked by position.
+
     Returns list of dicts or [] on failure.
     """
     try:
-        page.goto(race_url, wait_until="domcontentloaded", timeout=35000)
+        page.goto(race_url, wait_until="load", timeout=35000)
 
-        # Wait for the runner rows container
+        # Wait for horse names to appear (reliable presence check)
         try:
-            page.wait_for_selector(".RC-runnerRow", timeout=14000)
+            page.wait_for_selector(
+                '[data-test-selector="RC-cardPage-runnerName"]', timeout=14000
+            )
         except Exception:
-            print(f"  No runner rows at {race_url} — skipping")
+            print(f"  No runner names at {race_url} — skipping")
             return []
 
-        page.wait_for_timeout(2200)   # let odds JS finish loading
+        page.wait_for_timeout(1500)   # let live-price JS finish loading
 
-        # Read venue + time from the race header
+        # Parse venue + time from URL  (e.g. …/racecards/38/newmarket/2026-04-15/915460)
         venue = ""
         race_time = ""
-        try:
-            venue = page.locator(
-                '[data-test-selector="RC-courseHeader__name"]'
-            ).first.inner_text(timeout=3000).strip()
-            race_time = page.locator(
-                '[data-test-selector="RC-courseHeader__time"]'
-            ).first.inner_text(timeout=3000).strip()
-        except Exception:
-            pass
+        m = re.search(r'/racecards/\d+/([^/]+)/(\d{4}-\d{2}-\d{2})/', race_url + '/')
+        if m:
+            venue = m.group(1).replace('-', ' ').title()
+        # Try the race-header selectors as well (more official name)
+        for sel in ('[data-test-selector="RC-courseHeader__name"]',
+                    '[class*="RC-courseHeader__name"]'):
+            try:
+                t = page.locator(sel).first.inner_text(timeout=2000).strip()
+                if t:
+                    venue = t
+                    break
+            except Exception:
+                pass
+        for sel in ('[data-test-selector="RC-courseHeader__time"]',
+                    '[class*="RC-courseHeader__time"]',
+                    'h1',
+                    '[data-test-selector*="raceTime"]'):
+            try:
+                t = page.locator(sel).first.inner_text(timeout=2000).strip()
+                m_t = re.search(r'\b(\d{1,2}:\d{2})\b', t)
+                if m_t:
+                    race_time = m_t.group(1)
+                    break
+            except Exception:
+                pass
+        # Fallback: extract time from URL pattern if still empty
+        if not race_time:
+            m_u = re.search(r'/(\d{4}-\d{2}-\d{2})/', race_url)
+            if m_u:
+                # Time not in URL — leave blank; merge script will match by horse name
+                pass
 
-        runners = page.evaluate("""() => {
-            return Array.from(document.querySelectorAll('.RC-runnerRow'))
-                .map(row => {
-                    const nameEl = row.querySelector(
-                        '[data-test-selector="RC-cardPage-runnerName"]');
-                    const priceEl = row.querySelector(
-                        '[data-test-selector="RC-cardPage-runnerPrice"]');
+        # --- Core extraction: names, current prices, history ---
+        names = page.eval_on_selector_all(
+            '[data-test-selector="RC-cardPage-runnerName"]',
+            'els => els.map(e => e.innerText.trim())'
+        )
+        prices = page.eval_on_selector_all(
+            '[data-test-selector="RC-cardPage-runnerPrice"]',
+            'els => els.map(e => e.innerText.trim())'
+        )
+        # History prices: item-1 (oldest) … item-4 (most-recent pre-live)
+        # They appear in DOM in runner order so we chunk by len(names)
+        history_raw = page.eval_on_selector_all(
+            '[data-test-selector^="RC-historyPrices-item"]',
+            'els => els.map(e => ({sel: e.getAttribute("data-test-selector"), text: e.innerText.trim()}))'
+        )
 
-                    const hist = [];
-                    for (let i = 1; i <= 4; i++) {
-                        const el = row.querySelector(
-                            `[data-test-selector="RC-historyPrices-item-${i}"]`);
-                        hist.push(el ? el.innerText.trim() : '');
-                    }
+        # Build per-horse history: group into blocks of items per name count
+        n_runners = len(names)
+        # Each runner should have the same number of history items
+        n_hist = len(history_raw) // n_runners if n_runners else 0
+        runners = []
+        for i, (name, price) in enumerate(zip(names, prices)):
+            hist_block = history_raw[i * n_hist:(i + 1) * n_hist] if n_hist else []
+            hist = [h['text'] for h in hist_block]
+            # Pad to 4
+            while len(hist) < 4:
+                hist.append('')
+            runners.append({'name': name, 'odds_live': price, 'hist': hist})
 
-                    return {
-                        name: nameEl
-                            ? nameEl.innerText.trim().split('\\n')[0].trim()
-                            : '',
-                        odds_live: priceEl ? priceEl.innerText.trim() : '',
-                        hist,
-                    };
-                })
-                .filter(r => r.name && r.name.length > 1);
-        }""")
-
+        if not runners:
+            print(f"  No runners extracted from {race_url}")
+            return []
         rows = []
         for r in runners:
             name = re.sub(r"\s+", " ", r["name"]).strip()
@@ -233,8 +273,8 @@ def scrape_race_odds(page, race_url):
 def main():
     parser = argparse.ArgumentParser(description="Scrape Racing Post odds")
     parser.add_argument("--date", help="YYYY-MM-DD (default: tomorrow)")
-    parser.add_argument("--headless", action="store_true", default=True,
-                        help="Run Chrome headless (default)")
+    parser.add_argument("--headless", action="store_true", default=False,
+                        help="Run Chrome headless (CI mode — likely blocked by RP bot detection)")
     parser.add_argument("--no-headless", dest="headless", action="store_false")
     args = parser.parse_args()
 
@@ -248,32 +288,42 @@ def main():
         from playwright.sync_api import sync_playwright
     except ImportError:
         print("ERROR: Playwright not installed.")
-        print("  pip install playwright && playwright install chromium")
+        print("  pip install playwright playwright-stealth && playwright install chromium")
         return
+
+    try:
+        from playwright_stealth import Stealth
+        _stealth = Stealth()
+    except ImportError:
+        _stealth = None
+        print("WARNING: playwright-stealth not installed (pip install playwright-stealth). Stealth mode disabled.")
+
+    if args.headless:
+        print("WARNING: Running headless — Racing Post may block this request.")
+        print("         Run without --headless for reliable local scraping.")
 
     all_odds = []
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
+        # Prefer system Chrome (channel='chrome') as it is less identifiable.
+        # Fall back to bundled Chromium if Chrome is not installed.
+        launch_kwargs = dict(
             headless=args.headless,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-gpu",
-                "--disable-dev-shm-usage",
-            ],
+            args=['--disable-blink-features=AutomationControlled'],
         )
+        try:
+            browser = p.chromium.launch(channel='chrome', **launch_kwargs)
+        except Exception:
+            browser = p.chromium.launch(**launch_kwargs)
+
         context = browser.new_context(
             viewport={"width": 1920, "height": 1080},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            ),
             locale="en-GB",
             timezone_id="Europe/London",
         )
         page = context.new_page()
+        if _stealth:
+            _stealth.apply_stealth_sync(page)
 
         race_urls = get_race_urls(page, target_date)
         if not race_urls:

@@ -471,17 +471,22 @@ def display_live_odds_controls(today_str, tomorrow_str,
 
 
 def _run_odds_scraping(date_str, label=""):
-    """Run RP + ATR scrapers then merge into predictions for *date_str*."""
+    """Run RP + ATR scrapers then merge into predictions for *date_str*.
+
+    RP scraper opens a visible Chrome window to bypass bot detection.
+    A window will appear briefly and close automatically when done.
+    """
     scripts = [
         ([sys.executable, "scripts/scrape_rp_odds.py",    "--date", date_str], "RP odds"),
         ([sys.executable, "scripts/scrape_atr_odds.py",   "--date", date_str], "ATR odds"),
         ([sys.executable, "scripts/merge_scraped_odds.py", "--date", date_str], "odds merge"),
     ]
+    st.info("🌐 A Chrome window will open briefly to scrape odds — this is normal.")
     for cmd, desc in scripts:
         with st.spinner(f"⚙️  Running {desc} for {label} ({date_str})..."):
             try:
                 res = subprocess.run(
-                    cmd, cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300
+                    cmd, cwd=str(BASE_DIR), capture_output=True, text=True, timeout=600
                 )
                 if res.returncode == 0:
                     st.success(f"✅ {desc} completed")

@@ -132,7 +132,7 @@ def add_value_columns(df: pd.DataFrame) -> pd.DataFrame:
     All calculations use win_probability from the model.
     """
     # Best available market odds (prioritise ATR multi-bookie price)
-    market = pd.Series(pd.NA, index=df.index, dtype=float)
+    market = pd.Series(float("nan"), index=df.index, dtype=float)
     if "best_odds_decimal" in df.columns:
         market = pd.to_numeric(df["best_odds_decimal"], errors="coerce")
     if "odds_decimal" in df.columns:

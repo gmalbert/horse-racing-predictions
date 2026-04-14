@@ -303,8 +303,8 @@ def main():
     parser.add_argument(
         "--date", help="YYYY-MM-DD (default: today + tomorrow)"
     )
-    parser.add_argument("--headless", action="store_true", default=True,
-                        help="Run Chromium headless (default)")
+    parser.add_argument("--headless", action="store_true", default=False,
+                        help="Run Chromium headless (CI mode — likely blocked by ATR)")
     parser.add_argument("--no-headless", dest="headless",
                         action="store_false")
     args = parser.parse_args()
@@ -320,30 +320,48 @@ def main():
         from playwright.sync_api import sync_playwright
     except ImportError:
         print("ERROR: Playwright not installed.")
-        print("  pip install playwright && playwright install chromium")
+        print("  pip install playwright playwright-stealth && playwright install chromium")
         return
 
+    try:
+        from playwright_stealth import Stealth
+        _stealth = Stealth()
+    except ImportError:
+        _stealth = None
+
     with sync_playwright() as p:
-        browser = p.chromium.launch(
+        launch_kwargs = dict(
             headless=args.headless,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-gpu",
-                "--disable-dev-shm-usage",
-            ],
+            args=['--disable-blink-features=AutomationControlled'],
         )
+        try:
+            browser = p.chromium.launch(channel='chrome', **launch_kwargs)
+        except Exception:
+            browser = p.chromium.launch(**launch_kwargs)
+
         context = browser.new_context(
             viewport={"width": 1920, "height": 1080},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            ),
             locale="en-GB",
             timezone_id="Europe/London",
         )
         page = context.new_page()
+        if _stealth:
+            _stealth.apply_stealth_sync(page)
+
+        # Quick access check — ATR serves a 'Client Challenge' page when blocking
+        print("Checking ATR accessibility...")
+        try:
+            page.goto(f"{ATR_BASE}/racecards", wait_until="load", timeout=20000)
+            title = page.title()
+            if 'challenge' in title.lower() or 'forbidden' in title.lower() or not title:
+                print(f"ATR is blocking access (title: '{title}'). Exiting gracefully.")
+                browser.close()
+                return
+            print(f"ATR accessible (title: '{title}')")
+        except Exception as e:
+            print(f"ATR access check failed: {e}. Exiting.")
+            browser.close()
+            return
 
         # Collect from today (and tomorrow if no specific date given)
         menu_urls = [f"{ATR_BASE}/racecards"]
