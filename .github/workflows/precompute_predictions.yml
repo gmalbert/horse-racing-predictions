@@ -101,6 +101,7 @@ jobs:
 
       - name: Scrape ATR multi-bookmaker odds — today + tomorrow
         if: steps.predict.outcome == 'success'
+        timeout-minutes: 6
         run: |
           echo "Scraping ATR odds for ${{ steps.dates.outputs.today }}"
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \

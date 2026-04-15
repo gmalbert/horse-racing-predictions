@@ -69,7 +69,7 @@ def get_atr_race_menu(page, menu_url: str) -> list:
     """
     print(f"Fetching ATR menu: {menu_url}")
     try:
-        page.goto(menu_url, wait_until="load", timeout=60000)
+        page.goto(menu_url, wait_until="domcontentloaded", timeout=20000)
         human_delay(2500, 4500)
         _accept_cookies(page)
 
@@ -121,7 +121,7 @@ def scrape_atr_race_odds(page, odds_url: str) -> dict | None:
     Returns dict {runners, bookies, url} or None if grid unavailable.
     """
     try:
-        page.goto(odds_url, wait_until="load", timeout=60000)
+        page.goto(odds_url, wait_until="domcontentloaded", timeout=15000)
 
         try:
             page.wait_for_selector(
@@ -351,7 +351,7 @@ def main():
         # Quick access check — ATR serves a 'Client Challenge' page when blocking
         print("Checking ATR accessibility...")
         try:
-            page.goto(f"{ATR_BASE}/racecards", wait_until="load", timeout=20000)
+            page.goto(f"{ATR_BASE}/racecards", wait_until="domcontentloaded", timeout=15000)
             title = page.title()
             if 'challenge' in title.lower() or 'forbidden' in title.lower() or not title:
                 print(f"ATR is blocking access (title: '{title}'). Exiting gracefully.")
