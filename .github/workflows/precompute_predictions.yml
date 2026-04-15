@@ -70,33 +70,44 @@ jobs:
 
       # ── Odds scraping (graceful degradation: continue-on-error so a blocked
       #    scrape never fails the whole predictions pipeline) ─────────────────
+      #
+      #    RP scraper uses headless=False (bypasses bot detection).  On the
+      #    GitHub-hosted Ubuntu runner there is no display, so we run under
+      #    xvfb-run which provides a virtual framebuffer — Chrome sees a real
+      #    screen and behaves identically to a local desktop run.
 
-      - name: Install Playwright browser
+      - name: Install Playwright browser + virtual display
         if: steps.predict.outcome == 'success'
-        run: playwright install chromium --with-deps
+        run: |
+          sudo apt-get install -y xvfb
+          playwright install chromium --with-deps
         continue-on-error: true
 
       - name: Scrape Racing Post odds — today
         if: steps.predict.outcome == 'success'
         run: |
           echo "Scraping RP odds for ${{ steps.dates.outputs.today }}"
-          python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.today }}
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
+            python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.today }}
         continue-on-error: true
 
       - name: Scrape Racing Post odds — tomorrow
         if: steps.predict.outcome == 'success'
         run: |
           echo "Scraping RP odds for ${{ steps.dates.outputs.tomorrow }}"
-          python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.tomorrow }}
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
+            python scripts/scrape_rp_odds.py --date ${{ steps.dates.outputs.tomorrow }}
         continue-on-error: true
 
       - name: Scrape ATR multi-bookmaker odds — today + tomorrow
         if: steps.predict.outcome == 'success'
         run: |
           echo "Scraping ATR odds for ${{ steps.dates.outputs.today }}"
-          python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.today }}
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
+            python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.today }}
           echo "Scraping ATR odds for ${{ steps.dates.outputs.tomorrow }}"
-          python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.tomorrow }}
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
+            python scripts/scrape_atr_odds.py --date ${{ steps.dates.outputs.tomorrow }}
         continue-on-error: true
 
       - name: Merge odds into predictions — today

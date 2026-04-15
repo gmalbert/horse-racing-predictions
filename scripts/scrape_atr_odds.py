@@ -406,11 +406,11 @@ def main():
 
     detail_path = RAW_DIR / f"atr_odds_detail_{date_str}.csv"
     df_detail.to_csv(detail_path, index=False)
-    print(f"\nSaved {len(df_detail)} detail rows → {detail_path}")
+    print(f"\nSaved {len(df_detail)} detail rows -> {detail_path}")
 
     best_path = RAW_DIR / f"atr_odds_best_{date_str}.csv"
     df_best.to_csv(best_path, index=False)
-    print(f"Saved {len(df_best)} best-odds rows → {best_path}")
+    print(f"Saved {len(df_best)} best-odds rows -> {best_path}")
 
     if not df_best.empty:
         print(f"\nAvg bookmakers per horse: {df_best['num_bookmakers'].mean():.1f}")

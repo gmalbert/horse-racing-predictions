@@ -54,13 +54,17 @@ _ODDS_COLS = [
 def _norm(name) -> str:
     """Lowercase, strip country suffix, collapse whitespace.
 
-    Allows matching 'Desert Crown (GB)' ↔ 'Desert Crown'.
+    Allows matching 'Desert Crown (GB)' ↔ 'Desert Crown', and
+    normalizes apostrophes so 'Jour dEvasion' and 'Jour d'Evasion'
+    collapse to the same join key.
     """
     if not isinstance(name, str):
         return ""
     name = re.sub(r"\s*\([A-Z]{2,3}\)\s*$", "", name)
     name = name.lower().strip()
-    name = re.sub(r"['\-\.]", " ", name)
+    # Preserve word boundaries for hyphens and dots, but remove apostrophes.
+    name = re.sub(r"[’'`]+", "", name)
+    name = re.sub(r"[\-.]", " ", name)
     return re.sub(r"\s+", " ", name).strip()
 
 
@@ -229,7 +233,7 @@ def main():
     df = add_value_columns(df)
 
     df.to_csv(pred_path, index=False)
-    print(f"\nSaved enriched predictions → {pred_path}")
+    print(f"\nSaved enriched predictions -> {pred_path}")
 
     # Summary
     odds_cov = df["market_odds"].notna().sum() if "market_odds" in df.columns else 0

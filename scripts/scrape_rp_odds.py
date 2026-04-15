@@ -348,7 +348,7 @@ def main():
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     out_path = RAW_DIR / f"rp_odds_{target_date}.csv"
     df.to_csv(out_path, index=False)
-    print(f"\nSaved {len(df)} rows → {out_path}")
+    print(f"\nSaved {len(df)} rows -> {out_path}")
 
     if "odds_trend" in df.columns:
         print("\nTrend breakdown:")
