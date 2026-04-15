@@ -1021,7 +1021,10 @@ def save_model_and_artifacts(model, feature_importance, feature_cols):
     # Save model
     if HAS_XGBOOST:
         model_path = models_dir / 'horse_win_predictor.json'
-        model.save_model(model_path)
+        # Use get_booster() to avoid XGBoost 2.x sklearn metadata serialization bug
+        # (_estimator_type check fails); the raw booster JSON is compatible with
+        # XGBClassifier().load_model() used in shared/utils.py.
+        model.get_booster().save_model(str(model_path))
     else:
         model_path = models_dir / 'horse_win_predictor.pkl'
         with open(model_path, 'wb') as f:
