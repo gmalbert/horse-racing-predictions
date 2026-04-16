@@ -222,9 +222,9 @@ Before deploying to production:
 - [x] ROC AUC improved from 0.671 to 0.702
 - [x] Feature importance calculated
 - [x] Model artifacts saved
-- [ ] Prediction scripts updated with new features
+- [x] Prediction scripts updated with new features
 - [ ] Backtesting on recent races
-- [ ] UI integration
+- [x] UI integration
 - [ ] Production deployment
 
 ---

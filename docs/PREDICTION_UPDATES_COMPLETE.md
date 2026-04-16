@@ -310,8 +310,8 @@ From latest model training with 72 features:
 ### Immediate (Production Ready)
 - ✅ Prediction scripts updated
 - ✅ Test successful on 2025-12-28
-- ⚠️ **TODO**: Update Streamlit UI to display new features
-- ⚠️ **TODO**: Backtest on Oct-Dec 2024 races
+- ✅ Streamlit UI updated to display new features
+- ⚠️ Backtest on Oct-Dec 2024 races
 
 ### Short-Term (Enhancement)
 - Add feature explanations to UI ("Why this pick?")
