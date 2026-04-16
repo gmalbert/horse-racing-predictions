@@ -4,6 +4,7 @@ Historical Data Explorer - Horse Racing Predictions
 Provides comprehensive data exploration and analysis tools for historical race data.
 Includes horse performance, course statistics, jockey analysis, and betting strategies.
 """
+import base64
 import pandas as pd
 import streamlit as st
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 # Import shared utilities
 from shared.utils import (
     load_data, get_dataframe_height, safe_st_call, BASE_DIR,
-    SCORED_FIXTURES_FILE, HAS_PLOTLY
+    SCORED_FIXTURES_FILE, HAS_PLOTLY, LOGO_FILE
 )
 
 try:
@@ -23,18 +24,20 @@ except ImportError:
 
 
 def main():
-    st.set_page_config(
-        page_title="Historical Data Explorer",
-        page_icon="📊",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
     st.title("📊 Historical Data Explorer")
     
-    # Navigation hint back to main page
-    st.info("💡 Use the sidebar to navigate back to the main Predictions page", icon="ℹ️")
-    
+    # Sidebar logo and divider after page navigation
+    with st.sidebar:
+        if LOGO_FILE.exists():
+            encoded = base64.b64encode(LOGO_FILE.read_bytes()).decode()
+            st.markdown(
+                "<div style='display:flex; justify-content:center;'>"
+                f"<img src='data:image/png;base64,{encoded}' width='150' style='max-width:150px; height:auto;'/>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        st.markdown("---")
+
     # Helper to show filter instruction
     def show_filter_hint():
         pass

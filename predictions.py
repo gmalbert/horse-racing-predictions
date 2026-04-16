@@ -4,6 +4,7 @@ Horse Racing Predictions - Main Page (Lightweight)
 Displays today's and tomorrow's race predictions with model insights.
 Uses precomputed CSVs for fast loading.
 """
+import base64
 import pandas as pd
 import streamlit as st
 import subprocess
@@ -25,122 +26,98 @@ except ImportError:
     HAS_PLOTLY = False
 
 
-def main():
-    st.set_page_config(
-        page_title="Horse Racing Predictions",
-        page_icon="🏇",
-        layout="wide",
-        initial_sidebar_state="collapsed"
-    )
-    
-    # Display logo
+# ── Page config — called ONCE at module level for st.navigation() ──────────────
+st.set_page_config(
+    page_title="Horse Racing Predictions",
+    page_icon="🏇",
+    layout="wide",
+)
+
+
+# ── Colour theme ──────────────────────────────────────────────────────────────
+THEME_BASE_CSS = """
+<style>
+/* ── Denim Blue theme */
+:root { --primary: #3c5a99; --bg: #eef3fb; --card: #dfe8f5; --text: #152a50; --button-text: #152a50; --accent: #6c8dd8; --border: #a7b7d6; }
+
+/* ── Global resets using CSS vars set by theme ── */
+[data-testid="stAppViewContainer"] { background-color: var(--bg) !important; color: var(--text) !important; }
+[data-testid="stSidebar"] { background-color: var(--card) !important; border-right: 1px solid var(--border) !important; }
+[data-testid="stHeader"] { background-color: var(--bg) !important; }
+/* Tabs */
+[data-testid="stTabs"] [data-baseweb="tab"] { color: var(--text) !important; }
+[data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] { border-bottom-color: var(--accent) !important; color: var(--accent) !important; }
+/* Buttons */
+[data-testid="stButton"] > button { background-color: var(--primary) !important; color: var(--button-text, #fff) !important; border: none !important; border-radius: 6px !important; }
+[data-testid="stButton"] > button:hover { filter: brightness(1.15) !important; }
+/* Metrics */
+[data-testid="metric-container"] { background-color: var(--card) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 10px !important; }
+[data-testid="metric-container"] label { color: var(--accent) !important; }
+/* Expanders */
+[data-testid="stExpander"] summary { background-color: var(--card) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 6px !important; }
+/* DataFrames */
+[data-testid="stDataFrame"] { border: 1px solid var(--border) !important; border-radius: 6px !important; }
+/* Select boxes & inputs */
+[data-baseweb="select"] { background-color: var(--card) !important; border-color: var(--border) !important; }
+[data-baseweb="input"] { background-color: var(--card) !important; }
+/* Nav links */
+[data-testid="stSidebarNav"] a { color: var(--text) !important; }
+[data-testid="stSidebarNav"] a[aria-current="page"] { color: var(--accent) !important; font-weight: 700 !important; }
+/* Info / warning / success boxes */
+[data-testid="stAlert"] { border-left-color: var(--accent) !important; background-color: var(--card) !important; color: var(--text) !important; }
+</style>
+"""
+
+
+def apply_theme():
+    """Inject the fixed Denim Blue theme CSS."""
+    st.markdown(THEME_BASE_CSS, unsafe_allow_html=True)
+
+
+def render_sidebar_logo():
+    """Render the logo centered in the sidebar below the navigation links."""
     if LOGO_FILE.exists():
-        st.image(str(LOGO_FILE), width=200)
-    
-    # Navigation hint
-    st.info("📊 **Looking for data exploration?** Check out the **Data Explorer** page in the sidebar (≡ menu icon)", icon="ℹ️")
-    
-    # Top Tier 1 races expander
-    with st.expander("🎯 Top Predictive Races (Tier 1 Focus)", expanded=False):
-        if SCORED_FIXTURES_FILE.exists():
-            try:
-                fixtures_scored = pd.read_csv(SCORED_FIXTURES_FILE)
-                fixtures_tier1 = fixtures_scored[fixtures_scored['race_tier'] == 'Tier 1: Focus'].copy()
-                
-                if len(fixtures_tier1) > 0:
-                    fixtures_tier1['date'] = pd.to_datetime(fixtures_tier1['date'])
-                    today = pd.Timestamp.today().normalize()
-                    fixtures_tier1 = fixtures_tier1[fixtures_tier1['date'] >= today]
-                    
-                    if len(fixtures_tier1) > 0:
-                        fixtures_tier1 = fixtures_tier1.sort_values(['date', 'race_score'], ascending=[True, False]).head(50)
-                        
-                        display_df = fixtures_tier1[['date', 'course', 'class', 'prize', 'race_score']].copy()
-                        display_df['date'] = display_df['date'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else "Invalid")
-                        display_df['prize'] = display_df['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
-                        display_df['race_score'] = display_df['race_score'].round(1)
-                        display_df.columns = ['Date', 'Course', 'Class', 'Prize', 'Score']
-                        
-                        st.info(f"📊 Showing next {len(display_df)} upcoming Tier 1 Focus races (score ≥70)")
-                        height = get_dataframe_height(display_df, max_height=400)
-                        st.dataframe(display_df, hide_index=True, height=height)
-                    else:
-                        st.warning("No upcoming Tier 1 Focus races found")
-                else:
-                    st.warning("No upcoming Tier 1 Focus races found")
-            except Exception as e:
-                st.warning(f"Could not load predicted fixtures: {e}")
-        else:
-            st.warning("Race scoring data not available. Run Phase 2 scoring first.")
-    
-    # Upcoming schedule expander
-    fixtures_file = BASE_DIR / "data" / "processed" / "bha_2026_all_courses_class1-4.csv"
-    if fixtures_file.exists():
-        try:
-            fixtures = pd.read_csv(fixtures_file)
-            if "Date" in fixtures.columns:
-                fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
-                fixtures = fixtures.sort_values("Date")
-                today = pd.Timestamp.today().normalize()
-                upcoming = fixtures[fixtures["Date"] >= today].copy()
+        encoded = base64.b64encode(LOGO_FILE.read_bytes()).decode()
+        st.sidebar.markdown(
+            "<div style='display:flex; justify-content:center; padding: 12px 0;'>"
+            f"<img src='data:image/png;base64,{encoded}' width='150' style='max-width:150px; height:auto;'/>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        st.sidebar.markdown("---")
 
-            with st.expander("📅 Upcoming Schedule (Class 1-4 Races)", expanded=False):
-                st.caption("Complete fixture calendar for premium races")
 
-                if not upcoming.empty:
-                    col1, col2, col3, col4 = st.columns(4)
-                    with col1:
-                        st.metric("📊 Total Fixtures", f"{len(upcoming):,}")
-                    with col2:
-                        unique_courses = int(upcoming["Course"].nunique()) if "Course" in upcoming.columns else 0
-                        st.metric("🏇 Courses", unique_courses)
-                    with col3:
-                        if "Surface" in upcoming.columns:
-                            turf_count = int((upcoming["Surface"] == "Turf").sum())
-                            st.metric("🌱 Turf Races", f"{turf_count:,}")
-                    with col4:
-                        try:
-                            min_date = upcoming["Date"].min()
-                            max_date = upcoming["Date"].max()
-                            if pd.isna(min_date) or pd.isna(max_date):
-                                span = "N/A"
-                            else:
-                                date_range = max_date - min_date
-                                span = f"{int(getattr(date_range, 'days', 0))} days"
-                        except Exception:
-                            span = "N/A"
-                        st.metric("📆 Calendar Span", span)
+def predictions_page():
+    """Main predictions page — today & tomorrow."""
+    apply_theme()
+    render_sidebar_logo()
 
-                    st.markdown("---")
+    st.title("🏇 Horse Racing Predictions")
 
-                    show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in upcoming.columns]
-                    fixtures_display = upcoming[show_cols].head(200).copy()
-
-                    if "Date" in fixtures_display.columns:
-                        fixtures_display["Date"] = fixtures_display["Date"].apply(lambda x: x.strftime("%a %d %b %Y") if pd.notna(x) else "Invalid Date")
-
-                    st.markdown(f"##### Next {len(fixtures_display)} Upcoming Fixtures")
-                    height = get_dataframe_height(fixtures_display, max_height=400)
-                    safe_st_call(st.dataframe, fixtures_display, hide_index=True, height=height, width='stretch')
-
-                    st.caption("💡 **Tip:** Use the 'Data Explorer' page to see more details")
-                else:
-                    st.info("✨ No upcoming fixtures in calendar")
-        except Exception:
-            pass
-    
     # Main tabs
-    tab1, tab2, tab3 = st.tabs(["🎲 Today & Tomorrow", "📅 Predicted Fixtures", "📊 Model Insights"])
-    
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📅 Upcoming Schedule",
+        "🎲 Today & Tomorrow",
+        "📅 Predicted Fixtures",
+        "🎯 Top Predictive Races",
+        "📊 Model Insights",
+    ])
+
     with tab1:
-        display_predictions_tab()
-    
+        display_upcoming_schedule_tab()
+
     with tab2:
-        display_predicted_fixtures_tab()
-    
+        display_predictions_tab()
+
     with tab3:
+        display_predicted_fixtures_tab()
+
+    with tab4:
+        display_top_predictive_races_tab()
+
+    with tab5:
         display_model_insights()
-    
+
     # Add footer at the bottom of the page
     from footer import add_betting_oracle_footer
     add_betting_oracle_footer()
@@ -248,6 +225,101 @@ def display_fetch_generate_ui(today_str, tomorrow_str, today_needs_data, tomorro
             st.rerun()
     
     st.markdown("---")
+
+
+def display_upcoming_schedule_tab():
+    """Display the upcoming schedule tab."""
+    fixtures_file = BASE_DIR / "data" / "processed" / "bha_2026_all_courses_class1-4.csv"
+    if fixtures_file.exists():
+        try:
+            fixtures = pd.read_csv(fixtures_file)
+            if "Date" in fixtures.columns:
+                fixtures["Date"] = pd.to_datetime(fixtures["Date"], errors="coerce")
+                fixtures = fixtures.sort_values("Date")
+                today = pd.Timestamp.today().normalize()
+                upcoming = fixtures[fixtures["Date"] >= today].copy()
+
+            st.subheader("📅 Upcoming Schedule (Class 1-4 Races)")
+            st.caption("Complete fixture calendar for premium races")
+
+            if not upcoming.empty:
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("📊 Total Fixtures", f"{len(upcoming):,}")
+                with col2:
+                    unique_courses = int(upcoming["Course"].nunique()) if "Course" in upcoming.columns else 0
+                    st.metric("🏇 Courses", unique_courses)
+                with col3:
+                    if "Surface" in upcoming.columns:
+                        turf_count = int((upcoming["Surface"] == "Turf").sum())
+                        st.metric("🌱 Turf Races", f"{turf_count:,}")
+                with col4:
+                    try:
+                        min_date = upcoming["Date"].min()
+                        max_date = upcoming["Date"].max()
+                        if pd.isna(min_date) or pd.isna(max_date):
+                            span = "N/A"
+                        else:
+                            date_range = max_date - min_date
+                            span = f"{int(getattr(date_range, 'days', 0))} days"
+                    except Exception:
+                        span = "N/A"
+                    st.metric("📆 Calendar Span", span)
+
+                st.markdown("---")
+
+                show_cols = [c for c in ["Date", "Course", "Time", "Type", "Surface"] if c in upcoming.columns]
+                fixtures_display = upcoming[show_cols].head(200).copy()
+
+                if "Date" in fixtures_display.columns:
+                    fixtures_display["Date"] = fixtures_display["Date"].apply(lambda x: x.strftime("%a %d %b %Y") if pd.notna(x) else "Invalid Date")
+
+                st.markdown(f"##### Next {len(fixtures_display)} Upcoming Fixtures")
+                height = get_dataframe_height(fixtures_display)
+                safe_st_call(st.dataframe, fixtures_display, hide_index=True, height=height, width='stretch')
+
+                st.caption("💡 **Tip:** Use the 'Data Explorer' page to see more details")
+            else:
+                st.info("✨ No upcoming fixtures in calendar")
+        except Exception:
+            st.error("Error loading upcoming schedule data.")
+    else:
+        st.warning("Upcoming schedule data file not found. Run the fixture calendar generation script.")
+
+
+def display_top_predictive_races_tab():
+    """Display the top predictive races tab."""
+    st.subheader("🎯 Top Predictive Races (Tier 1 Focus)")
+    if SCORED_FIXTURES_FILE.exists():
+        try:
+            fixtures_scored = pd.read_csv(SCORED_FIXTURES_FILE)
+            fixtures_tier1 = fixtures_scored[fixtures_scored['race_tier'] == 'Tier 1: Focus'].copy()
+
+            if len(fixtures_tier1) > 0:
+                fixtures_tier1['date'] = pd.to_datetime(fixtures_tier1['date'])
+                today = pd.Timestamp.today().normalize()
+                fixtures_tier1 = fixtures_tier1[fixtures_tier1['date'] >= today]
+
+                if len(fixtures_tier1) > 0:
+                    fixtures_tier1 = fixtures_tier1.sort_values(['date', 'race_score'], ascending=[True, False]).head(50)
+
+                    display_df = fixtures_tier1[['date', 'course', 'class', 'prize', 'race_score']].copy()
+                    display_df['date'] = display_df['date'].apply(lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else "Invalid")
+                    display_df['prize'] = display_df['prize'].apply(lambda x: f"£{x:,.0f}" if pd.notna(x) else "")
+                    display_df['race_score'] = display_df['race_score'].round(1)
+                    display_df.columns = ['Date', 'Course', 'Class', 'Prize', 'Score']
+
+                    st.info(f"📊 Showing next {len(display_df)} upcoming Tier 1 Focus races (score ≥70)")
+                    height = get_dataframe_height(display_df, max_height=400)
+                    st.dataframe(display_df, hide_index=True, height=height)
+                else:
+                    st.warning("No upcoming Tier 1 Focus races found")
+            else:
+                st.warning("No upcoming Tier 1 Focus races found")
+        except Exception as e:
+            st.warning(f"Could not load predicted fixtures: {e}")
+    else:
+        st.warning("Race scoring data not available. Run Phase 2 scoring first.")
 
 
 def fetch_racecards(date_str, label=""):
@@ -1298,12 +1370,13 @@ def display_predicted_fixtures_tab():
                 st.info("Install plotly to see score distribution chart")
             
             # Course breakdown
-            st.subheader("Top Courses by Score")
+            st.subheader("Top Courses By Score")
             course_stats = fixtures_scored.groupby('course', observed=False).agg({
                 'race_score': ['count', 'mean', 'max'],
                 'race_tier': lambda x: (x == 'Tier 1: Focus').sum()
             }).round(1)
             course_stats.columns = ['Total Races', 'Avg Score', 'Max Score', 'Tier 1 Count']
+            course_stats.index.name = 'Course'
             course_stats = course_stats.sort_values('Max Score', ascending=False).head(15)
             height = get_dataframe_height(course_stats)
             st.dataframe(course_stats, height=height, width=600)
@@ -1367,5 +1440,12 @@ def display_predicted_fixtures_tab():
         st.info(f"Expected file: {SCORED_FIXTURES_FILE}")
 
 
-if __name__ == "__main__":
-    main()
+# ── Sidebar navigation (Streamlit 1.45+) ────────────────────────────────────────────────
+pg = st.navigation(
+    [
+        st.Page(predictions_page,         title="Predictions",   icon="🏇", default=True),
+        st.Page("pages/data_explorer.py", title="Data Explorer", icon="📊"),
+    ],
+    position="sidebar",
+)
+pg.run()
