@@ -1,2 +1,4 @@
 # all_gb_races.parquet is committed as a regular git object (NOT LFS)
 # to ensure it is available in GitHub Actions with lfs: false checkout.
+data/processed/race_scores_weather.parquet filter=lfs diff=lfs merge=lfs -text
+data/processed/race_scores_engineered.parquet filter=lfs diff=lfs merge=lfs -text

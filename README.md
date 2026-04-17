@@ -47,7 +47,8 @@ A full-featured web interface for exploring race data, analyzing predictions, an
 
 - **🔮 ML Model Tab**
   - Live win probability predictions using XGBoost
-  - 18-feature model (ROC AUC 0.671)
+  - Full 75-feature model with engineered career, going, OR, pedigree, and jockey features
+  - Ensemble calibration now achieves ROC AUC 0.6892 on holdout data
   - Feature importance visualization
   - One-click model retraining
 
@@ -189,6 +190,7 @@ Notes:
 
 **Data Files:**
 - `data/processed/race_scores.parquet` - Historical scored races
+- `data/processed/race_scores_engineered.parquet` - Full engineered dataset for ensemble/backtest and retraining
 - `data/processed/scored_fixtures_calendar.csv` - Predicted upcoming races
 - `data/processed/lookups/course_tiers.csv` - Course quality tiers
 - `data/raw/` - Raw API responses (cached)
@@ -203,7 +205,12 @@ Notes:
 
 **Scripts:**
 - `scripts/phase2_score_races.py` - Score historical races
-- `scripts/phase3_build_horse_model.py` - Train ML model
+- `scripts/phase3_build_horse_model.py` - Train ML model and save engineered dataset
+- `scripts/build_engineered_dataset.py` - Build `race_scores_engineered.parquet` without retraining
+- `scripts/ensemble_model.py` - Train stacked ensemble on engineered features
+- `scripts/backtest_walk_forward.py` - Walk-forward backtesting and calibration diagnostics
+- `scripts/rl_bankroll_manager.py` - Bankroll management and settled bet reporting
+- `scripts/add_weather_features.py` - Add weather / going-trend features to historical data
 - `scripts/odds_converter.py` - Probability/odds conversion utilities
 - `scripts/predict_todays_races.py` - Generate daily predictions with odds
 - `scripts/score_fixture_calendar.py` - Predict & score fixtures
@@ -216,11 +223,17 @@ Notes:
 
 ### Betting Strategy Tools
 
-**Upcoming (Phase 4-6):**
-- Kelly Criterion staking system
-- Bankroll management
-- Performance backtesting
-- Production deployment automation
+**Current tools:**
+- `scripts/backtest_walk_forward.py` — strict temporal walk-forward cross-validation, model calibration diagnostics, and payout simulation using model-implied odds
+- `scripts/ensemble_model.py` — stacked XGBoost/LightGBM/ExtraTrees ensemble with Platt calibration
+- `scripts/rl_bankroll_manager.py` — bankroll state tracking, settled bet history, drawdown controls, and confidence-tier staking guidance
+- `scripts/build_engineered_dataset.py` — generate `data/processed/race_scores_engineered.parquet` for fast ensemble/backtest runs without retraining
+- `scripts/add_weather_features.py` — add weather-derived going trend and variability features by course
+
+**Notes:**
+- Backtesting uses `race_scores_engineered.parquet` when available for the full 75-feature dataset
+- Value betting in backtest is disabled until real bookmaker `market_odds` are joined to historical data
+- Model calibration is assessed by comparing model-implied odds with actual outcomes
 
 [Back to Top](#table-of-contents)
 
@@ -453,16 +466,32 @@ The repository includes pre-processed data, so API credentials are **optional** 
 
 **Included:**
 - Historical races (2015-2025): `data/processed/race_scores.parquet`
+- Engineered feature dataset: `data/processed/race_scores_engineered.parquet`
 - Predicted fixtures: `data/processed/scored_fixtures_calendar.csv`
-- Trained ML model: `models/horse_win_predictor.pkl`
+- Trained ML model: `models/horse_win_predictor.json`
 
 **To regenerate:**
 ```bash
 # Score historical races (if you have new data)
 python scripts/phase2_score_races.py
 
-# Retrain ML model
+# Retrain ML model and refresh engineered dataset
 python scripts/phase3_build_horse_model.py
+
+# Build engineered dataset only (no retrain)
+python scripts/build_engineered_dataset.py
+
+# Train the ensemble model on engineered features
+python scripts/ensemble_model.py
+
+# Run walk-forward backtesting on full features
+python scripts/backtest_walk_forward.py --folds 6
+
+# Bankroll report and settled-bet history
+python scripts/rl_bankroll_manager.py --date 2026-04-16 --report --update-history
+
+# Add weather/going features to the historical dataset
+python scripts/add_weather_features.py --offline
 
 # Score upcoming fixtures
 python scripts/score_fixture_calendar.py
