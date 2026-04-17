@@ -123,6 +123,13 @@ jobs:
           python scripts/merge_scraped_odds.py --date ${{ steps.dates.outputs.tomorrow }}
         continue-on-error: true
 
+      - name: Update bankroll history
+        if: steps.predict.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "💰 Updating bankroll history for ${{ steps.dates.outputs.today }}..."
+          python scripts/rl_bankroll_manager.py --date ${{ steps.dates.outputs.today }} --update-history
+
       # ──────────────────────────────────────────────────────────────────────
 
       - name: Commit generated predictions
@@ -140,6 +147,7 @@ jobs:
           git add "data/raw/rp_odds_${{ steps.dates.outputs.tomorrow }}.csv" || true
           git add "data/raw/atr_odds_best_${{ steps.dates.outputs.today }}.csv" || true
           git add "data/raw/atr_odds_best_${{ steps.dates.outputs.tomorrow }}.csv" || true
+          git add data/processed/bankroll_state.json data/processed/betting_history.csv || true
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else

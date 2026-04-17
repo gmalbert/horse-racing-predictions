@@ -1,0 +1,20 @@
+[
+  {
+    "model": "xgb_solo",
+    "auc": 0.6848,
+    "log_loss": 0.6803,
+    "brier_score": 0.2438,
+    "top1_accuracy": 0.2489,
+    "top3_accuracy": 0.568,
+    "n_races_evaluated": 14210
+  },
+  {
+    "model": "ensemble_calibrated",
+    "auc": 0.6892,
+    "log_loss": 0.3278,
+    "brier_score": 0.0946,
+    "top1_accuracy": 0.2516,
+    "top3_accuracy": 0.5709,
+    "n_races_evaluated": 14210
+  }
+]

@@ -1067,7 +1067,13 @@ def main():
     
     # Engineer features
     df = engineer_all_features(df)
-    
+
+    # Cache engineered dataset so ensemble/backtest scripts can load full feature set
+    engineered_path = Path("data/processed/race_scores_engineered.parquet")
+    engineered_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(engineered_path, index=False)
+    print(f"\n[SAVED] Engineered dataset → {engineered_path} ({len(df):,} rows, {len(df.columns)} cols)")
+
     # Prepare training data
     X, y, feature_cols, df_train = prepare_training_data(df)
     

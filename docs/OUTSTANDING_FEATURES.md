@@ -30,14 +30,6 @@ From `docs/BETTING_STRATEGY.md`, the following checklist items remain actionable
 - Add jockey/trainer features and integrate bookmaker odds
 - Train and backtest value-betting strategy models
 
-<!-- ## US Racing Support
-
-From `docs/US_RACING_IMPLEMENTATION.md`:
-- Verify The Racing API US data coverage
-- Confirm US class, surface, and going format support
-- Add region-specific loading and filters
-- Validate predictions for US sample dates -->
-
 ## Operational/Infrastructure Tasks
 
 From `docs/FIX_LFS_BANDWIDTH_QUOTA.md`:
@@ -51,7 +43,6 @@ From `docs/LONG_TERM_DATA_ENHANCEMENTS.md` and related files:
 - Implement market-data/Betfair exchange integration
 - Add weather and ground condition modeling
 - Build ensemble and ranker models
-<!-- - Add video or image-based race analysis if feasible -->
 - Build continuous retraining and RL bankroll management pipelines
 
 ## Notes

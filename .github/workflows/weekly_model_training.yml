@@ -232,6 +232,38 @@ jobs:
           echo "📅 Running fixture scoring..."
           python scripts/score_fixture_calendar.py
 
+      - name: Add weather features (offline)
+        id: weather_features
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "🌦️  Adding weather/going features (offline mode)..."
+          python scripts/add_weather_features.py --offline
+
+      - name: Build engineered dataset
+        id: build_engineered
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "🔧 Building race_scores_engineered.parquet (all 75 features)..."
+          python scripts/build_engineered_dataset.py
+
+      - name: Train stacked ensemble model
+        id: train_ensemble
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "🧪 Training stacked ensemble (XGBoost + LightGBM + ExtraTrees)..."
+          python scripts/ensemble_model.py
+
+      - name: Run walk-forward backtest
+        id: backtest
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "📊 Running walk-forward backtest (6 folds)..."
+          python scripts/backtest_walk_forward.py --folds 6
+
       - name: Update last run timestamp
         id: update_timestamp
         if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.score_fixtures.outcome == 'success'
@@ -251,7 +283,7 @@ jobs:
           git config user.email "$GIT_AUTHOR_EMAIL"
 
           # Add updated model artifacts and data
-          git add models/ data/processed/race_scores.parquet data/processed/race_scores_with_betting_tiers.parquet data/processed/race_scores_with_all_features_no_leakage.parquet data/processed/race_scores_connections_v2.parquet data/processed/scored_fixtures_calendar.csv .last_weekly_run || true
+          git add models/ data/processed/race_scores.parquet data/processed/race_scores_with_betting_tiers.parquet data/processed/race_scores_with_all_features_no_leakage.parquet data/processed/race_scores_connections_v2.parquet data/processed/race_scores_engineered.parquet data/processed/scored_fixtures_calendar.csv .last_weekly_run || true
 
           if git diff --staged --quiet; then
             echo "No model changes to commit"

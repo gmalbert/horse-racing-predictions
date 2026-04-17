@@ -11,6 +11,11 @@ Critical workflows (commands)
 - Setup: create/activate `.venv/` and `pip install -r requirements.txt`
 - Run UI: `streamlit run predictions.py` (multipage app: main predictions page + data explorer)
 - Generate predictions (single day): `python scripts/predict_todays_races.py --date YYYY-MM-DD`
+- Build engineered dataset: `python scripts/build_engineered_dataset.py`
+- Train stacked ensemble: `python scripts/ensemble_model.py`
+- Run backtesting: `python scripts/backtest_walk_forward.py --folds 6`
+- Run bankroll management: `python scripts/rl_bankroll_manager.py --date YYYY-MM-DD --report --update-history`
+- Add weather features: `python scripts/add_weather_features.py --offline`
 - Batch generate: `python scripts/batch_generate_predictions.py` (scans `data/raw/`)
 - Fetch racecards (example): `python scripts/fetch_racecards.py --date YYYY-MM-DD` (saves `data/raw/racecards_YYYY-MM-DD.json`)
 - Tests: `pytest tests/` (tests avoid live network calls; use fixtures)
@@ -53,6 +58,11 @@ Quick file map (where to start)
 - `shared/utils.py` — Common utilities (257 lines): load_model, load_data, get_dataframe_height, safe_st_call, memory profiling
 - `scripts/predict_todays_races.py` — single-day prediction runner
 - `scripts/batch_generate_predictions.py` — batch runner that scans `data/raw/`
+- `scripts/build_engineered_dataset.py` — build `race_scores_engineered.parquet` for full feature ensemble/backtest
+- `scripts/ensemble_model.py` — stacked ensemble training and calibration
+- `scripts/backtest_walk_forward.py` — walk-forward backtesting and model calibration diagnostics
+- `scripts/rl_bankroll_manager.py` — bankroll state and betting history reports
+- `scripts/add_weather_features.py` — weather and going features for historical races
 - `scripts/phase2_score_races.py`, `scripts/phase3_build_horse_model.py` — scoring & training logic
 - `examples/api_example.py`, `examples/odds_api_example.py` — API usage patterns and auth examples
 
@@ -108,10 +118,10 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Data pipeline phases**:
   - Phase 1: Data cleaning/validation (630K+ races → 245K after removing Class 5-7)
   - Phase 2: Race profitability scoring (0-100 based on class, prize, course tier, field size, pattern races)
-  - Phase 3: ML horse win prediction (XGBoost classifier, 47 features including weight features, ROC AUC 0.678)
-  - Phase 4: Betting strategy (Kelly criterion, value betting)
-- **Data flow**: Raw API data → `data/raw/` → Processed datasets → `data/processed/` (Parquet preferred)
-- **Model artifacts**: Stored in `models/` (gitignored); training scripts in `scripts/`
+  - Phase 3: ML horse win prediction (XGBoost classifier, 75 engineered features including career stats, going preferences, OR context, pedigree, jockey/trainer features; ensemble AUC 0.6892)
+  - Phase 4: Betting strategy (Kelly criterion, value betting, bankroll management)
+- **Data flow**: Raw API data → `data/raw/` → Processed datasets → `data/processed/` (Parquet preferred) → `data/processed/race_scores_engineered.parquet` for full-feature training/backtesting
+- **Model artifacts**: Stored in `models/` (gitignored); training scripts in `scripts/`; full engineered feature cache saved as `data/processed/race_scores_engineered.parquet`
 - **Feature engineering**: Pure functions preferred; career stats use expanding windows to avoid lookahead bias
 - **Weight features**: Implemented for handicap races (weight_lbs, weight_vs_avg, is_top_weight, weight_change) - requires weight data in racecards
 - **UI**: Streamlit app in `predictions.py` with tabs for data exploration, ML predictions, value betting
@@ -131,6 +141,11 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **Add dependencies**: Edit `requirements.txt`, then `pip install -r requirements.txt`
 - **Run UI**: `streamlit run predictions.py` (loads `data/processed/race_scores.parquet` and `data/logo.png`)
 - **Generate predictions**: `python scripts/predict_todays_races.py` or `python scripts/predict_todays_races.py --date 2025-12-31` (outputs `data/processed/predictions_YYYY-MM-DD.csv`)
+- **Build engineered dataset**: `python scripts/build_engineered_dataset.py`
+- **Train ensemble**: `python scripts/ensemble_model.py`
+- **Run backtesting**: `python scripts/backtest_walk_forward.py --folds 6`
+- **Bankroll report**: `python scripts/rl_bankroll_manager.py --date YYYY-MM-DD --report --update-history`
+- **Add weather features**: `python scripts/add_weather_features.py --offline`
 - **Batch generate predictions**: `python scripts/batch_generate_predictions.py` (scans `data/raw/` for racecards and generates missing predictions)
 - **Fetch racecards**: `python scripts/fetch_racecards.py --date 2025-12-31` (saves to `data/raw/racecards_YYYY-MM-DD.json`)
 - **Pre-compile check**: `python -c "import py_compile,glob; [py_compile.compile(p, doraise=True) for p in glob.glob('**/*.py', recursive=True)]"`
@@ -141,6 +156,7 @@ This file contains concise, actionable guidance for AI coding agents working in 
 - **UK fractional odds**: Simple denominators (max 2): 1/2, 1/1, 3/2, 2/1, 5/2, etc.
 - **Predictions CSV**: 6 odds columns per horse: win/place/show in decimal + fractional
 - **Value betting**: Compare model implied odds to bookmaker odds; bet when bookmaker odds > model odds
+- **Note**: Historical backtesting only supports value betting if `market_odds` is joined into the dataset. Without real bookmaker odds, the backtest reports value betting as unavailable.
 - **Example**: Model predicts 25% win (3/1), bookmaker offers 5/1 → 8.33% edge → VALUE BET
 
 ## Testing and safety
