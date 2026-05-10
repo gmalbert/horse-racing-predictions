@@ -95,9 +95,10 @@ def predictions_page():
     st.title("🏇 Horse Racing Predictions")
 
     # Main tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📅 Upcoming Schedule",
         "🎲 Today & Tomorrow",
+        "🇺🇸 US Racing",
         "📅 Predicted Fixtures",
         "🎯 Top Predictive Races",
         "📊 Model Insights",
@@ -110,12 +111,15 @@ def predictions_page():
         display_predictions_tab()
 
     with tab3:
-        display_predicted_fixtures_tab()
+        display_us_predictions_tab()
 
     with tab4:
-        display_top_predictive_races_tab()
+        display_predicted_fixtures_tab()
 
     with tab5:
+        display_top_predictive_races_tab()
+
+    with tab6:
         display_model_insights()
 
     # Add footer at the bottom of the page
@@ -320,6 +324,488 @@ def display_top_predictive_races_tab():
             st.warning(f"Could not load predicted fixtures: {e}")
     else:
         st.warning("Race scoring data not available. Run Phase 2 scoring first.")
+
+
+# ── US Racing Tab ────────────────────────────────────────────────────────────
+
+def display_us_predictions_tab():
+    """US Racing tab — fetch NYRA entries, optional Betfair odds, generate & display predictions."""
+    st.subheader("🇺🇸 US Horse Racing Predictions")
+    st.caption(
+        "NYRA track entries scraped live (Belmont / Aqueduct / Saratoga). "
+        "Betfair Exchange odds overlay available when credentials are configured. "
+        "Win/Place/Show probabilities powered by the XGBoost model."
+    )
+
+    tz_name = os.environ.get('APP_TIMEZONE')
+    now_local = get_now_local(tz_name)
+    today_str    = now_local.strftime('%Y-%m-%d')
+    tomorrow_str = (now_local + timedelta(days=1)).strftime('%Y-%m-%d')
+
+    raw_dir  = BASE_DIR / "data" / "raw"
+    proc_dir = BASE_DIR / "data" / "processed"
+
+    today_nyra   = raw_dir  / f"nyra_entries_{today_str}.json"
+    tmrw_nyra    = raw_dir  / f"nyra_entries_{tomorrow_str}.json"
+    today_bf     = raw_dir  / f"betfair_us_odds_{today_str}.json"
+    tmrw_bf      = raw_dir  / f"betfair_us_odds_{tomorrow_str}.json"
+    today_pf     = proc_dir / f"us_predictions_{today_str}.csv"
+    tmrw_pf      = proc_dir / f"us_predictions_{tomorrow_str}.csv"
+
+    has_betfair = bool(os.environ.get("BETFAIR_USERNAME"))
+
+    # ── Step 1: Fetch NYRA entries ────────────────────────────────────────────
+    st.markdown("### Step 1: Fetch NYRA Entries")
+    c1, c2, c3 = st.columns([2, 2, 2])
+    with c1:
+        if st.button("📡 Fetch Today's NYRA Entries", key="nyra_fetch_today"):
+            _nyra_fetch_entries(today_str, "today's")
+        _show_file_status(today_nyra, f"NYRA entries {today_str}")
+    with c2:
+        if st.button("📡 Fetch Tomorrow's NYRA Entries", key="nyra_fetch_tmrw"):
+            _nyra_fetch_entries(tomorrow_str, "tomorrow's")
+        _show_file_status(tmrw_nyra, f"NYRA entries {tomorrow_str}")
+    with c3:
+        st.info("Scrapes Belmont, Aqueduct & Saratoga via Playwright (requires Chromium).")
+
+    st.markdown("---")
+
+    # ── Step 2: (Optional) Betfair odds ───────────────────────────────────────
+    if has_betfair:
+        st.markdown("### Step 2: Betfair Exchange Odds (optional)")
+        b1, b2, b3 = st.columns([2, 2, 2])
+        with b1:
+            if st.button("💹 Fetch Today's Betfair Odds", key="bf_fetch_today"):
+                _betfair_fetch_odds(today_str, "today's")
+            _show_file_status(today_bf, f"Betfair odds {today_str}")
+        with b2:
+            if st.button("💹 Fetch Tomorrow's Betfair Odds", key="bf_fetch_tmrw"):
+                _betfair_fetch_odds(tomorrow_str, "tomorrow's")
+            _show_file_status(tmrw_bf, f"Betfair odds {tomorrow_str}")
+        with b3:
+            st.info("Overlays `betfair_back_odds` and `betfair_value_edge` onto predictions CSV.")
+        st.markdown("---")
+    else:
+        with st.expander("💹 Betfair Exchange odds (configure to enable)", expanded=False):
+            st.info(
+                "Set `BETFAIR_USERNAME`, `BETFAIR_PASSWORD`, and `BETFAIR_APP_KEY` in your `.env` "
+                "file to enable live Betfair odds overlay. "
+                "Note: Betfair Exchange is geo-restricted — UK/Ireland/EU access required."
+            )
+
+    # ── Step 2b: (Optional) OddsPortal multi-bookmaker odds ──────────────────
+    op_today = raw_dir / f"oddsportal_us_{today_str}.json"
+    op_tmrw  = raw_dir / f"oddsportal_us_{tomorrow_str}.json"
+    with st.expander("📊 OddsPortal Multi-Bookmaker Odds (optional — major stakes only)", expanded=False):
+        st.caption(
+            "OddsPortal aggregates odds from Bet365, William Hill, Paddy Power etc. "
+            "Coverage is limited to **major US stakes races** (Triple Crown, Breeders' Cup, "
+            "Graded stakes) — not everyday cards."
+        )
+        op1, op2, op3 = st.columns([2, 2, 2])
+        with op1:
+            if st.button("📊 Fetch Known Stakes Odds (today)", key="op_fetch_today"):
+                _oddsportal_fetch(today_str)
+            _show_file_status(op_today, f"OddsPortal {today_str}")
+        with op2:
+            if st.button("📊 Fetch Known Stakes Odds (tomorrow)", key="op_fetch_tmrw"):
+                _oddsportal_fetch(tomorrow_str)
+            _show_file_status(op_tmrw, f"OddsPortal {tomorrow_str}")
+        with op3:
+            st.info(
+                "Scrapes all entries in `KNOWN_US_RACES` — update the dict in "
+                "`scripts/fetch_oddsportal_us.py` each season to add new race URLs."
+            )
+        import json as _json2
+        for date_str_, label_, path_ in [
+            (today_str, "Today", op_today), (tomorrow_str, "Tomorrow", op_tmrw)
+        ]:
+            if path_.exists():
+                try:
+                    op_data = _json2.loads(path_.read_text(encoding="utf-8"))
+                    races_ = op_data.get("races", [])
+                    st.success(f"✅ {label_}: {len(races_)} stake race(s) with bookmaker odds")
+                    for race_ in races_:
+                        bms = race_.get("bookmakers", [])
+                        st.markdown(f"**{race_['race']}** — {len(bms)} bookmakers")
+                        rows_ = []
+                        for runner_ in race_.get("runners", []):
+                            odds_ = runner_.get("odds", {})
+                            best_ = max((v for v in odds_.values() if v), default=None)
+                            rows_.append({
+                                "Runner": runner_["name"],
+                                "Best Odds": f"{best_:.2f}" if best_ else "—",
+                                **{bm: f"{v:.2f}" if v else "—" for bm, v in odds_.items()},
+                            })
+                        if rows_:
+                            safe_st_call(st.dataframe, pd.DataFrame(rows_),
+                                         hide_index=True, width='stretch')
+                except Exception:
+                    pass
+
+    # ── Step 3: Generate predictions ──────────────────────────────────────────
+    st.markdown("### Step 3: Generate US Predictions")
+    col1, col2, col3 = st.columns([2, 2, 1])
+    with col1:
+        if st.button("🔄 Generate Today's US Predictions", type="primary", key="us_gen_today"):
+            today_rc = raw_dir / f"us_racecards_{today_str}.json"
+            if not today_rc.exists():
+                today_rc = raw_dir / f"nyra_entries_{today_str}.json"
+            _us_generate_predictions(today_str, today_rc, "today's")
+    with col2:
+        if st.button("🔄 Generate Tomorrow's US Predictions", type="primary", key="us_gen_tmrw"):
+            tmrw_rc = raw_dir / f"us_racecards_{tomorrow_str}.json"
+            if not tmrw_rc.exists():
+                tmrw_rc = raw_dir / f"nyra_entries_{tomorrow_str}.json"
+            _us_generate_predictions(tomorrow_str, tmrw_rc, "tomorrow's")
+    with col3:
+        if st.button("🔃 Refresh", key="us_refresh"):
+            st.rerun()
+    st.markdown("---")
+
+    # ── Display NYRA entries summary ──────────────────────────────────────────
+    import json as _json
+    for date_str, label, nyra_path in [
+        (today_str, "Today", today_nyra),
+        (tomorrow_str, "Tomorrow", tmrw_nyra),
+    ]:
+        if nyra_path.exists():
+            try:
+                nyra = _json.loads(nyra_path.read_text(encoding="utf-8"))
+                tracks = nyra.get("tracks", {})
+                parts = []
+                for tc, races in tracks.items():
+                    race_count = len(races)
+                    runner_count = sum(len(r.get("runners", [])) for r in races)
+                    if race_count == 0 or runner_count == 0:
+                        continue
+                    parts.append(f"{tc}: {runner_count} runners / {race_count} races")
+                st.success(f"📋 {label} NYRA entries — " + "  |  ".join(parts) if parts else f"📋 {label} NYRA: no data")
+            except Exception:
+                pass
+
+    # ── Load and display predictions ──────────────────────────────────────────
+    frames = []
+    stale_days = []
+    for date_str, label, pf in [(today_str, 'Today', today_pf), (tomorrow_str, 'Tomorrow', tmrw_pf)]:
+        if pf.exists():
+            df = pd.read_csv(pf)
+            meta_cols = ['race_time', 'race_name', 'race_class', 'distance_str', 'surface']
+            if all(col in df.columns for col in meta_cols):
+                if all(df[col].isna().all() for col in meta_cols):
+                    stale_days.append(label)
+            df['day_label'] = label
+            frames.append(df)
+
+    if not frames:
+        st.info("📅 No US predictions yet. Use the buttons above to fetch and generate.")
+        return
+
+    if stale_days:
+        stale_label = ", ".join(stale_days)
+        st.warning(
+            f"⚠️ {stale_label} US predictions look stale (missing race metadata). "
+            "Please re-fetch NYRA entries and regenerate for that day."
+        )
+
+    preds = pd.concat(frames, ignore_index=True)
+
+    # US Today/Tomorrow presentation (mirrors UK flow)
+    day_order = ["Today", "Tomorrow"]
+    available_days = [d for d in day_order if d in preds['day_label'].unique()]
+
+    if not available_days:
+        st.info("📅 No US predictions yet. Use the buttons above to fetch and generate.")
+        return
+
+    if len(available_days) == 2:
+        us_tab_today, us_tab_tmrw = st.tabs(["📅 Today (US)", "📅 Tomorrow (US)"])
+        tab_map = {"Today": us_tab_today, "Tomorrow": us_tab_tmrw}
+    else:
+        tab_map = {available_days[0]: st.container()}
+
+    for day_label in available_days:
+        with tab_map[day_label]:
+            day_df = preds[preds['day_label'] == day_label].copy()
+            if day_df.empty:
+                st.info(f"No US predictions available for {day_label.lower()}.")
+                continue
+
+            date_val = day_df['date'].iloc[0] if 'date' in day_df.columns else ''
+            courses = day_df['course'].nunique() if 'course' in day_df.columns else 0
+            races = (
+                day_df[['race_time', 'course', 'race_name']]
+                .fillna('')
+                .drop_duplicates()
+                .shape[0]
+            )
+
+            overlay_msg = ""
+            if 'betfair_back_odds' in day_df.columns:
+                n_bf = int(day_df['betfair_back_odds'].notna().sum())
+                overlay_msg = f"  |  💹 {n_bf} Betfair odds overlaid"
+
+            st.success(
+                f"✅ {day_label} ({date_val}): {len(day_df)} horses across {races} races at {courses} venue(s){overlay_msg}"
+            )
+
+            # Model provenance card (explicitly show artifact used for this day's run)
+            if 'source_model' in day_df.columns and 'model_artifact' in day_df.columns:
+                model_name = str(day_df['source_model'].dropna().iloc[0]) if day_df['source_model'].notna().any() else 'Unknown'
+                artifact = str(day_df['model_artifact'].dropna().iloc[0]) if day_df['model_artifact'].notna().any() else 'Unknown'
+                feat_count = None
+                if 'model_feature_count' in day_df.columns and day_df['model_feature_count'].notna().any():
+                    try:
+                        feat_count = int(float(day_df['model_feature_count'].dropna().iloc[0]))
+                    except Exception:
+                        feat_count = None
+                feat_msg = f" | Features: {feat_count}" if feat_count is not None else ""
+                st.info(f"🧠 Model used: {model_name} ({artifact}){feat_msg}")
+            else:
+                # Backward-compatible fallback for older CSVs generated before provenance columns existed
+                us_model = BASE_DIR / "models" / "us_horse_model.pkl"
+                inferred = "US (inferred)" if us_model.exists() else "UK (base, inferred)"
+                st.info(
+                    f"🧠 Model used: {inferred}. "
+                    "Regenerate predictions for this day to store explicit model provenance."
+                )
+
+            st.markdown("##### 🏆 Top US Picks")
+            _display_us_top_picks(day_df)
+            st.markdown("---")
+            _display_us_race_by_race(day_df, key_prefix=f"us_{day_label.lower()}")
+
+
+def _us_fetch_racecards(date_str: str, label: str = ""):
+    """Run the US fetch script and show result in Streamlit."""
+    with st.spinner(f"📡 Fetching US racecards for {label}{date_str}…"):
+        result = subprocess.run(
+            [sys.executable, "scripts/fetch_us_racecards.py", "--date", date_str],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            st.success("✅ US racecards fetched!")
+            st.rerun()
+        else:
+            st.error("❌ Failed to fetch US racecards")
+            with st.expander("Error details"):
+                st.code(result.stderr, language="text")
+
+
+def _nyra_fetch_entries(date_str: str, label: str = ""):
+    """Scrape NYRA entries (BEL, AQU, SAR) via Playwright and save to data/raw/."""
+    with st.spinner(f"📡 Scraping NYRA entries for {label}{date_str}… (may take ~60s)"):
+        result = subprocess.run(
+            [sys.executable, "scripts/fetch_nyra_entries.py",
+             "--date", date_str, "--tracks", "BEL", "AQU", "SAR"],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode == 0:
+            st.success(f"✅ NYRA entries fetched for {date_str}!")
+            st.rerun()
+        else:
+            st.error("❌ NYRA fetch failed")
+            with st.expander("Error details"):
+                st.code(result.stderr[-2000:], language="text")
+
+
+def _betfair_fetch_odds(date_str: str, label: str = ""):
+    """Fetch Betfair Exchange US WIN odds and overlay onto predictions CSV."""
+    with st.spinner(f"💹 Fetching Betfair odds for {label}{date_str}…"):
+        result = subprocess.run(
+            [sys.executable, "scripts/fetch_betfair_us_odds.py",
+             "--date", date_str, "--overlay"],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            st.success(f"✅ Betfair odds fetched and overlaid for {date_str}!")
+            st.rerun()
+        else:
+            st.error("❌ Betfair fetch failed")
+            with st.expander("Error details"):
+                st.code(result.stderr[-2000:], language="text")
+
+
+def _oddsportal_fetch(date_str: str):
+    """Scrape OddsPortal known US stakes races and save to data/raw/."""
+    with st.spinner(f"📊 Scraping OddsPortal known stakes races for {date_str}… (may take ~60s)"):
+        result = subprocess.run(
+            [sys.executable, "scripts/fetch_oddsportal_us.py",
+             "--known", "--date", date_str, "--save"],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode == 0:
+            st.success(f"✅ OddsPortal odds saved for {date_str}!")
+            st.rerun()
+        else:
+            st.error("❌ OddsPortal scrape failed")
+            with st.expander("Error details"):
+                st.code(result.stderr[-2000:], language="text")
+
+
+def _us_generate_predictions(date_str: str, racecard_file, label: str = ""):
+    """Run the US prediction script and show result in Streamlit."""
+    if not racecard_file.exists():
+        st.error(f"❌ US racecards not found for {date_str} — please fetch first.")
+        return
+    with st.spinner(f"🤖 Generating US predictions for {label}{date_str}…"):
+        result = subprocess.run(
+            [sys.executable, "scripts/predict_us_races.py", "--date", date_str],
+            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode == 0:
+            st.success("✅ US predictions generated!")
+            st.balloons()
+            import time; time.sleep(2)
+            st.rerun()
+        else:
+            st.error("❌ US prediction generation failed")
+            with st.expander("Error details"):
+                st.code(result.stderr[-2000:], language="text")
+
+
+def _show_file_status(path, label: str):
+    """Show whether a file exists and when it was last modified."""
+    if path.exists():
+        mtime = pd.Timestamp.fromtimestamp(path.stat().st_mtime)
+        st.success(f"✅ {label}\n{mtime.strftime('%H:%M:%S')}")
+    else:
+        st.info(f"⬜ {label} — not yet available")
+
+
+def _display_us_top_picks(preds: pd.DataFrame):
+    """Show top 20 US picks sorted by win probability."""
+    cols_wanted = ['day_label', 'date', 'race_time', 'course', 'race_name', 'surface',
+                   'horse', 'jockey', 'win_probability', 'place_probability',
+                   'show_probability', 'win_odds_fractional', 'win_odds_decimal',
+                   'race_class', 'distance_band', 'going']
+    display_cols = [c for c in cols_wanted if c in preds.columns]
+
+    sort_cols = ['win_probability']
+    asc = [False]
+    if 'date' in preds.columns:
+        sort_cols = ['date', 'win_probability']
+        asc = [True, False]
+
+    top = (
+        preds.sort_values(sort_cols, ascending=asc)
+             .head(25)
+    )[display_cols].copy()
+
+    for col in ['win_probability', 'place_probability', 'show_probability']:
+        if col in top.columns:
+            top[col] = top[col].apply(lambda x: f"{x:.1%}")
+
+    rename = {
+        'day_label': 'Day', 'date': 'Date', 'race_time': 'Time',
+        'course': 'Course', 'race_name': 'Event', 'surface': 'Surface', 'horse': 'Horse',
+        'jockey': 'Jockey', 'win_probability': 'Win %',
+        'place_probability': 'Place %', 'show_probability': 'Show %',
+        'win_odds_fractional': 'Win Odds', 'win_odds_decimal': 'Decimal',
+        'race_class': 'Class', 'distance_band': 'Distance', 'going': 'Going',
+    }
+    top.rename(columns={k: v for k, v in rename.items() if k in top.columns}, inplace=True)
+
+    height = get_dataframe_height(top)
+    safe_st_call(st.dataframe, top, hide_index=True, width='stretch', height=height)
+
+
+def _display_us_race_by_race(preds: pd.DataFrame, key_prefix: str = "us"):
+    """Race-by-race selector for US predictions."""
+    st.markdown("##### 📋 Race-by-Race (US)")
+
+    group_cols = [c for c in ['date', 'day_label', 'race_time', 'course', 'race_name'] if c in preds.columns]
+    races = preds.groupby(group_cols, dropna=False).size().reset_index()[group_cols]
+
+    if races.empty:
+        st.info("No races to display.")
+        return
+
+    race_options = []
+    for _, row in races.iterrows():
+        time_val   = row.get('race_time', '')
+        course_val = row.get('course', '')
+        day_val    = row.get('day_label', '')
+        name_val   = row.get('race_name', '')
+        label = f"{day_val} | {time_val} | {course_val}"
+        if name_val:
+            label += f" — {name_val}"
+        race_options.append((label, row))
+
+    selected_label = st.selectbox(
+        "Select a US race:",
+        [r[0] for r in race_options],
+        key=f"{key_prefix}_race_select",
+    )
+    selected_row   = next(r[1] for r in race_options if r[0] == selected_label)
+
+    mask = pd.Series(True, index=preds.index)
+    for col in group_cols:
+        if col in selected_row.index:
+            val = selected_row[col]
+            if pd.isna(val):
+                mask &= preds[col].isna()
+            else:
+                mask &= preds[col] == val
+
+    race_df = preds[mask].copy()
+    if race_df.empty:
+        st.warning("No runners found for this race.")
+        return
+
+    race_df = race_df.sort_values('win_probability', ascending=False)
+
+    # Race info header
+    surface    = race_df['surface'].iloc[0]    if 'surface'    in race_df.columns else ''
+    going      = race_df['going'].iloc[0]      if 'going'      in race_df.columns else ''
+    dist_band  = race_df['distance_band'].iloc[0] if 'distance_band' in race_df.columns else ''
+    race_class = race_df['race_class'].iloc[0] if 'race_class' in race_df.columns else ''
+    dist_str   = race_df['distance_str'].iloc[0] if 'distance_str' in race_df.columns else ''
+
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.metric("Surface",  surface or '—')
+    mc2.metric("Going",    going   or '—')
+    mc3.metric("Distance", f"{dist_str} ({dist_band})" if dist_str else dist_band or '—')
+    mc4.metric("Class",    race_class or '—')
+
+    # Display columns
+    show_cols = [c for c in [
+        'horse', 'jockey', 'trainer', 'age', 'weight_lbs', 'form', 'draw',
+        'win_probability', 'place_probability', 'show_probability',
+        'win_odds_fractional', 'win_odds_decimal',
+        'betfair_back_odds', 'betfair_value_edge',
+    ] if c in race_df.columns]
+
+    display = race_df[show_cols].copy()
+    for col in ['win_probability', 'place_probability', 'show_probability']:
+        if col in display.columns:
+            display[col] = display[col].apply(lambda x: f"{x:.1%}")
+    if 'betfair_value_edge' in display.columns:
+        display['betfair_value_edge'] = display['betfair_value_edge'].apply(
+            lambda x: f"{x:+.1%}" if pd.notna(x) else "—"
+        )
+
+    rename = {
+        'horse': 'Horse', 'jockey': 'Jockey', 'trainer': 'Trainer',
+        'age': 'Age', 'weight_lbs': 'Weight (lbs)', 'form': 'Form',
+        'draw': 'Draw', 'win_probability': 'Win %',
+        'place_probability': 'Place %', 'show_probability': 'Show %',
+        'win_odds_fractional': 'Win Odds', 'win_odds_decimal': 'Decimal Odds',
+        'betfair_back_odds': 'BF Back', 'betfair_value_edge': 'Value Edge',
+    }
+    display.rename(columns={k: v for k, v in rename.items() if k in display.columns}, inplace=True)
+
+    height = get_dataframe_height(display)
+    safe_st_call(st.dataframe, display, hide_index=True, width='stretch', height=height)
+
+    # Value bet note
+    st.caption(
+        "💡 **US Betting**: Win, Place (top 2) and Show (top 3) odds shown.  "
+        "Compare with tote/ADW prices at TwinSpires, FanDuel Racing, or DraftKings for overlay detection."
+    )
+
+
+# ── End US Racing Tab ─────────────────────────────────────────────────────────
 
 
 def fetch_racecards(date_str, label=""):

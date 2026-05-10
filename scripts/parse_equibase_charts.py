@@ -1,4 +1,4 @@
-"""
+﻿"""
 parse_equibase_charts.py
 ========================
 Equibase result-chart PDF scraper + parser for the US horse racing prediction system.
@@ -68,6 +68,7 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import urlencode
 
+import numpy as np
 import pandas as pd
 import pdfplumber
 import requests
@@ -80,7 +81,7 @@ from tqdm import tqdm
 # ---------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s – %(message)s",
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("equibase_scraper")
@@ -144,9 +145,33 @@ HEADERS = {
 session = requests.Session()
 session.headers.update(HEADERS)
 
+# Equibase requires a logged-in session to access PDF charts.
+# To authenticate, log into equibase.com in your browser, then copy the
+# value of the EQBSSO cookie (or the full Cookie header string) into your
+# .env file as EQUIBASE_COOKIE=<value>.
+# Example .env entry:
+#   EQUIBASE_COOKIE=EQBSSO=abc123; JSESSIONID=xyz456
+_equibase_cookie = os.environ.get("EQUIBASE_COOKIE", "").strip()
+if _equibase_cookie:
+    session.headers["Cookie"] = _equibase_cookie
+    log.info("Equibase session cookie loaded from EQUIBASE_COOKIE env var.")
+else:
+    log.warning(
+        "EQUIBASE_COOKIE not set. PDF downloads will fail unless charts are public. "
+        "Set EQUIBASE_COOKIE in .env with your browser session cookie to enable downloads."
+    )
+
+_AUTH_FAILURE_STRINGS = ("sign in", "log in", "login", "please sign", "register", "equibase account")
+
+
+def _is_login_redirect(html: str) -> bool:
+    """Return True if the response body looks like an Equibase login/paywall page."""
+    lower = html[:2000].lower()
+    return any(s in lower for s in _AUTH_FAILURE_STRINGS)
+
 
 # ---------------------------------------------------------------------------
-# Data classes – one per level of granularity
+# Data classes - one per level of granularity
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -328,6 +353,15 @@ def discover_races(track_code: str, race_date: date) -> list[int]:
             return []
         raise
 
+    # Detect login redirect
+    if _is_login_redirect(resp.text):
+        log.error(
+            "Equibase returned a login page for %s %s. "
+            "Set EQUIBASE_COOKIE in your .env file with your browser session cookie.",
+            track_code, race_date
+        )
+        return []  # abort - no point trying individual PDFs without auth
+
     soup = BeautifulSoup(resp.text, "lxml")
     race_nums: set[int] = set()
 
@@ -346,10 +380,17 @@ def discover_races(track_code: str, race_date: date) -> list[int]:
             if m:
                 race_nums.add(int(m.group(1)))
 
-    # Method 3: fallback – assume up to 12 races and return range
+    # Method 3: fallback - assume up to 12 races only when cookie is set
     if not race_nums:
+        if not _equibase_cookie:
+            log.warning(
+                "No race data found for %s %s and no EQUIBASE_COOKIE is set. "
+                "Skipping - set EQUIBASE_COOKIE in .env to enable PDF downloads.",
+                track_code, race_date
+            )
+            return []
         log.warning(
-            "Could not discover race count for %s %s – defaulting to 12",
+            "Could not discover race count for %s %s - defaulting to 12",
             track_code, race_date
         )
         return list(range(1, 13))
@@ -395,15 +436,22 @@ def download_pdf(track_code: str, race_date: date, race_number: int,
         raise
 
     # Verify we got a PDF
+    content = resp.content
     content_type = resp.headers.get("Content-Type", "")
-    if "pdf" not in content_type.lower() and not resp.content[:4] == b"%PDF":
-        log.warning("Response for %s R%d is not a PDF (content-type: %s)",
-                    track_code, race_number, content_type)
+    if "pdf" not in content_type.lower() and content[:4] != b"%PDF":
+        # Check if this is a login redirect
+        if "html" in content_type.lower() and _is_login_redirect(content.decode("utf-8", errors="ignore")):
+            log.error(
+                "Equibase requires authentication to download chart PDFs. "
+                "Set EQUIBASE_COOKIE in your .env with your browser session cookie."
+            )
+        else:
+            log.warning("Response for %s R%d is not a PDF (content-type: %s)",
+                        track_code, race_number, content_type)
         return None
 
     with open(cache, "wb") as f:
-        for chunk in resp.iter_content(chunk_size=8192):
-            f.write(chunk)
+        f.write(content)
 
     log.info("Saved: %s", cache)
     return cache
@@ -475,7 +523,7 @@ RE_TRACK_VAR    = re.compile(r"Track\s+Variant[:\s]*(?P<variant>[\+\-]?\d+)", re
 RE_FIELD_SIZE   = re.compile(r"(\d+)\s+(?:Starters?|Runners?)", re.IGNORECASE)
 
 # --- Times -----------------------------------------------------------------------
-RE_TIME_FORMAT  = re.compile(r"(?P<mins>\d+)?:?(?P<secs>\d+)\.(?P<frac>\d+)")
+RE_TIME_FORMAT  = re.compile(r"(?:(?P<mins>\d+):)?(?P<secs>\d+)\.(?P<frac>\d+)")
 RE_FRACTIONS    = re.compile(
     r"(?:Fractions?|Splits?)[\s:]+(?P<fracs>[\d:\.\s,/]+)",
     re.IGNORECASE
@@ -1158,16 +1206,16 @@ def compute_model_features(results_path: Path = PROCESSED_DIR / "us_race_results
 
     # --- Rolling / historical features (no lookahead) ---
     df["career_runs"]        = grp.cumcount()
-    df["career_wins"]        = grp["finish_position"].apply(
+    df["career_wins"]        = grp["finish_position"].transform(
         lambda x: (x == 1).shift(1).fillna(False).cumsum()
-    ).reset_index(level=0, drop=True)
+    )
     df["career_win_rate"]    = df["career_wins"] / df["career_runs"].clip(lower=1)
 
     # Top-3 place rate
     df["is_top3"]            = df["finish_position"].le(3)
-    df["career_top3"]        = grp["is_top3"].apply(
+    df["career_top3"]        = grp["is_top3"].transform(
         lambda x: x.shift(1).fillna(False).cumsum()
-    ).reset_index(level=0, drop=True)
+    )
     df["career_place_rate"]  = df["career_top3"] / df["career_runs"].clip(lower=1)
 
     # Last 3 average finishing position
@@ -1212,7 +1260,7 @@ def compute_model_features(results_path: Path = PROCESSED_DIR / "us_race_results
     df["grade_numeric"]      = df["grade"].fillna(4).astype(int)
 
     # Purse log (avoids skew)
-    df["purse_log"]          = df["purse"].clip(lower=1).apply(lambda x: pd.np.log(x) if pd.notna(x) else None)
+    df["purse_log"]          = df["purse"].clip(lower=1).apply(lambda x: np.log(x) if pd.notna(x) else None)
 
     # Post position relative to field size
     df["post_pct"]           = df["post_position"] / df["field_size"].clip(lower=1)
