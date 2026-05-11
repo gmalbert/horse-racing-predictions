@@ -329,10 +329,10 @@ def display_top_predictive_races_tab():
 # ── US Racing Tab ────────────────────────────────────────────────────────────
 
 def display_us_predictions_tab():
-    """US Racing tab — fetch NYRA entries, optional Betfair odds, generate & display predictions."""
+    """US Racing tab — fetch all US sources, optional odds overlays, generate & display predictions."""
     st.subheader("🇺🇸 US Horse Racing Predictions")
     st.caption(
-        "NYRA track entries scraped live (Belmont / Aqueduct / Saratoga). "
+        "US roadmap sources integrated: Tier 1/2/3 track-site pulls + NYRA + hidden JSON endpoint discovery. "
         "Betfair Exchange odds overlay available when credentials are configured. "
         "Win/Place/Show probabilities powered by the XGBoost model."
     )
@@ -349,24 +349,35 @@ def display_us_predictions_tab():
     tmrw_nyra    = raw_dir  / f"nyra_entries_{tomorrow_str}.json"
     today_bf     = raw_dir  / f"betfair_us_odds_{today_str}.json"
     tmrw_bf      = raw_dir  / f"betfair_us_odds_{tomorrow_str}.json"
+    today_src    = raw_dir  / f"us_source_report_{today_str}.json"
+    tmrw_src     = raw_dir  / f"us_source_report_{tomorrow_str}.json"
     today_pf     = proc_dir / f"us_predictions_{today_str}.csv"
     tmrw_pf      = proc_dir / f"us_predictions_{tomorrow_str}.csv"
 
     has_betfair = bool(os.environ.get("BETFAIR_USERNAME"))
 
-    # ── Step 1: Fetch NYRA entries ────────────────────────────────────────────
-    st.markdown("### Step 1: Fetch NYRA Entries")
+    # ── Step 1: Fetch all implemented US sources ──────────────────────────────
+    st.markdown("### Step 1: Fetch US Sources (Tier 1 + Tier 2 + Tier 3 + JSON Discovery)")
     c1, c2, c3 = st.columns([2, 2, 2])
+    today_rc  = raw_dir / f"us_racecards_{today_str}.json"
+    tmrw_rc   = raw_dir / f"us_racecards_{tomorrow_str}.json"
     with c1:
-        if st.button("📡 Fetch Today's NYRA Entries", key="nyra_fetch_today"):
+        if st.button("📡 Fetch Today's US Sources", key="us_fetch_today"):
             _nyra_fetch_entries(today_str, "today's")
-        _show_file_status(today_nyra, f"NYRA entries {today_str}")
+        # Show merged file status if available, else NYRA fallback
+        if today_rc.exists():
+            _show_file_status(today_rc, f"Merged racecards {today_str}")
+        else:
+            _show_file_status(today_nyra, f"NYRA entries {today_str} (fallback)")
     with c2:
-        if st.button("📡 Fetch Tomorrow's NYRA Entries", key="nyra_fetch_tmrw"):
+        if st.button("📡 Fetch Tomorrow's US Sources", key="us_fetch_tmrw"):
             _nyra_fetch_entries(tomorrow_str, "tomorrow's")
-        _show_file_status(tmrw_nyra, f"NYRA entries {tomorrow_str}")
+        if tmrw_rc.exists():
+            _show_file_status(tmrw_rc, f"Merged racecards {tomorrow_str}")
+        else:
+            _show_file_status(tmrw_nyra, f"NYRA entries {tomorrow_str} (fallback)")
     with c3:
-        st.info("Scrapes Belmont, Aqueduct & Saratoga via Playwright (requires Chromium).")
+        st.info("Cache-first: skips re-pull if files exist. Use --force to refresh. Playwright probes T2/T3 tracks in parallel.")
 
     st.markdown("---")
 
@@ -463,24 +474,51 @@ def display_us_predictions_tab():
             st.rerun()
     st.markdown("---")
 
-    # ── Display NYRA entries summary ──────────────────────────────────────────
+    # ── Display source pipeline summary ───────────────────────────────────────
     import json as _json
-    for date_str, label, nyra_path in [
-        (today_str, "Today", today_nyra),
-        (tomorrow_str, "Tomorrow", tmrw_nyra),
+    for date_str, label, src_path in [
+        (today_str, "Today", today_src),
+        (tomorrow_str, "Tomorrow", tmrw_src),
     ]:
-        if nyra_path.exists():
+        if src_path.exists():
             try:
-                nyra = _json.loads(nyra_path.read_text(encoding="utf-8"))
-                tracks = nyra.get("tracks", {})
-                parts = []
-                for tc, races in tracks.items():
-                    race_count = len(races)
-                    runner_count = sum(len(r.get("runners", [])) for r in races)
-                    if race_count == 0 or runner_count == 0:
-                        continue
-                    parts.append(f"{tc}: {runner_count} runners / {race_count} races")
-                st.success(f"📋 {label} NYRA entries — " + "  |  ".join(parts) if parts else f"📋 {label} NYRA: no data")
+                src = _json.loads(src_path.read_text(encoding="utf-8"))
+                sc = src.get("source_counts", {})
+                merged = int(sc.get("total_races", src.get("merged_race_count", 0)))
+                t1_cnt = int(sc.get("t1_races", len(src.get("groups", {}).get("T1", []))))
+                t2tb_cnt = int(sc.get("t2_tb_races", len(src.get("groups", {}).get("T2-TB", []))))
+                t2h_cnt = int(sc.get("t2_h_races", len(src.get("groups", {}).get("T2-H", []))))
+                t3_cnt = int(sc.get("t3_races", len(src.get("groups", {}).get("T3", []))))
+                nyra_cnt = int(sc.get("nyra_races", 0))
+                jd = src.get("json_discovery_summary") or {}
+                jd_hits = int(jd.get("with_discovery", 0))
+                jd_total = int(jd.get("total", 0))
+                elapsed = src.get("elapsed_seconds", "")
+                elapsed_str = f" | built in {elapsed:.0f}s" if elapsed else ""
+                jd_str = f" | JSON discovery: {jd_hits}/{jd_total}" if jd_total else ""
+                st.success(
+                    f"📋 {label} source coverage — {merged} races total | "
+                    f"NYRA: {nyra_cnt} | T1 sites: {t1_cnt} | T2 TB: {t2tb_cnt} | "
+                    f"T2 H: {t2h_cnt} | T3: {t3_cnt}{jd_str}{elapsed_str}"
+                )
+
+                # Clarify why prediction output can be smaller than merged source coverage.
+                rc_path = raw_dir / f"us_racecards_{date_str}.json"
+                if rc_path.exists():
+                    try:
+                        rc_payload = _json.loads(rc_path.read_text(encoding="utf-8"))
+                        rc_races = rc_payload.get("racecards", []) if isinstance(rc_payload, dict) else []
+                        races_with_runners = [r for r in rc_races if (r.get("runners") or [])]
+                        total_tracks = len({(r.get("course") or r.get("track") or "Unknown") for r in rc_races})
+                        tracks_with_runners = len({(r.get("course") or r.get("track") or "Unknown") for r in races_with_runners})
+                        if rc_races and len(races_with_runners) < len(rc_races):
+                            st.warning(
+                                f"⚠️ {label}: only {len(races_with_runners)}/{len(rc_races)} merged races currently include "
+                                f"runner lists ({tracks_with_runners}/{total_tracks} tracks). "
+                                "Predictions can only be generated for races with runners."
+                            )
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
@@ -510,25 +548,16 @@ def display_us_predictions_tab():
 
     preds = pd.concat(frames, ignore_index=True)
 
-    # US Today/Tomorrow presentation (mirrors UK flow)
-    day_order = ["Today", "Tomorrow"]
-    available_days = [d for d in day_order if d in preds['day_label'].unique()]
-
-    if not available_days:
-        st.info("📅 No US predictions yet. Use the buttons above to fetch and generate.")
-        return
-
-    if len(available_days) == 2:
-        us_tab_today, us_tab_tmrw = st.tabs(["📅 Today (US)", "📅 Tomorrow (US)"])
-        tab_map = {"Today": us_tab_today, "Tomorrow": us_tab_tmrw}
-    else:
-        tab_map = {available_days[0]: st.container()}
-
-    for day_label in available_days:
-        with tab_map[day_label]:
+    # Always render both tabs so the UI layout remains stable day-to-day.
+    us_tab_today, us_tab_tmrw = st.tabs(["📅 Today (US)", "📅 Tomorrow (US)"])
+    for day_label, tab_obj in [("Today", us_tab_today), ("Tomorrow", us_tab_tmrw)]:
+        with tab_obj:
             day_df = preds[preds['day_label'] == day_label].copy()
             if day_df.empty:
-                st.info(f"No US predictions available for {day_label.lower()}.")
+                st.info(
+                    f"No US predictions available for {day_label.lower()}. "
+                    f"Use Step 1 and Step 3 to fetch and generate {day_label.lower()} races."
+                )
                 continue
 
             date_val = day_df['date'].iloc[0] if 'date' in day_df.columns else ''
@@ -593,18 +622,17 @@ def _us_fetch_racecards(date_str: str, label: str = ""):
 
 
 def _nyra_fetch_entries(date_str: str, label: str = ""):
-    """Scrape NYRA entries (BEL, AQU, SAR) via Playwright and save to data/raw/."""
-    with st.spinner(f"📡 Scraping NYRA entries for {label}{date_str}… (may take ~60s)"):
+    """Run all-source US fetch pipeline and save merged racecards/source reports."""
+    with st.spinner(f"📡 Fetching all US sources for {label}{date_str}… (may take ~2-4 min)"):
         result = subprocess.run(
-            [sys.executable, "scripts/fetch_nyra_entries.py",
-             "--date", date_str, "--tracks", "BEL", "AQU", "SAR"],
+            [sys.executable, "scripts/fetch_us_all_sources.py", "--date", date_str],
             cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
         )
         if result.returncode == 0:
-            st.success(f"✅ NYRA entries fetched for {date_str}!")
+            st.success(f"✅ All US sources fetched and merged for {date_str}!")
             st.rerun()
         else:
-            st.error("❌ NYRA fetch failed")
+            st.error("❌ US source fetch failed")
             with st.expander("Error details"):
                 st.code(result.stderr[-2000:], language="text")
 

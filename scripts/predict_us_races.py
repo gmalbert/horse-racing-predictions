@@ -641,7 +641,7 @@ def main():
     df_out.to_csv(output_file, index=False)
 
     print(f"\n{'='*60}")
-    print(f"  SAVED → {output_file}")
+    print(f"  SAVED -> {output_file}")
     print(f"  Total horses: {len(df_out)}")
     print(f"  Win prob  min={df_out['win_probability'].min():.2%}  "
           f"max={df_out['win_probability'].max():.2%}  "

@@ -1,0 +1,15 @@
+# US horse racing scrapers — Python dependencies
+# Install with: pip install -r requirements.txt
+# For Playwright tracks: playwright install chromium
+
+requests>=2.31.0
+urllib3>=2.0.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0          # faster BS4 parser
+
+# Playwright (only needed for KEE, SA, DMR, LRL, PIM, TAM, CBY, PID)
+playwright>=1.43.0
+
+# Optional: parquet output
+# pandas>=2.0.0
+# pyarrow>=14.0.0

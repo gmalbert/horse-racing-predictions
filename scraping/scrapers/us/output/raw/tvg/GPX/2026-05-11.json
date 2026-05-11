@@ -1,0 +1,3311 @@
+{
+  "id": "GPX",
+  "code": "GPX",
+  "name": "CL - Valparaiso Sporting Club (simulcast)",
+  "location": {
+    "country": "USA"
+  },
+  "numberOfRaces": 9,
+  "races": [
+    {
+      "id": "GPX-1",
+      "number": "1",
+      "postTime": "2026-05-11T19:00:00Z",
+      "numRunners": "11",
+      "distance": "1100mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 1950.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Soraila (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Maximiliano Sa",
+              "weight": 126,
+              "age": 7,
+              "sex": "M",
+              "dam": "Costa Tropical (Arg)",
+              "sire": "Exaggerator",
+              "damSire": "",
+              "ownerName": "Palestina",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Justinsito Crack (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Juan Garcia Ve",
+              "jockey": "Alejandro Maur",
+              "weight": 126,
+              "age": 7,
+              "sex": "H",
+              "dam": "Indy Arts (Chi)",
+              "sire": "Daddy Long Legs",
+              "damSire": "",
+              "ownerName": "Garcia V. Juan",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Afirmate Gato (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Juan Garcia Ve",
+              "jockey": "Gerald Rodrigu",
+              "weight": 126,
+              "age": 7,
+              "sex": "H",
+              "dam": "Afirmate Catalina (Chi)",
+              "sire": "Seeking The Dia",
+              "damSire": "",
+              "ownerName": "Don Salvador",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "King Paper (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Guillermo Pere",
+              "jockey": "Jorge Baeza",
+              "weight": 126,
+              "age": 5,
+              "sex": "H",
+              "dam": "Perdoname (Chi)",
+              "sire": "Good Samaritan",
+              "damSire": "",
+              "ownerName": "Aleph",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sasuke (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Felipe Tapia",
+              "weight": 126,
+              "age": 6,
+              "sex": "G",
+              "dam": "Casi Lista (Chi)",
+              "sire": "Hold Me Back",
+              "damSire": "",
+              "ownerName": "Cacique",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sundy Point (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Jorge Araneda",
+              "jockey": "Jorge Zuniga D",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Es Magallanica (Chi)",
+              "sire": "The Lumber Guy",
+              "damSire": "",
+              "ownerName": "Colicheu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sin Miedo (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Tomas Seith",
+              "weight": 126,
+              "age": 5,
+              "sex": "H",
+              "dam": "Typta (Chi)",
+              "sire": "Grand Daddy",
+              "damSire": "",
+              "ownerName": "Gladycita",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Big Wallace (Arg)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Rodolfo Fuenza",
+              "weight": 126,
+              "age": 8,
+              "sex": "G",
+              "dam": "Elusive Light",
+              "sire": "Hurricane Cat",
+              "damSire": "",
+              "ownerName": "J.J.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Watakin (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Juan Belzu Oli",
+              "jockey": "Israel Villagr",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Pearl White (Chi)",
+              "sire": "Imperia",
+              "damSire": "",
+              "ownerName": "Milena",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mipipo (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Joaquin Herrer",
+              "weight": 126,
+              "age": 5,
+              "sex": "G",
+              "dam": "Siempre Reina (Chi)",
+              "sire": "Exaggerator",
+              "damSire": "",
+              "ownerName": "Hijos Del Rayo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 11,
+          "saddleColor": "#6B6B6B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Modelo Del Salto (Chi)",
+              "runnerId": "11",
+              "scratched": false,
+              "trainer": "Sergio Salazar",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Soy Modelo (Chi)",
+              "sire": "Tapitdoro",
+              "damSire": "",
+              "ownerName": "Jeag",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-2",
+      "number": "2",
+      "postTime": "2026-05-11T19:30:00Z",
+      "numRunners": "10",
+      "distance": "1000mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 1950.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tuyarak (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Eduardo Donoso",
+              "jockey": "Lesly Gonzalez",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Turak (Chi)",
+              "sire": "Ya Primo (Chi)",
+              "damSire": "",
+              "ownerName": "Boril Benito Ch.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Pela (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Juan Belzu Oli",
+              "jockey": "Diego Carvacho",
+              "weight": 126,
+              "age": 5,
+              "sex": "M",
+              "dam": "Pitoresca (Chi)",
+              "sire": "Forward March",
+              "damSire": "",
+              "ownerName": "Mayfer Y Tata Pato",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Di Luna (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Alejandro Maur",
+              "weight": 126,
+              "age": 5,
+              "sex": "M",
+              "dam": "Dulce Amiga (Chi)",
+              "sire": "Seeking The Dia",
+              "damSire": "",
+              "ownerName": "Sonrisal",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Pazzelle (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 7,
+              "sex": "M",
+              "dam": "Perhaps Tomorrow (Chi)",
+              "sire": "Seeking The Dia",
+              "damSire": "",
+              "ownerName": "Tata Nacho",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Senor Seremi (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Enrique Laguna",
+              "jockey": "Nelson Figuero",
+              "weight": 126,
+              "age": 9,
+              "sex": "H",
+              "dam": "Malusita (Chi)",
+              "sire": "Court Vision",
+              "damSire": "",
+              "ownerName": "Alfonso Bacquet",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Wamray (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Jose Leiva Lei",
+              "jockey": "Jose Villagran",
+              "weight": 126,
+              "age": 5,
+              "sex": "M",
+              "dam": "Marilyn Girl (Chi)",
+              "sire": "Flameaway",
+              "damSire": "",
+              "ownerName": "Juan De Turquia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Trois Plumes (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Gerald Rodrigu",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Tres Plumas (Chi)",
+              "sire": "Dylan Thomas (Ire)",
+              "damSire": "",
+              "ownerName": "Maximo Silva D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gran Romano (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Jorge Zuniga D",
+              "weight": 126,
+              "age": 9,
+              "sex": "H",
+              "dam": "Piazza Roma (Chi)",
+              "sire": "Constitution",
+              "damSire": "",
+              "ownerName": "Mirafiori",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Yuliecita Crack (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Nelson Rojas",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Mail Order Bride",
+              "sire": "The Lumber Guy",
+              "damSire": "",
+              "ownerName": "Calera Calera",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rezagado (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Guillermo Pere",
+              "jockey": "Guillermo Pere",
+              "weight": 126,
+              "age": 7,
+              "sex": "G",
+              "dam": "Piu Bella",
+              "sire": "California Chrome",
+              "damSire": "",
+              "ownerName": "De La Vega",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-3",
+      "number": "3",
+      "postTime": "2026-05-11T20:00:00Z",
+      "numRunners": "10",
+      "distance": "1000mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 2100.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Aunt Mercy (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Rafael Bernal",
+              "jockey": "Ronald Fournet",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Quick Fever",
+              "sire": "Palm Springs",
+              "damSire": "",
+              "ownerName": "Bernal T Rafael A",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Alto Forever (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Nelson Rojas",
+              "weight": 130,
+              "age": 8,
+              "sex": "G",
+              "dam": "Kendora (Chi)",
+              "sire": "Ivan Denisovich (I",
+              "damSire": "",
+              "ownerName": "Palestina",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Jerusa (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Israel Villagr",
+              "weight": 132,
+              "age": 6,
+              "sex": "M",
+              "dam": "Happy Colors (Chi)",
+              "sire": "Indian Trail",
+              "damSire": "",
+              "ownerName": "The Good Father",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "King Octopus (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Gonzalo Vegas",
+              "jockey": "Gerald Rodrigu",
+              "weight": 130,
+              "age": 4,
+              "sex": "C",
+              "dam": "Perla Austral (Chi)",
+              "sire": "Dubai Sky",
+              "damSire": "",
+              "ownerName": "Mayfer Y Tata Pato",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Guapa Portena (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Alejandro Maur",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Guapa Criolla (Chi)",
+              "sire": "Sumerio (Chi)",
+              "damSire": "",
+              "ownerName": "Winman",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Poor Smell (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Nelson Figuero",
+              "weight": 117,
+              "age": 4,
+              "sex": "F",
+              "dam": "Rock Cristal (Chi)",
+              "sire": "Ivan Denisovich (I",
+              "damSire": "",
+              "ownerName": "Hijos Del Rayo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ouro (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Carlos Vasquez",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 7,
+              "sex": "G",
+              "dam": "Oradora (Chi)",
+              "sire": "Practical Joke",
+              "damSire": "",
+              "ownerName": "Hermanos",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Oppa (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Jorge Zuniga D",
+              "weight": 130,
+              "age": 5,
+              "sex": "M",
+              "dam": "Valeza (Chi)",
+              "sire": "Sumerio (Chi)",
+              "damSire": "",
+              "ownerName": "Laurita G.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tren De La Quinta (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Rodolfo Fuenza",
+              "weight": 117,
+              "age": 7,
+              "sex": "H",
+              "dam": "Majestuosa Nina (Chi)",
+              "sire": "El Farrero (Chi)",
+              "damSire": "",
+              "ownerName": "Lam",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Tote (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "William Ara",
+              "jockey": "Jaime Mino Fic",
+              "weight": 130,
+              "age": 8,
+              "sex": "M",
+              "dam": "Rola (Chi)",
+              "sire": "Flyer (Chi)",
+              "damSire": "",
+              "ownerName": "William Ara D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-4",
+      "number": "4",
+      "postTime": "2026-05-11T20:30:00Z",
+      "numRunners": "12",
+      "distance": "1200mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Stakes",
+        "id": 43
+      },
+      "purse": 5250.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ley Franca (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Juan Baeza",
+              "jockey": "Gerald Rodrigu",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Franca Pasion (Chi)",
+              "sire": "Tiz The Law",
+              "damSire": "",
+              "ownerName": "Haras Santa Loreto",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Trabalains (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Pedro Robles",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Eres Unica (Chi)",
+              "sire": "International Star",
+              "damSire": "",
+              "ownerName": "Js",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Fafifo (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Jorge Baeza",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Joy Nila (Arg)",
+              "sire": "Tacitus",
+              "damSire": "",
+              "ownerName": "Maximo Silva D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Cuando Vuelves (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Nelson Rojas",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Por Que Ries (Chi)",
+              "sire": "Big Daddy (Chi)",
+              "damSire": "",
+              "ownerName": "Toleo Toleo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Fajita (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Carlos Vasquez",
+              "jockey": "Felipe Tapia",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Faloon (Chi)",
+              "sire": "Flameaway",
+              "damSire": "",
+              "ownerName": "Dona Sofia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Naipur Raider (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Marco Pavez Oc",
+              "jockey": "Rafael Cistern",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Naipur Quality (Chi)",
+              "sire": "Indian Trail",
+              "damSire": "",
+              "ownerName": "Haras Sumaya",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Minions (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Ronald Fournet",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Rio De Janeiro (Chi)",
+              "sire": "International Star",
+              "damSire": "",
+              "ownerName": "M S D",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lamotta (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Ximeno Urenda",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Guest List",
+              "sire": "Valid Point",
+              "damSire": "",
+              "ownerName": "Los Leones",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Zheng Shi (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Marcos Contrer",
+              "jockey": "Rodolfo Fuenza",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Ruby Luck (Chi)",
+              "sire": "Hiraboku Deep (Jpn",
+              "damSire": "",
+              "ownerName": "Guerrero De La Vida",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "El Lado Be (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Jose Villagran",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Fuego Ardiente (Chi)",
+              "sire": "International Star",
+              "damSire": "",
+              "ownerName": "Haras Porta Pia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 11,
+          "saddleColor": "#6B6B6B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Flaca Dany (Chi)",
+              "runnerId": "11",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Joaquin Herrer",
+              "weight": 121,
+              "age": 3,
+              "sex": "F",
+              "dam": "Lead Me On",
+              "sire": "Spun To Run",
+              "damSire": "",
+              "ownerName": "Maximo Silva D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 12,
+          "saddleColor": "#2F9A3B",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pirata Bigoton (Chi)",
+              "runnerId": "12",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Alejandro Maur",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Lola Pirata (Chi)",
+              "sire": "Sumerio (Chi)",
+              "damSire": "",
+              "ownerName": "Pirata",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-5",
+      "number": "5",
+      "postTime": "2026-05-11T21:00:00Z",
+      "numRunners": "8",
+      "distance": "1000mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Maiden Special",
+        "id": 30
+      },
+      "purse": 1800.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Victory Queen (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Jorge Baeza",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Victory Trail (Chi)",
+              "sire": "Mitico Galilei (Ch",
+              "damSire": "",
+              "ownerName": "Corral Quellon",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Katie Melua (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Luis Valdivia",
+              "jockey": "Rafael Cistern",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Bella Aileen (Chi)",
+              "sire": "Flameaway",
+              "damSire": "",
+              "ownerName": "Cordova T. Guillermo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Espera Un Poquito (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Jose Villagran",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Guardia Pretoriana (Chi)",
+              "sire": "Zawraq (Ire)",
+              "damSire": "",
+              "ownerName": "Braulio Gomez A.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Luna De Todos (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Marcos Contrer",
+              "jockey": "Joaquin Herrer",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Paglia (Arg)",
+              "sire": "Get Jets",
+              "damSire": "",
+              "ownerName": "Guerrero De La Vida",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sestri Levante (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Felipe Tapia",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Santo Kel",
+              "sire": "Dylan Thomas (Ire)",
+              "damSire": "",
+              "ownerName": "The Good Father",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Videl (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Sergio Salazar",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Royana (Arg)",
+              "sire": "Tapitdoro",
+              "damSire": "",
+              "ownerName": "Jeag",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sky Prize (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Maximiliano Sa",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Gone Prize (Arg)",
+              "sire": "Dubai Sky",
+              "damSire": "",
+              "ownerName": "Toleo Toleo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Guapa Quitena (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Ronald Fournet",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Kampali (Chi)",
+              "sire": "Sumerio (Chi)",
+              "damSire": "",
+              "ownerName": "Winman",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-6",
+      "number": "6",
+      "postTime": "2026-05-11T21:30:00Z",
+      "numRunners": "6",
+      "distance": "1100mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 2325.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pegasus Fantasis (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Enrique Laguna",
+              "jockey": "Guillermo Pere",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Argirea (Arg)",
+              "sire": "Mendelssohn",
+              "damSire": "",
+              "ownerName": "Sagardia Hnos.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Parsifal (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Rodolfo Fuenza",
+              "weight": 132,
+              "age": 7,
+              "sex": "G",
+              "dam": "Miss Jumana (Chi)",
+              "sire": "Ramaje (Chi)",
+              "damSire": "",
+              "ownerName": "La Mila",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Doppler (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Jose Araya Bah",
+              "jockey": "Joaquin Herrer",
+              "weight": 132,
+              "age": 7,
+              "sex": "G",
+              "dam": "The High Queen",
+              "sire": "Goldencents",
+              "damSire": "",
+              "ownerName": "Bengo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "El Gran Pirata (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Alejandro Maur",
+              "weight": 130,
+              "age": 7,
+              "sex": "H",
+              "dam": "Villalba (Chi)",
+              "sire": "Boboman",
+              "damSire": "",
+              "ownerName": "Pirata",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Larrykane (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "William Ara",
+              "jockey": "Jaime Mino Fic",
+              "weight": 128,
+              "age": 7,
+              "sex": "H",
+              "dam": "Alucina (Chi)",
+              "sire": "Practical Joke",
+              "damSire": "",
+              "ownerName": "William Ara D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sol De Troya (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Gonzalo Vegas",
+              "jockey": "Jorge Zuniga D",
+              "weight": 121,
+              "age": 5,
+              "sex": "H",
+              "dam": "Esperandoa Marilyn (Chi)",
+              "sire": "Exaggerator",
+              "damSire": "",
+              "ownerName": "Mbarete",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-7",
+      "number": "7",
+      "postTime": "2026-05-11T22:00:00Z",
+      "numRunners": "16",
+      "distance": "1100mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 2100.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rojo Burgues (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Nelson Rojas",
+              "weight": 123,
+              "age": 6,
+              "sex": "G",
+              "dam": "Aldahara (Chi)",
+              "sire": "Straight Up (Chi)",
+              "damSire": "",
+              "ownerName": "Felisi",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Warrior Spirit (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Diego Carvacho",
+              "weight": 128,
+              "age": 7,
+              "sex": "G",
+              "dam": "Divine Symphony",
+              "sire": "Protonico",
+              "damSire": "",
+              "ownerName": "French Potato",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Green Dress (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Sergio Morales",
+              "jockey": "Jonathan Casti",
+              "weight": 128,
+              "age": 5,
+              "sex": "G",
+              "dam": "Pasion Turca (Chi)",
+              "sire": "Lemon Sour (Chi)",
+              "damSire": "",
+              "ownerName": "Los Nanitos",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Dale Flaca (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Sergio Morales",
+              "jockey": "Alejandro Maur",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Ornellaia (Chi)",
+              "sire": "Hinz (Arg)",
+              "damSire": "",
+              "ownerName": "Don Amadeo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Banda Verde (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Jorge Araneda",
+              "jockey": "Israel Villagr",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Lousada (Chi)",
+              "sire": "Cunco (Ire)",
+              "damSire": "",
+              "ownerName": "Pompita",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Teruka (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Felipe Tapia",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Elga (Chi)",
+              "sire": "Grand Daddy",
+              "damSire": "",
+              "ownerName": "Aleph",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Luiverar (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Lesly Gonzalez",
+              "weight": 123,
+              "age": 8,
+              "sex": "H",
+              "dam": "Gran Hipica (Chi)",
+              "sire": "Viscount Nelson",
+              "damSire": "",
+              "ownerName": "Tararira",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Insistentemente (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Carlos Vasquez",
+              "jockey": "Guillermo Pere",
+              "weight": 128,
+              "age": 4,
+              "sex": "G",
+              "dam": "Adjala (Chi)",
+              "sire": "Grand Daddy",
+              "damSire": "",
+              "ownerName": "Dona Sofia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Guerrero Arabe (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Sergio Morales",
+              "jockey": "Nelson Figuero",
+              "weight": 121,
+              "age": 4,
+              "sex": "G",
+              "dam": "Princesa Guerrera (Chi)",
+              "sire": "Arabian Spirit",
+              "damSire": "",
+              "ownerName": "Los Nanitos",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gipsy Vanner (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Jorge Baeza",
+              "weight": 126,
+              "age": 6,
+              "sex": "G",
+              "dam": "Quick Fever",
+              "sire": "Exaggerator",
+              "damSire": "",
+              "ownerName": "Infinito",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 11,
+          "saddleColor": "#6B6B6B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "El Renacido (Chi)",
+              "runnerId": "11",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Jorge Zuniga D",
+              "weight": 123,
+              "age": 5,
+              "sex": "H",
+              "dam": "Estatica Dinamica (Chi)",
+              "sire": "Frank Conversation",
+              "damSire": "",
+              "ownerName": "Wilfredo Mancilla D.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 12,
+          "saddleColor": "#2F9A3B",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mala Memoria (Chi)",
+              "runnerId": "12",
+              "scratched": false,
+              "trainer": "Jose Araya Bah",
+              "jockey": "Ronald Fournet",
+              "weight": 128,
+              "age": 7,
+              "sex": "M",
+              "dam": "La Turbina (Chi)",
+              "sire": "Gemologist",
+              "damSire": "",
+              "ownerName": "Legacy",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 13,
+          "saddleColor": "#413733",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Vincero (Chi)",
+              "runnerId": "13",
+              "scratched": false,
+              "trainer": "Rafael Bernal",
+              "jockey": "Joaquin Herrer",
+              "weight": 121,
+              "age": 4,
+              "sex": "C",
+              "dam": "En Que Topamos (Chi)",
+              "sire": "The Lumber Guy",
+              "damSire": "",
+              "ownerName": "Bernal T Rafael A",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 14,
+          "saddleColor": "#790031",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Merengon (Chi)",
+              "runnerId": "14",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Jose Villagran",
+              "weight": 123,
+              "age": 5,
+              "sex": "G",
+              "dam": "Rocio Merengue (Chi)",
+              "sire": "Robert Bruce (Chi)",
+              "damSire": "",
+              "ownerName": "Arturo Y Cecilia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 15,
+          "saddleColor": "#715933",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Le Peintre (Arg)",
+              "runnerId": "15",
+              "scratched": false,
+              "trainer": "Juan Garcia Ve",
+              "jockey": "Gerald Rodrigu",
+              "weight": 128,
+              "age": 7,
+              "sex": "H",
+              "dam": "Le Cite (Arg)",
+              "sire": "Interaction (Arg)",
+              "damSire": "",
+              "ownerName": "Tata's Juan",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 16,
+          "saddleColor": "#3B5D8F",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Bapkiza (Chi)",
+              "runnerId": "16",
+              "scratched": false,
+              "trainer": "Juan Belzu Oli",
+              "jockey": "Sebastian Mari",
+              "weight": 123,
+              "age": 6,
+              "sex": "M",
+              "dam": "Ostentosa Y Cara (Chi)",
+              "sire": "Cloud Computing",
+              "damSire": "",
+              "ownerName": "Milena",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-8",
+      "number": "8",
+      "postTime": "2026-05-11T22:30:00Z",
+      "numRunners": "10",
+      "distance": "1100mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 2250.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Tia Elena (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Tomas Seith",
+              "weight": 126,
+              "age": 5,
+              "sex": "M",
+              "dam": "Nobleza De Indias (Chi)",
+              "sire": "Patternrecognition",
+              "damSire": "",
+              "ownerName": "Tata Nacho",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "El Palomo (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Jorge Araneda",
+              "jockey": "Alejandro Maur",
+              "weight": 130,
+              "age": 5,
+              "sex": "H",
+              "dam": "Crackelet (Chi)",
+              "sire": "The Lumber Guy",
+              "damSire": "",
+              "ownerName": "Colicheu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Golden East (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Carlos Vasquez",
+              "jockey": "Israel Villagr",
+              "weight": 130,
+              "age": 7,
+              "sex": "G",
+              "dam": "Party Bay (Chi)",
+              "sire": "Goldencents",
+              "damSire": "",
+              "ownerName": "Dona Sofia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Kapu (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Gonzalo Vegas",
+              "jockey": "Benjamin Sanch",
+              "weight": 130,
+              "age": 5,
+              "sex": "H",
+              "dam": "Felina Verse (Chi)",
+              "sire": "Sumerio (Chi)",
+              "damSire": "",
+              "ownerName": "Los Parritas",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Punta Itata (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Jonathan Casti",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Maida Feliz (Chi)",
+              "sire": "Zawraq (Ire)",
+              "damSire": "",
+              "ownerName": "Hijos Del Rayo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Calochita (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Nelson Rojas",
+              "weight": 123,
+              "age": 6,
+              "sex": "H",
+              "dam": "Lady Dior (Chi)",
+              "sire": "Ivan Denisovich (I",
+              "damSire": "",
+              "ownerName": "Palestina",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Gli Amici (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Rafael Bernal",
+              "jockey": "Joaquin Herrer",
+              "weight": 128,
+              "age": 4,
+              "sex": "C",
+              "dam": "Scarlet Witch (Chi)",
+              "sire": "Alfonso",
+              "damSire": "",
+              "ownerName": "Cota Y Nano",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Aneu (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Juan Garcia Ve",
+              "jockey": "Gerald Rodrigu",
+              "weight": 130,
+              "age": 5,
+              "sex": "M",
+              "dam": "Anjum (Chi)",
+              "sire": "Newfoundland",
+              "damSire": "",
+              "ownerName": "Don Elias",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Roy Para Un Poco (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Wilfredo Manci",
+              "jockey": "Diego Carvacho",
+              "weight": 119,
+              "age": 6,
+              "sex": "H",
+              "dam": "Cruise News (Chi)",
+              "sire": "Indy Dancer",
+              "damSire": "",
+              "ownerName": "French Fries",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Soul Queen (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Juan Soto Vega",
+              "weight": 130,
+              "age": 6,
+              "sex": "M",
+              "dam": "Sistova (Chi)",
+              "sire": "War Command",
+              "damSire": "",
+              "ownerName": "Tata Nacho",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "GPX-9",
+      "number": "9",
+      "postTime": "2026-05-11T23:00:00Z",
+      "numRunners": "11",
+      "distance": "1100mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Handicap",
+        "id": 17
+      },
+      "purse": 2025.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lobelius (Chi)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Maximo Silva",
+              "jockey": "Jorge Zuniga D",
+              "weight": 123,
+              "age": 10,
+              "sex": "H",
+              "dam": "Linda Romana (Chi)",
+              "sire": "Seeking The Dia",
+              "damSire": "",
+              "ownerName": "Leonor",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lucky Storm (Chi)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Felipe Tapia",
+              "weight": 128,
+              "age": 7,
+              "sex": "G",
+              "dam": "Portafortuna",
+              "sire": "California Chrome",
+              "damSire": "",
+              "ownerName": "Aleph",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gran Cafrune (Chi)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Tomas Seith",
+              "weight": 128,
+              "age": 7,
+              "sex": "H",
+              "dam": "La Femme (Arg)",
+              "sire": "Hinz (Arg)",
+              "damSire": "",
+              "ownerName": "Tata Nacho",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Araukan (Chi)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Gerald Rodrigu",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Ali Macgrow (Chi)",
+              "sire": "Alfonso",
+              "damSire": "",
+              "ownerName": "That",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gran Samcredo (Chi)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Carlos Vasquez",
+              "jockey": "Israel Villagr",
+              "weight": 123,
+              "age": 4,
+              "sex": "C",
+              "dam": "She Is Sweet (Chi)",
+              "sire": "Ivan Denisovich (I",
+              "damSire": "",
+              "ownerName": "Dona Sofia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rubio Alocado (Chi)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Jorge Araneda",
+              "jockey": "Rodolfo Fuenza",
+              "weight": 123,
+              "age": 8,
+              "sex": "H",
+              "dam": "Like A Princess (Chi)",
+              "sire": "Cumpleanos Feliz (",
+              "damSire": "",
+              "ownerName": "Renita",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "La Libertina (Chi)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Jorge Araneda",
+              "jockey": "Sebastian Mari",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Miss Dear (Chi)",
+              "sire": "Good Samaritan",
+              "damSire": "",
+              "ownerName": "Pompita",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gran Verraco (Chi)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Gabriel Reyes",
+              "jockey": "Guillermo Pere",
+              "weight": 128,
+              "age": 8,
+              "sex": "G",
+              "dam": "Miss Armony (Chi)",
+              "sire": "Verrazano",
+              "damSire": "",
+              "ownerName": "Tio Pito",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Stevietoo (Chi)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Braulio Gomez",
+              "jockey": "Lesly Gonzalez",
+              "weight": 123,
+              "age": 6,
+              "sex": "G",
+              "dam": "Mitabay (Chi)",
+              "sire": "Stevie Wonderboy",
+              "damSire": "",
+              "ownerName": "Braulio Gomez A.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Graciosa Cozette (Chi)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Victor Moris L",
+              "jockey": "Jose Villagran",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Princess Cozette (Fr)",
+              "sire": "Awesome Patriot",
+              "damSire": "",
+              "ownerName": "Aleph",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 11,
+          "saddleColor": "#6B6B6B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tanytus (Chi)",
+              "runnerId": "11",
+              "scratched": false,
+              "trainer": "Victor Caballe",
+              "jockey": "Benjamin Sanch",
+              "weight": 126,
+              "age": 5,
+              "sex": "H",
+              "dam": "Kavakava (Chi)",
+              "sire": "Exaggerator",
+              "damSire": "",
+              "ownerName": "Tata Nacho",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
