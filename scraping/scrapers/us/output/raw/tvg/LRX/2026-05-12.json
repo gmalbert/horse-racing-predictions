@@ -1,0 +1,2497 @@
+{
+  "id": "LRX",
+  "code": "LRX",
+  "name": "BR - Gavea (simulcast)",
+  "location": {
+    "country": "USA"
+  },
+  "numberOfRaces": 8,
+  "races": [
+    {
+      "id": "LRX-10",
+      "number": "10",
+      "postTime": "2026-05-11T21:30:00Z",
+      "numRunners": "7",
+      "distance": "1600mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 1
+      },
+      "purse": 5770.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Winehouse (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Breno Piovesan",
+              "jockey": "Anthony Cardos",
+              "weight": 123,
+              "age": 5,
+              "sex": "G",
+              "dam": "Bernaise (Brz)",
+              "sire": "Courtier",
+              "damSire": "",
+              "ownerName": "Stud Rain San",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mountain Bike (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Flavio Assis",
+              "jockey": "Valdinei Gil",
+              "weight": 126,
+              "age": 6,
+              "sex": "M",
+              "dam": "Escaramuza (Brz)",
+              "sire": "Put It Back",
+              "damSire": "",
+              "ownerName": "Haras Legacy",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": 5
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": 5
+          },
+          "runners": [
+            {
+              "horseName": "Not To Worry (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Christiano Oli",
+              "jockey": "Vagner Borges",
+              "weight": 126,
+              "age": 5,
+              "sex": "M",
+              "dam": "Escaramuza (Brz)",
+              "sire": "Put It Back",
+              "damSire": "",
+              "ownerName": "Haras Santa Maria De Araras",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Noli Cry (Brz)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Jairo Borges",
+              "jockey": "Edson Fernando",
+              "weight": 126,
+              "age": 6,
+              "sex": "M",
+              "dam": "Polite Society (Ire)",
+              "sire": "Rally Cry",
+              "damSire": "",
+              "ownerName": "Stud Tieppo Borges",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ustaritz (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Flavio Assis",
+              "jockey": "Joao Brasil",
+              "weight": 123,
+              "age": 5,
+              "sex": "H",
+              "dam": "Emancipada (Brz)",
+              "sire": "Salto (Ire)",
+              "damSire": "",
+              "ownerName": "Plinio Jose Franca De Oliveira",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "German Glory (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Roberto Da Sil",
+              "jockey": "Henderson Fern",
+              "weight": 126,
+              "age": 6,
+              "sex": "M",
+              "dam": "Jeannings (Brz)",
+              "sire": "Holding Glory (Brz",
+              "damSire": "",
+              "ownerName": "Stud Jose Luiz Menino",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 99,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 99,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Gate Three (Brz)",
+              "runnerId": "7",
+              "scratched": true,
+              "trainer": "Luiz Filho",
+              "jockey": "Scratched",
+              "weight": 119,
+              "age": 5,
+              "sex": "M",
+              "dam": "Gardner (Brz)",
+              "sire": "Camelot Kitten",
+              "damSire": "",
+              "ownerName": "Luiz Henrique Flores Dos Santos",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-11",
+      "number": "11",
+      "postTime": "2026-05-11T22:00:00Z",
+      "numRunners": "8",
+      "distance": "1900mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 1
+      },
+      "purse": 6839.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "runners": [
+            {
+              "horseName": "Time Is Now (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Dulcino Guigno",
+              "jockey": "Joao Brasil",
+              "weight": 123,
+              "age": 4,
+              "sex": "C",
+              "dam": "Winner Friend",
+              "sire": "Sangarius (Gb)",
+              "damSire": "",
+              "ownerName": "Haras Legacy",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Top Winner (Brz)",
+              "runnerId": "2",
+              "scratched": true,
+              "trainer": "Dulcino Guigno",
+              "jockey": "Henderson Fern",
+              "weight": 123,
+              "age": 4,
+              "sex": "C",
+              "dam": "Lady Marilan (Brz)",
+              "sire": "Can The Man",
+              "damSire": "",
+              "ownerName": "Haras Legacy",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Valparaiso (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Alessandro Dam",
+              "jockey": "Vagner Borges",
+              "weight": 126,
+              "age": 5,
+              "sex": "H",
+              "dam": "Ninny Baby (Brz)",
+              "sire": "Ay Caramba (Brz)",
+              "damSire": "",
+              "ownerName": "Stud Blue Mountain",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Contessa (Brz)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Jose De Olivei",
+              "jockey": "Viitorio Vinyc",
+              "weight": 115,
+              "age": 5,
+              "sex": "M",
+              "dam": "Una Vita (Brz)",
+              "sire": "Courtier",
+              "damSire": "",
+              "ownerName": "Stud Sinara",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tunga (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Alan Marcelo G",
+              "jockey": "Matheus Aguiar",
+              "weight": 117,
+              "age": 4,
+              "sex": "C",
+              "dam": "Hed Kandi (Brz)",
+              "sire": "Alpha",
+              "damSire": "",
+              "ownerName": "Maria Valdirene M.Do Nascimento",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "A Reason To Live (Brz)",
+              "runnerId": "6",
+              "scratched": true,
+              "trainer": "Jaime Barreto",
+              "jockey": "Roberto Melo",
+              "weight": 132,
+              "age": 9,
+              "sex": "H",
+              "dam": "Garconniere (Brz)",
+              "sire": "Ay Caramba (Brz)",
+              "damSire": "",
+              "ownerName": "Kowalsky Stud",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ragnar Lodbrok (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Jaime Barreto",
+              "jockey": "Joao Enick",
+              "weight": 119,
+              "age": 7,
+              "sex": "H",
+              "dam": "Ilha De Pascoa (Brz)",
+              "sire": "Ay Caramba (Brz)",
+              "damSire": "",
+              "ownerName": "Coudelaria Atafona",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sonic Do Iguassu (Brz)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Antonio Oldoni",
+              "jockey": "Pedro Assis",
+              "weight": 117,
+              "age": 4,
+              "sex": "C",
+              "dam": "Redencao (Brz)",
+              "sire": "Kentuckian",
+              "damSire": "",
+              "ownerName": "Haras Rio Iguassu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-12",
+      "number": "12",
+      "postTime": "2026-05-11T22:30:00Z",
+      "numRunners": "7",
+      "distance": "1300mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 1
+      },
+      "purse": 5770.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Noirien Blanc (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Gilvanio Santo",
+              "jockey": "Edson Fernando",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Brandwine (Brz)",
+              "sire": "Hofburg",
+              "damSire": "",
+              "ownerName": "Stud El Albatroz",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pixdecem (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Ildefonso De S",
+              "jockey": "Joao Brasil",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Jafool (Ire)",
+              "sire": "Huber (Brz)",
+              "damSire": "",
+              "ownerName": "Stud Luis Lima",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rainha Da Sucata (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Leopoldo Cury",
+              "jockey": "Pedro Assis",
+              "weight": 123,
+              "age": 6,
+              "sex": "M",
+              "dam": "Kelly Key (Brz)",
+              "sire": "War Secretary",
+              "damSire": "",
+              "ownerName": "Leopoldo Jose Cury",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Laugh Forever (Brz)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Ildefonso De S",
+              "jockey": "Viitorio Vinyc",
+              "weight": 117,
+              "age": 7,
+              "sex": "M",
+              "dam": "Ereaserhead (Brz)",
+              "sire": "Emcee",
+              "damSire": "",
+              "ownerName": "Antonio Carlos Louvain Correa",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mark Rohtko (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Jose Antonio L",
+              "jockey": "Matheus Aguiar",
+              "weight": 121,
+              "age": 6,
+              "sex": "H",
+              "dam": "Caritzia (Brz)",
+              "sire": "Catch A Flight (Ar",
+              "damSire": "",
+              "ownerName": "Stud Golden Horses",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Indian-Vip (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Dilson Antunes",
+              "jockey": "Valdinei Gil",
+              "weight": 128,
+              "age": 6,
+              "sex": "H",
+              "dam": "Indy-Office (Brz)",
+              "sire": "War Secretary",
+              "damSire": "",
+              "ownerName": "Cristiano Martins",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "runners": [
+            {
+              "horseName": "Kaiaki D'anafer (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Antonio Oldoni",
+              "jockey": "Vagner Borges",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Pascal Beauty (Brz)",
+              "sire": "Iguassu Star (Brz)",
+              "damSire": "",
+              "ownerName": "Haras Rio Iguassu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-13",
+      "number": "13",
+      "postTime": "2026-05-11T23:00:00Z",
+      "numRunners": "8",
+      "distance": "1500mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 1
+      },
+      "purse": 6839.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Toda Chic (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Jairo Borges",
+              "jockey": "Pedro Assis",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Established (Brz)",
+              "sire": "Victory Is Ours (B",
+              "damSire": "",
+              "ownerName": "Stud Tieppo Borges",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tulinha (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Jaime Barreto",
+              "jockey": "Francisco Chav",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Docura",
+              "sire": "Goldikovic (Ire)",
+              "damSire": "",
+              "ownerName": "Stud Printemps",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Zahrina (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Lucio De Vaz",
+              "jockey": "Joao Brasil",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Vidya (Brz)",
+              "sire": "Rally Cry",
+              "damSire": "",
+              "ownerName": "Haras Moema",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Once Maybe (Brz)",
+              "runnerId": "4",
+              "scratched": true,
+              "trainer": "Lucas Quintana",
+              "jockey": "Vagner Borges",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Future Queen (Brz)",
+              "sire": "Drosselmeyer",
+              "damSire": "",
+              "ownerName": "Haras Santa Maria De Araras",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Oh Well (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Roberto Morgad",
+              "jockey": "Wesley Cardoso",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "All Is Well (Brz)",
+              "sire": "Put It Back",
+              "damSire": "",
+              "ownerName": "Stud Eterno Amor",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Orange Et Bleu (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Fabricio Borge",
+              "jockey": "Henderson Fern",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "La Madrague (Brz)",
+              "sire": "Sangarius (Gb)",
+              "damSire": "",
+              "ownerName": "Syndicate Brasil",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sofia Sol (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Julio Cezar Sa",
+              "jockey": "Anthony Cardos",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "High Moon (Brz)",
+              "sire": "Setembro Chove (Br",
+              "damSire": "",
+              "ownerName": "Stud Sol De Agosto",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pilavas (Brz)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Breno Piovesan",
+              "jockey": "Valdinei Gil",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Few Good (Brz)",
+              "sire": "E Do Sul (Brz)",
+              "damSire": "",
+              "ownerName": "Stud Rain San",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-14",
+      "number": "14",
+      "postTime": "2026-05-11T23:30:00Z",
+      "numRunners": "9",
+      "distance": "1300mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Maiden Special",
+        "id": 30
+      },
+      "purse": 6839.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 50,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Of The Wind (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Roberto Da Sil",
+              "jockey": "Pedro Assis",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Hagen Daas (Brz)",
+              "sire": "Vontade De Matar (",
+              "damSire": "",
+              "ownerName": "Haras Depigua",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 18,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 18,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Imperador Do Tempo (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Allan Hollanda",
+              "jockey": "Antonio Queiro",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Imperatriz Agnes (Brz)",
+              "sire": "Camelot Kitten",
+              "damSire": "",
+              "ownerName": "Allan Viana Correa De Hollanda",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Xavier (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Leonardo Dos R",
+              "jockey": "Maikon Mesquit",
+              "weight": 126,
+              "age": 4,
+              "sex": "G",
+              "dam": "Viva Carina (Brz)",
+              "sire": "Joe Owen (Brz)",
+              "damSire": "",
+              "ownerName": "Haras Salamandra",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Amizade Sincera (Brz)",
+              "runnerId": "4",
+              "scratched": true,
+              "trainer": "Jorge Alexandr",
+              "jockey": "Scratched",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Helvetia (Brz)",
+              "sire": "Outstrip (Gb)",
+              "damSire": "",
+              "ownerName": "Haras Proposito",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "runners": [
+            {
+              "horseName": "Zhaar (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Lucio De Vaz",
+              "jockey": "Wesley Cardoso",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "I Scream (Brz)",
+              "sire": "Emcee",
+              "damSire": "",
+              "ownerName": "Haras Doce Vale",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Orlando Magic (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Manoel De Paul",
+              "jockey": "Vagner Borges",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Vitoriosa Heights (Brz)",
+              "sire": "Sangarius (Gb)",
+              "damSire": "",
+              "ownerName": "Stud Ad Victoriam",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tesla Do Iguassu (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Antonio Oldoni",
+              "jockey": "Joao Brasil",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Chickabunny",
+              "sire": "Synchrony",
+              "damSire": "",
+              "ownerName": "Haras Rio Iguassu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Numbat (Brz)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Leonardo Dos R",
+              "jockey": "Henderson Fern",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Mint Drops (Arg)",
+              "sire": "Verrazano",
+              "damSire": "",
+              "ownerName": "Stud Embalagem",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Estoril (Brz)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Victor Gomes",
+              "jockey": "Adilton Da Sil",
+              "weight": 126,
+              "age": 4,
+              "sex": "G",
+              "dam": "Pommery (Brz)",
+              "sire": "Outstrip (Gb)",
+              "damSire": "",
+              "ownerName": "Stud Turf Paixao",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-15",
+      "number": "15",
+      "postTime": "2026-05-12T00:00:00Z",
+      "numRunners": "9",
+      "distance": "1000mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Claiming",
+        "id": 5
+      },
+      "purse": 3932.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Nada Me Aborrece (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Lucas Quintana",
+              "jockey": "Waldomiro Blan",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Northern Town (Brz)",
+              "sire": "Tiger Heart",
+              "damSire": "",
+              "ownerName": "Stud Pinheiros Do Sul",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sonho Bom (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Victor Gomes",
+              "jockey": "Henderson Fern",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Irma Lua (Brz)",
+              "sire": "Can The Man",
+              "damSire": "",
+              "ownerName": "Stud Seralucia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Jeito Certo (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Alvaro Castill",
+              "jockey": "Matheus Aguiar",
+              "weight": 119,
+              "age": 5,
+              "sex": "H",
+              "dam": "Vestida (Brz)",
+              "sire": "Unbridled Star (Ar",
+              "damSire": "",
+              "ownerName": "Coudelaria Beaga",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Veep (Brz)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Flavio Assis",
+              "jockey": "Eduardo Nunes",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Kissingafool (Brz)",
+              "sire": "Verrazano",
+              "damSire": "",
+              "ownerName": "Stud Tigrao",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Opostosseatraem (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Flavio Assis",
+              "jockey": "Vagner Borges",
+              "weight": 117,
+              "age": 4,
+              "sex": "C",
+              "dam": "Double Care (Brz)",
+              "sire": "Put It Back",
+              "damSire": "",
+              "ownerName": "Fernando Antonio Fontes Monteiro",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Off Piste (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Daniel Lopes",
+              "jockey": "Jorge Ricardo",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Pergola (Brz)",
+              "sire": "Can The Man",
+              "damSire": "",
+              "ownerName": "Jair Barbosa Dos Santos",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Paramount (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Lenio Vieira",
+              "jockey": "Francisco Chav",
+              "weight": 126,
+              "age": 5,
+              "sex": "H",
+              "dam": "Deusa Do Jaguarete (Brz)",
+              "sire": "Bush Gardens (Brz)",
+              "damSire": "",
+              "ownerName": "Stud Slingerz Racing",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Post Heart (Brz)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Jose Rodrigues",
+              "jockey": "Joao Brasil",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Empress Sofia (Brz)",
+              "sire": "Tiger Heart",
+              "damSire": "",
+              "ownerName": "Stud Senhor Moreno",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 18,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 18,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Nikoon (Brz)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Gilvanio Santo",
+              "jockey": "Pedro Assis",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Donna Marcia (Brz)",
+              "sire": "Silent Times (Ire)",
+              "damSire": "",
+              "ownerName": "Stud Embalagem",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-16",
+      "number": "16",
+      "postTime": "2026-05-12T00:30:00Z",
+      "numRunners": "10",
+      "distance": "1200mtr",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Maiden Special",
+        "id": 30
+      },
+      "purse": 6839.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Key Right (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Alvaro Castill",
+              "jockey": "Anthony Cardos",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Waffer (Brz)",
+              "sire": "Thalasso (Brz)",
+              "damSire": "",
+              "ownerName": "Stud Sol De Agosto",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Bastogne (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Alan Marcelo G",
+              "jockey": "Henderson Fern",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Poderosa Nativa (Brz)",
+              "sire": "Goldikovic (Ire)",
+              "damSire": "",
+              "ownerName": "Maria Valdirene M.Do Nascimento",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Dona Del Tiempo (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Jairo Borges",
+              "jockey": "Viitorio Vinyc",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Forest Quest (Brz)",
+              "sire": "Rally Cry",
+              "damSire": "",
+              "ownerName": "Stud Sabia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Guacho Bryan (Brz)",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Flavio Guedes",
+              "jockey": "Francisco Chav",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Heart Of Victory (Brz)",
+              "sire": "Wired Bryan",
+              "damSire": "",
+              "ownerName": "Haras Mersen",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Queen Of Ibiza (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Roberto Morgad",
+              "jockey": "Vagner Borges",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Olympic Ibiza (Brz)",
+              "sire": "Courtier",
+              "damSire": "",
+              "ownerName": "Stud Piccollino",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Hora Da Vitoria (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Dilson Antunes",
+              "jockey": "Joao Brasil",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Ynflacion Spring (Brz)",
+              "sire": "Zur Blade (Brz)",
+              "damSire": "",
+              "ownerName": "Cristiano Martins",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rivello (Brz)",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Carlos Rodrigu",
+              "jockey": "Jorge Ricardo",
+              "weight": 126,
+              "age": 4,
+              "sex": "C",
+              "dam": "Datolita (Brz)",
+              "sire": "Goldikovic (Ire)",
+              "damSire": "",
+              "ownerName": "Stud Aguias Do Sul",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 1,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tesla Do Iguassu (Brz)",
+              "runnerId": "8",
+              "scratched": true,
+              "trainer": "Antonio Oldoni",
+              "jockey": "Scratched",
+              "weight": 126,
+              "age": 3,
+              "sex": "C",
+              "dam": "Chickabunny",
+              "sire": "Synchrony",
+              "damSire": "",
+              "ownerName": "Haras Rio Iguassu",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Top Of The Hill (Brz)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Alvaro Castill",
+              "jockey": "Matheus Aguiar",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "View To A Kill (Brz)",
+              "sire": "Victory Is Ours (B",
+              "damSire": "",
+              "ownerName": "Jockey Club De Minas Gerais",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Villerville (Brz)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Manoel De Paul",
+              "jockey": "Pedro Assis",
+              "weight": 121,
+              "age": 4,
+              "sex": "F",
+              "dam": "Honfleur (Brz)",
+              "sire": "Alpha",
+              "damSire": "",
+              "ownerName": "Stud Suellen Gloria",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LRX-17",
+      "number": "17",
+      "postTime": "2026-05-12T01:00:00Z",
+      "numRunners": "12",
+      "distance": "1000mtr",
+      "surface": {
+        "name": "Turf",
+        "code": "T"
+      },
+      "type": {
+        "name": "Thoroughbred LARC",
+        "code": "L"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 1
+      },
+      "purse": 5770.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Scarface (Brz)",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Edson Ricardo",
+              "jockey": "Wesley Cardoso",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Namoradinha (Brz)",
+              "sire": "Universal Law (Brz",
+              "damSire": "",
+              "ownerName": "Stud Galope",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Palmar Point (Brz)",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Ivan Jeronimo",
+              "jockey": "Joao Brasil",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Duvide Nunca (Brz)",
+              "sire": "Gibraltar Point (B",
+              "damSire": "",
+              "ownerName": "Haras Rio Pardo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "El Cielo Zip (Brz)",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Oberdan Pereir",
+              "jockey": "Pedro Assis",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Aquidauana (Brz)",
+              "sire": "Oliver Zip",
+              "damSire": "",
+              "ownerName": "Stud Baldissera",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Midnight Heart (Brz)",
+              "runnerId": "4",
+              "scratched": true,
+              "trainer": "Victor Gomes",
+              "jockey": "Adilton Da Sil",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "La Mensageira (Brz)",
+              "sire": "Tiger Heart",
+              "damSire": "",
+              "ownerName": "Rafaela Brandao Melo Gomes",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Fast Volk (Brz)",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Jose Rodrigues",
+              "jockey": "Angelo De Souz",
+              "weight": 128,
+              "age": 6,
+              "sex": "H",
+              "dam": "Fifi Queen (Brz)",
+              "sire": "Gibraltar Point (B",
+              "damSire": "",
+              "ownerName": "Stud Invencibile",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Enough Fast (Brz)",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Edson Ferreira",
+              "jockey": "Jorge Ricardo",
+              "weight": 128,
+              "age": 5,
+              "sex": "H",
+              "dam": "Katuska (Brz)",
+              "sire": "Sum Of The Parts",
+              "damSire": "",
+              "ownerName": "Stud Byllyons Off The Hills",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lets Make A Deal (Brz)",
+              "runnerId": "7",
+              "scratched": true,
+              "trainer": "Gesuisinho Alm",
+              "jockey": "Joao Enick",
+              "weight": 117,
+              "age": 7,
+              "sex": "M",
+              "dam": "Jewelry (Brz)",
+              "sire": "Emcee",
+              "damSire": "",
+              "ownerName": "Carlos Martins Soares",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "New Galileo (Brz)",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Mauricio Chave",
+              "jockey": "Anthony Cardos",
+              "weight": 121,
+              "age": 7,
+              "sex": "H",
+              "dam": "Southern Blues (Ire)",
+              "sire": "Momento De Alegria",
+              "damSire": "",
+              "ownerName": "Stud Gata Da Serra",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 30,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ybitu (Brz)",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Jose Reis",
+              "jockey": "Edson Fernando",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Iced Whisky (Brz)",
+              "sire": "Courtier",
+              "damSire": "",
+              "ownerName": "Haras Estancia Santa Fe",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 10,
+          "saddleColor": "#610F9A",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "King George (Brz)",
+              "runnerId": "10",
+              "scratched": false,
+              "trainer": "Edson Dos Reis",
+              "jockey": "Matheus Aguiar",
+              "weight": 121,
+              "age": 10,
+              "sex": "H",
+              "dam": "Konigen (Brz)",
+              "sire": "Super Jules (Brz)",
+              "damSire": "",
+              "ownerName": "Coudelaria Mont Blanc 2009",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 11,
+          "saddleColor": "#6B6B6B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ta Fora (Brz)",
+              "runnerId": "11",
+              "scratched": false,
+              "trainer": "Valter Lopes",
+              "jockey": "Henderson Fern",
+              "weight": 128,
+              "age": 8,
+              "sex": "H",
+              "dam": "Sai Fora (Brz)",
+              "sire": "Taludo (Brz)",
+              "damSire": "",
+              "ownerName": "Ricardo Correa",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 12,
+          "saddleColor": "#2F9A3B",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Moncho (Brz)",
+              "runnerId": "12",
+              "scratched": false,
+              "trainer": "Daniel Peres",
+              "jockey": "Roberto Melo",
+              "weight": 128,
+              "age": 6,
+              "sex": "H",
+              "dam": "Forest Queen (Brz)",
+              "sire": "Wired Bryan",
+              "damSire": "",
+              "ownerName": "Helio Santos Da Frota",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

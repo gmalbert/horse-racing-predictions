@@ -354,6 +354,21 @@ def _build_horse_features(runner: dict, race_ctx: dict,
     return features
 
 
+def _detect_race_type(race: dict) -> str:
+    """Classify race as Thoroughbred / Harness / QuarterHorse / Unknown."""
+    combined = " ".join([
+        str(race.get('race_name') or ''),
+        str(race.get('race_class') or ''),
+        str(race.get('type') or ''),
+        str(race.get('course') or ''),
+    ]).lower()
+    if any(k in combined for k in ('pace', 'trot', 'harness', 'standardbred', 'yonkers', 'harrington', 'plainridge', 'scioto', 'meadowlands', 'pocono', 'tioga', 'batavia', 'northfield', 'hawthorne raceway')):
+        return 'Harness'
+    if any(k in combined for k in ('quarter horse', 'quarter-horse', 'qh', '350y', '400y', 'ruidoso', 'los alamitos qh')):
+        return 'QuarterHorse'
+    return 'Thoroughbred'
+
+
 def _calibrate_probability(raw: float, field_size: int, k: float = 3.5) -> float:
     """Shrinkage calibration: pull raw probs toward prior = 1/field_size."""
     prior = 1.0 / max(field_size, 1)
@@ -605,6 +620,10 @@ def main():
 
         preds = predict_us_race(race, historical_df, model, feature_cols, date_str)
 
+        # Detect race type: harness (Pace/Trot) vs Thoroughbred vs Quarter Horse
+        race_type = _detect_race_type(race)
+        purse_val = _parse_prize(race.get('purse') or race.get('prize') or race.get('total_purse') or 0)
+
         for pred in preds:
             pred.update({
                 'region':       'US',
@@ -616,6 +635,8 @@ def main():
                 'race_time':    race_time,
                 'race_name':    race_name,
                 'race_class':   race_class,
+                'race_type':    race_type,
+                'purse':        purse_val,
                 'surface':      surface,
                 'going':        going,
                 'distance_f':   furlongs,

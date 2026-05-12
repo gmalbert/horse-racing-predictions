@@ -26,7 +26,7 @@ import csv
 import json
 import shutil
 import sys
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from pathlib import Path
 
 # Add scraping module to path
@@ -108,7 +108,7 @@ def _entries_to_racecards_json(entries: list[RaceEntry], race_date: str) -> dict
 
     return {
         "date":          race_date,
-        "generated_at_utc": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source":        "tvg_graphql",
         "racecards":     racecard_list,
         "source_counts": {
@@ -170,7 +170,7 @@ def merge_into_us_racecards(entries: list[RaceEntry], race_date: str) -> Path:
         existing["source_counts"] = existing.get("source_counts", {})
         existing["source_counts"]["tvg_races"] = len(tvg_by_key)
         existing["source_counts"]["total_races"] = len(existing_rcs)
-        existing["tvg_merged_at_utc"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        existing["tvg_merged_at_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         rc_path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
         logger.info(
