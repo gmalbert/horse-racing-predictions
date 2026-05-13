@@ -105,7 +105,9 @@ def _load_data() -> pd.DataFrame:
     raise FileNotFoundError(
         "No US race data found. Expected one of:\n"
         + "\n".join(f"  {p}" for p in candidates)
-        + "\n\nCollect data via scripts/fetch_equibase_results.py over time."
+        + "\n\nFetch US results from The Racing API:\n"
+        + "  python scripts/fetch_us_results.py --days 90\n"
+        + "Then re-run this script. Use --min-rows 1000 for early/small datasets."
     )
 
 
@@ -166,9 +168,13 @@ def train(df: pd.DataFrame, feature_cols: list[str]) -> tuple:
 
     train_df, test_df = _temporal_split(df)
 
-    X_train = train_df[feature_cols].fillna(0).values
+    # Coerce all feature columns to numeric (handles values like '1A' in draw column)
+    def _to_numeric_df(frame: pd.DataFrame, cols: list) -> "np.ndarray":
+        return frame[cols].apply(pd.to_numeric, errors="coerce").fillna(0).values
+
+    X_train = _to_numeric_df(train_df, feature_cols)
     y_train = train_df["won"].values
-    X_test  = test_df[feature_cols].fillna(0).values
+    X_test  = _to_numeric_df(test_df, feature_cols)
     y_test  = test_df["won"].values
 
     pos_weight = float((y_train == 0).sum()) / max(float((y_train == 1).sum()), 1)
