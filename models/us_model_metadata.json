@@ -1,9 +1,9 @@
 {
   "model_type": "XGBoostClassifier",
-  "trained_date": "2026-05-13",
+  "trained_date": "2026-05-14",
   "n_features": 64,
-  "n_training_rows": 138424,
-  "test_auc": 0.5998,
+  "n_training_rows": 795876,
+  "test_auc": 0.6105,
   "feature_columns": [
     "career_runs",
     "career_win_rate",
