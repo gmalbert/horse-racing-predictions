@@ -322,6 +322,9 @@ def display_top_predictive_races_tab():
         st.warning("Race scoring data not available. Run Phase 2 scoring first.")
 
 
+
+
+
 def fetch_racecards(date_str, label=""):
     """Fetch racecards for a given date"""
     label_text = label if label else "racecards"
@@ -1443,8 +1446,9 @@ def display_predicted_fixtures_tab():
 # ── Sidebar navigation (Streamlit 1.45+) ────────────────────────────────────────────────
 pg = st.navigation(
     [
-        st.Page(predictions_page,         title="Predictions",   icon="🏇", default=True),
-        st.Page("pages/data_explorer.py", title="Data Explorer", icon="📊"),
+        st.Page(predictions_page,         title="International",  icon="🏇", default=True),
+        st.Page("pages/us_racing.py",     title="US Racing",      icon="🇺🇸"),
+        st.Page("pages/data_explorer.py", title="Data Explorer",  icon="📊"),
     ],
     position="sidebar",
 )

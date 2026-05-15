@@ -1,0 +1,2332 @@
+{
+  "id": "TDN",
+  "code": "TDN",
+  "name": "Thistledown",
+  "location": {
+    "country": "USA"
+  },
+  "numberOfRaces": 8,
+  "races": [
+    {
+      "id": "TDN-1",
+      "number": "1",
+      "postTime": "2026-05-11T16:50:00Z",
+      "numRunners": "9",
+      "distance": "8f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Starter Optional Claiming",
+        "id": 353
+      },
+      "purse": 21700.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Kykeon",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Juarez-Mendoza Rey",
+              "jockey": "Fernandez Victor R",
+              "weight": 121,
+              "age": 5,
+              "sex": "G",
+              "dam": "Poetic",
+              "sire": "Kantharos",
+              "damSire": "Violence",
+              "ownerName": "Rey Juarez-Mendoza",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16501.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16501.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sunset Town",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Schuster Robin",
+              "jockey": "Feliciano Ricardo",
+              "weight": 119,
+              "age": 6,
+              "sex": "G",
+              "dam": "Sunset Glow",
+              "sire": "Speightstown",
+              "damSire": "Exchange Rate",
+              "ownerName": "Wayne Mann",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16502.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16502.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Reinvest",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Johnson Gary L",
+              "jockey": "Rodriguez Anthony",
+              "weight": 119,
+              "age": 6,
+              "sex": "G",
+              "dam": "Rule One",
+              "sire": "Quality Road",
+              "damSire": "Street Cry (Ire)",
+              "ownerName": "Irish Charm Thoroughbreds LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16503.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16503.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tricky Tiger",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Rivera Nestor R",
+              "jockey": "Chavez Alexander",
+              "weight": 119,
+              "age": 5,
+              "sex": "G",
+              "dam": "Tillie The Tigress",
+              "sire": "Mendelssohn",
+              "damSire": "Tiger Ridge",
+              "ownerName": "Rivera Racing Stables, LLC.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16504.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16504.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "John's Rock",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Vecchio Caryn",
+              "jockey": "Bracho Jose A",
+              "weight": 119,
+              "age": 9,
+              "sex": "G",
+              "dam": "Sweet Cassiopeia",
+              "sire": "Bernardini",
+              "damSire": "Five Star Day",
+              "ownerName": "Caryn Vecchio",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16505.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16505.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Colonel Vargo",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Bailey Ricardo",
+              "jockey": "Simpson Jason",
+              "weight": 119,
+              "age": 6,
+              "sex": "G",
+              "dam": "Ami's Mesa",
+              "sire": "Distorted Humor",
+              "damSire": "Sky Mesa",
+              "ownerName": "Lion Palm Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16506.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16506.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Dr Schuster",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Schuster Robin",
+              "jockey": "Tapara Brandon",
+              "weight": 123,
+              "age": 5,
+              "sex": "G",
+              "dam": "Red Hot Heels",
+              "sire": "Collected",
+              "damSire": "Tapit",
+              "ownerName": "Schuster, Robin and Mann, Wayne",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16507.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16507.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Hot Gunner",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Puhl Kim A",
+              "jockey": "Gonzalez Luis A",
+              "weight": 119,
+              "age": 4,
+              "sex": "G",
+              "dam": "You Flatter Me",
+              "sire": "Exaggerator",
+              "damSire": "Flatter",
+              "ownerName": "Jack L. Boggs",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16508.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16508.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Puff'smagicdragon",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Radosevich Jeffrey A",
+              "jockey": "Barbaran Erik",
+              "weight": 119,
+              "age": 5,
+              "sex": "G",
+              "dam": "Magnificent Margo",
+              "sire": "Mendelssohn",
+              "damSire": "Congrats",
+              "ownerName": "Annechino Racing, LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn16509.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn16509.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-2",
+      "number": "2",
+      "postTime": "2026-05-11T17:20:00Z",
+      "numRunners": "9",
+      "distance": "5.5f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 306
+      },
+      "purse": 35800.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mandalay Sky",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Flores Israel",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 117,
+              "age": 3,
+              "sex": "F",
+              "dam": "Mandalay Beach",
+              "sire": "Sky Kingdom",
+              "damSire": "Lonhro (Aus)",
+              "ownerName": "Curt G. Arnett",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17201.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17201.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Striking Lady",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Bailey Ricardo",
+              "jockey": "Simpson Jason",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Muttak Bay",
+              "sire": "Air Strike",
+              "damSire": "Mutakddim",
+              "ownerName": "Lion Palm Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17202.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17202.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Stacy Ellen",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Zielinski Richard",
+              "jockey": "Bracho Jose A",
+              "weight": 117,
+              "age": 3,
+              "sex": "F",
+              "dam": "Precocious",
+              "sire": "Air Strike",
+              "damSire": "Exploit",
+              "ownerName": "Howlett Racing, Inc.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17203.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17203.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Miss Lora Ann",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Orantes Yoni R",
+              "jockey": "Villarreal Oscar",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Showtime Girl",
+              "sire": "Dreamliner",
+              "damSire": "Discreetly Mine",
+              "ownerName": "Executive Management LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17204.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17204.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Kerkyra",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Evans Ii Michael",
+              "jockey": "Aragon Rolando",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Sheltowee's Gal",
+              "sire": "Corfu",
+              "damSire": "Paynter",
+              "ownerName": "Sheltowee Farm (Michael E. Evans)",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17205.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17205.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Victoria Command",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Genovese Richard L",
+              "jockey": "Pilares Christian P",
+              "weight": 119,
+              "age": 5,
+              "sex": "M",
+              "dam": "Victoria Mia",
+              "sire": "Fort Larned",
+              "damSire": "Master Command",
+              "ownerName": "Northern Team Racing LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17206.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17206.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lizzy's Dream",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Zielinski Richard",
+              "jockey": "Tapara Brandon",
+              "weight": 123,
+              "age": 4,
+              "sex": "F",
+              "dam": "A Rose For Lizzy",
+              "sire": "Dreamliner",
+              "damSire": "Bodemeister",
+              "ownerName": "Jack Cannon",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17207.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17207.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Spun In Dominus",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Fadlovich Megan",
+              "jockey": "Bowen Rocco",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Spun In Artemus",
+              "sire": "Dominus",
+              "damSire": "Hard Spun",
+              "ownerName": "HMDC Racing Stables LLC, Taste of Victory Stables and TBC Racing",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17208.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17208.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Hello Evelyn",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Keiser Deborah",
+              "jockey": "Keiser Chelsey",
+              "weight": 123,
+              "age": 4,
+              "sex": "F",
+              "dam": "Buttie",
+              "sire": "Rivers Run Deep",
+              "damSire": "Angus",
+              "ownerName": "Deborah Keiser",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17209.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17209.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-3",
+      "number": "3",
+      "postTime": "2026-05-11T17:50:00Z",
+      "numRunners": "6",
+      "distance": "8f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Claiming",
+        "id": 313
+      },
+      "purse": 16300.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Breezy Money",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Norris Stephani",
+              "jockey": "Yaranga Yuri",
+              "weight": 121,
+              "age": 9,
+              "sex": "G",
+              "dam": "Private Jet",
+              "sire": "Constitution",
+              "damSire": "Smart Strike",
+              "ownerName": "Michael J. Friedman",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17501.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17501.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Master Of The Nite",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Radosevich Jeffrey A",
+              "jockey": "Rivera Luis R",
+              "weight": 119,
+              "age": 5,
+              "sex": "G",
+              "dam": "Ladies Night",
+              "sire": "Mastery",
+              "damSire": "Eskendereya",
+              "ownerName": "Michael J. Friedman",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17502.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17502.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Brewing",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Calderon Ivan",
+              "jockey": "Diaz, Jr. Hector R",
+              "weight": 119,
+              "age": 5,
+              "sex": "G",
+              "dam": "Just Cat",
+              "sire": "Tapiture",
+              "damSire": "City Zip",
+              "ownerName": "Juan G. Bernardini",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17503.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17503.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Secret Bagent Man",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Rivera Nestor R",
+              "jockey": "Chavez Alexander",
+              "weight": 121,
+              "age": 4,
+              "sex": "G",
+              "dam": "Miss Skeetd",
+              "sire": "Global Campaign",
+              "damSire": "Cloud Hopping",
+              "ownerName": "Rivera Racing Stables, LLC.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17504.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17504.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Panthera's Fate",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Urieta Johanna",
+              "jockey": "Parker Deshawn L",
+              "weight": 119,
+              "age": 6,
+              "sex": "G",
+              "dam": "Seneca Destiny",
+              "sire": "Smiling Tiger",
+              "damSire": "Seneca Jones",
+              "ownerName": "Rudiculous Stables",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17505.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17505.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Dream Knight",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Vecchio Caryn",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 119,
+              "age": 6,
+              "sex": "G",
+              "dam": "Sweet Loretta",
+              "sire": "Always Dreaming",
+              "damSire": "Tapit",
+              "ownerName": "Caryn Vecchio",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn17506.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn17506.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-4",
+      "number": "4",
+      "postTime": "2026-05-11T18:20:00Z",
+      "numRunners": "9",
+      "distance": "6f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Maiden Special Weight",
+        "id": 345
+      },
+      "purse": 33900.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Storm Search",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Carrington Dale",
+              "jockey": "Diaz Angel I",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Illegal Search",
+              "sire": "Midnight Storm",
+              "damSire": "Officer",
+              "ownerName": "Jack Cannon",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18201.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18201.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Beachglass",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Hamm Timothy E",
+              "jockey": "Bowen Rocco",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Ocean Princess",
+              "sire": "Global Campaign",
+              "damSire": "Indian Ocean",
+              "ownerName": "Blazing Meadows Farm LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18202.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18202.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ravishing Ruby",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Juarez Lorenzo",
+              "jockey": "Rodriguez Anthony",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Real Fancy",
+              "sire": "Neolithic",
+              "damSire": "Munnings",
+              "ownerName": "LMJ Racing",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18203.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18203.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Electric Eden",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Zielinski Richard",
+              "jockey": "Tapara Brandon",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Eden",
+              "sire": "Cupid",
+              "damSire": "Curlin",
+              "ownerName": "Executive Management LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18204.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18204.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Seyval Blanc",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Rone Michael L",
+              "jockey": "Rosendo Irwin J",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Pinotage",
+              "sire": "Jimmy Creed",
+              "damSire": "Exchange Rate",
+              "ownerName": "Crumbaugh Lane",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18205.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18205.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Instant Winner",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Rone Michael L",
+              "jockey": "Rivera Luis R",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Rockport Dancer",
+              "sire": "Instagrand",
+              "damSire": "Rockport Harbor",
+              "ownerName": "Michael L. Rone",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18206.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18206.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Kiddie Cocktail",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Gorham Robert M",
+              "jockey": "Barbaran Erik",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Vienna's Waltz",
+              "sire": "Vino Rosso",
+              "damSire": "Freud",
+              "ownerName": "Smokin C LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18207.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18207.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Golden Is Thy Fame",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Tooley Jennifer",
+              "jockey": "Bracho Jose A",
+              "weight": 119,
+              "age": 3,
+              "sex": "F",
+              "dam": "Our Golden Snitch",
+              "sire": "Firing Line",
+              "damSire": "Put It Back",
+              "ownerName": "Dolce Vita Farm",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18208.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18208.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Dollar Dance",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Morales Saul M",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 123,
+              "age": 4,
+              "sex": "F",
+              "dam": "Tangueray Miss",
+              "sire": "Broken Vow",
+              "damSire": "Cowboy Cal",
+              "ownerName": "N and E Racing Stables",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18209.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18209.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-5",
+      "number": "5",
+      "postTime": "2026-05-11T18:50:00Z",
+      "numRunners": "8",
+      "distance": "6f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 306
+      },
+      "purse": 28000.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Shiloh",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Rivera Nestor R",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 119,
+              "age": 6,
+              "sex": "M",
+              "dam": "Large Marge",
+              "sire": "Brethren",
+              "damSire": "Dialed In",
+              "ownerName": "Rivera Racing Stables, LLC.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18501.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18501.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Mima Princess",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Bouali Wajdi",
+              "jockey": "Martinez Miguel L",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Ideratherblucky",
+              "sire": "Good Samaritan",
+              "damSire": "Ide",
+              "ownerName": "Wajdi Bouali",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18502.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18502.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pincara",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Campbell Anthony L",
+              "jockey": "Batista Luis A",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Fancy Pinstripes",
+              "sire": "Caracaro",
+              "damSire": "Harlan's Holiday",
+              "ownerName": "One Turn, LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18503.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18503.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tale Of Lemonbelle",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Skerrett Jeffrey",
+              "jockey": "Skerrett Jefferson",
+              "weight": 110,
+              "age": 3,
+              "sex": "F",
+              "dam": "Lemon Drop Belle",
+              "sire": "Tale Of Ekati",
+              "damSire": "Lemon Drop Kid",
+              "ownerName": "Danielle Agnello",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18504.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18504.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Honduras Passion",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Puhl Kim A",
+              "jockey": "Gonzalez Luis A",
+              "weight": 119,
+              "age": 5,
+              "sex": "M",
+              "dam": "Beautiful Honduras",
+              "sire": "Mark Valeski",
+              "damSire": "Brahms",
+              "ownerName": "Juan Martinez",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18505.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18505.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Taqdeer",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Cline Robert C",
+              "jockey": "Fernandez Victor R",
+              "weight": 123,
+              "age": 4,
+              "sex": "F",
+              "dam": "Sabooh",
+              "sire": "Tamarkuz",
+              "damSire": "A.P. Indy",
+              "ownerName": "Robert C. Cline",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18506.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18506.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Name Dropper",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Hamm Timothy E",
+              "jockey": "Bowen Rocco",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Hidatsa Park",
+              "sire": "Upstart",
+              "damSire": "Divine Park",
+              "ownerName": "Blazing Meadows Farm LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18507.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18507.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Honor And Obay",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Morales Saul M",
+              "jockey": "Chavez Alexander",
+              "weight": 115,
+              "age": 3,
+              "sex": "F",
+              "dam": "Anoush",
+              "sire": "Code Of Honor",
+              "damSire": "Candy Ride (Arg)",
+              "ownerName": "N and E Racing Stables",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn18508.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn18508.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-6",
+      "number": "6",
+      "postTime": "2026-05-11T19:20:00Z",
+      "numRunners": "8",
+      "distance": "6f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 306
+      },
+      "purse": 35800.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Strategic Profile",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Hamm Timothy E",
+              "jockey": "Diaz, Jr. Hector R",
+              "weight": 115,
+              "age": 3,
+              "sex": "G",
+              "dam": "Chainsmoknsuprmodl",
+              "sire": "Dialed In",
+              "damSire": "Super Saver",
+              "ownerName": "Runnymoore Racing, LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19201.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19201.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Unbridled O'brien",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Calderon Ivan",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 115,
+              "age": 3,
+              "sex": "G",
+              "dam": "Ultimate Holiday",
+              "sire": "Beau Liam",
+              "damSire": "Harlan's Holiday",
+              "ownerName": "Valls Thoroughbreds LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19202.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19202.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Leavetheninetynine",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Radosevich Jeffrey A",
+              "jockey": "Rivera Luis R",
+              "weight": 115,
+              "age": 3,
+              "sex": "G",
+              "dam": "Lena Love",
+              "sire": "Keen Ice",
+              "damSire": "City Weekend",
+              "ownerName": "Dustin J. Thomson and Paige Caldwell",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19203.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19203.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Workstation",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Dacosta Jason",
+              "jockey": "Batista Luis A",
+              "weight": 115,
+              "age": 3,
+              "sex": "G",
+              "dam": "Jumpin Jett",
+              "sire": "Cloud Computing",
+              "damSire": "Yes It's True",
+              "ownerName": "Donald Todd Jr., Calypso Stable and Jason DaCosta",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19204.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19204.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Wisley",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Zielinski Richard",
+              "jockey": "Tapara Brandon",
+              "weight": 115,
+              "age": 3,
+              "sex": "G",
+              "dam": "Great Goin Rose",
+              "sire": "Always Dreaming",
+              "damSire": "Albert The Great",
+              "ownerName": "Nancy Lavrich and Ronald Zielinski",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19205.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19205.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Biscuits 'n Gravy",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Jackson James R",
+              "jockey": "Houghton T. D",
+              "weight": 115,
+              "age": 3,
+              "sex": "C",
+              "dam": "Broadway Annierose",
+              "sire": "World Of Trouble",
+              "damSire": "Stalwart",
+              "ownerName": "Elkhorn Oaks, Inc.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19206.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19206.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Little Shance",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Reed Eric R",
+              "jockey": "Weatherly Bailey",
+              "weight": 119,
+              "age": 4,
+              "sex": "G",
+              "dam": "Moon Date",
+              "sire": "Shancelot",
+              "damSire": "Malibu Moon",
+              "ownerName": "Matthew Kosco",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19207.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19207.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Secret Caller",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Rivera Nestor R",
+              "jockey": "Chavez Alexander",
+              "weight": 114,
+              "age": 4,
+              "sex": "F",
+              "dam": "Secret Haul",
+              "sire": "Dialed In",
+              "damSire": "Dunkirk",
+              "ownerName": "Rivera Racing Stables, LLC.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19208.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19208.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-7",
+      "number": "7",
+      "postTime": "2026-05-11T19:50:00Z",
+      "numRunners": "8",
+      "distance": "6f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 306
+      },
+      "purse": 28000.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Miesha",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Rone Michael L",
+              "jockey": "Rivera Luis R",
+              "weight": 123,
+              "age": 5,
+              "sex": "M",
+              "dam": "Cupcake Tate",
+              "sire": "Cloud Computing",
+              "damSire": "The Factor",
+              "ownerName": "Leroy Jackson",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19501.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19501.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Lo Bug",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Zielinski Richard",
+              "jockey": "Bracho Jose A",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Turducken",
+              "sire": "Mor Spirit",
+              "damSire": "Maria's Mon",
+              "ownerName": "Howlett Racing, Inc.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19502.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19502.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Belle Bottoms",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Rivera Nestor R",
+              "jockey": "Salazar Becerra Fernando",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Bellamy Brooke",
+              "sire": "Tapiture",
+              "damSire": "Bellamy Road",
+              "ownerName": "Rivera Racing Stables, LLC.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19503.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19503.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Anotherhope",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Meyers Shane",
+              "jockey": "Chavez Alexander",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Striking Impact",
+              "sire": "Union Rags",
+              "damSire": "Smart Strike",
+              "ownerName": "Tom P. Pavlish",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19504.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19504.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Queenofthebuckeye",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Skerrett Jeffrey",
+              "jockey": "Skerrett Jefferson",
+              "weight": 118,
+              "age": 7,
+              "sex": "M",
+              "dam": "Buckler",
+              "sire": "Dark Kestrel",
+              "damSire": "Concerto",
+              "ownerName": "Danielle Agnello",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19505.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19505.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Kissin Cash",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Puhl Kim A",
+              "jockey": "Gonzalez Luis A",
+              "weight": 119,
+              "age": 4,
+              "sex": "F",
+              "dam": "Slam Chowder",
+              "sire": "Shancelot",
+              "damSire": "Grand Slam",
+              "ownerName": "Gene Burkholder",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19506.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19506.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Sushi Q",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Morales Saul M",
+              "jockey": "Batista Luis A",
+              "weight": 119,
+              "age": 8,
+              "sex": "M",
+              "dam": "Sushi Girl",
+              "sire": "Palace",
+              "damSire": "Orientate",
+              "ownerName": "N and E Racing Stables",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19507.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19507.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Oh Glorious Day",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Vazquez Ivan",
+              "jockey": "Keiser Chelsey",
+              "weight": 119,
+              "age": 5,
+              "sex": "M",
+              "dam": "Catch The Waves",
+              "sire": "Dynamic Racer",
+              "damSire": "Pacific Waves",
+              "ownerName": "Graver Racing Stables, LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn19508.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn19508.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TDN-8",
+      "number": "8",
+      "postTime": "2026-05-11T20:20:00Z",
+      "numRunners": "8",
+      "distance": "6f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Claiming",
+        "id": 313
+      },
+      "purse": 17400.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "General Winston",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Schuster Robin",
+              "jockey": "Terraza German",
+              "weight": 119,
+              "age": 8,
+              "sex": "G",
+              "dam": "Ms. Rhetta",
+              "sire": "Kettle Corn",
+              "damSire": "Forest Danger",
+              "ownerName": "Wayne Mann",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20201.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20201.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Quiet Amigo",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Bailey Ricardo",
+              "jockey": "Simpson Jason",
+              "weight": 119,
+              "age": 8,
+              "sex": "G",
+              "dam": "Without A Sound",
+              "sire": "Senor Amigo",
+              "damSire": "Thunder Gulch",
+              "ownerName": "Lion Palm Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20202.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20202.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Rumble Strip Ron",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Johnson Gary L",
+              "jockey": "Skerrett Jefferson",
+              "weight": 114,
+              "age": 7,
+              "sex": "G",
+              "dam": "Feisty Tomboy",
+              "sire": "Klimt",
+              "damSire": "Unbridled's Song",
+              "ownerName": "Syd Racing, LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20203.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20203.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pecks Not Bad",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Jackson James R",
+              "jockey": "Parker Deshawn L",
+              "weight": 119,
+              "age": 8,
+              "sex": "G",
+              "dam": "Lady Monavi",
+              "sire": "Lightnin N Thunder",
+              "damSire": "Mondavi",
+              "ownerName": "Elkhorn Oaks, Inc.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20204.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20204.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Private Drive",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Winters Michelle",
+              "jockey": "Fuentes Erick",
+              "weight": 114,
+              "age": 10,
+              "sex": "G",
+              "dam": "Private Cause",
+              "sire": "Bellamy Road",
+              "damSire": "Noble Causeway",
+              "ownerName": "Michelle Winters",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20205.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20205.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Weekend Buzz",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Calderon Ivan",
+              "jockey": "Bowen Rocco",
+              "weight": 119,
+              "age": 8,
+              "sex": "G",
+              "dam": "Buzz Home",
+              "sire": "City Weekend",
+              "damSire": "Bellamy Road",
+              "ownerName": "Valls Thoroughbreds LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20206.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20206.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Stone Cold Cat",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Calderon Ivan",
+              "jockey": "Diaz, Jr. Hector R",
+              "weight": 119,
+              "age": 10,
+              "sex": "G",
+              "dam": "Mizz Charlee",
+              "sire": "Stately Victor",
+              "damSire": "Lear Fan",
+              "ownerName": "Valls Thoroughbreds LLC",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20207.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20207.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Powerful Phil",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Johnson Gary L",
+              "jockey": "Cedillo Mauro",
+              "weight": 119,
+              "age": 7,
+              "sex": "G",
+              "dam": "Be Mind Phil",
+              "sire": "Global Power",
+              "damSire": "Philanthropist",
+              "ownerName": "Jerry Laria",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260511tdn20208.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260511tdn20208.svg"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

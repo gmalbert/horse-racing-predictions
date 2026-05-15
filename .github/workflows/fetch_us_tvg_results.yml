@@ -1,0 +1,54 @@
+name: Fetch US TVG Historical Results
+
+on:
+  schedule:
+    # nightly at 05:00 UTC (before daily racecard fetch and weekly training)
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of days back from today to fetch (default: 7)'
+        required: false
+        default: '7'
+
+jobs:
+  fetch-us-tvg-results:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Fetch US TVG historical results
+        run: |
+          DAYS=${{ github.event.inputs.days }}
+          echo "Fetching last $DAYS days of US TVG historical results..."
+          python scripts/fetch_tvg_results.py --days "$DAYS"
+
+      - name: Commit fetched TVG raw results
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add data/raw/tvg_results_*.json || true
+          if git diff --staged --quiet; then
+            echo "No new TVG raw result files to commit"
+          else
+            git commit -m "chore: fetch US TVG historical result data [skip ci]" || true
+            git push
+          fi

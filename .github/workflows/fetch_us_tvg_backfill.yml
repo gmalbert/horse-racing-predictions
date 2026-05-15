@@ -1,0 +1,103 @@
+name: Weekly US TVG Historical Backfill
+
+on:
+  schedule:
+    # Every Sunday at 06:00 UTC
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      weeks:
+        description: 'Number of weeks to backfill each run (default 2)'
+        required: false
+        default: '2'
+
+jobs:
+  backfill-us-tvg-history:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Compute backfill range
+        id: compute_range
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from datetime import date, timedelta
+          import re
+
+          raw_dir = Path('data/raw')
+          files = sorted(raw_dir.glob('tvg_results_*.json'))
+          base_start = date(2022, 1, 1)
+          weeks = int('${{ github.event.inputs.weeks }}')
+          days = max(1, weeks * 7)
+
+          def parse_date(path):
+              m = re.search(r'tvg_results_(\d{4}-\d{2}-\d{2})\.json$', path.name)
+              return date.fromisoformat(m.group(1)) if m else None
+
+          existing_dates = [parse_date(p) for p in files if parse_date(p) is not None]
+          if existing_dates:
+              oldest = min(existing_dates)
+              end = oldest - timedelta(days=1)
+              start = end - timedelta(days=days - 1)
+              if start < base_start:
+                  start = base_start
+          else:
+              start = base_start
+              end = start + timedelta(days=days - 1)
+
+          if end < base_start or end < start:
+              print('should_run=false')
+          else:
+              print(f'start={start.isoformat()}')
+              print(f'end={end.isoformat()}')
+              print('should_run=true')
+          PY
+        shell: bash
+
+      - name: Show planned range
+        if: steps.compute_range.outputs.should_run == 'true'
+        run: |
+          echo "Backfill start=${{ steps.compute_range.outputs.start }}"
+          echo "Backfill end=${{ steps.compute_range.outputs.end }}"
+
+      - name: Skip if no backfill needed
+        if: steps.compute_range.outputs.should_run != 'true'
+        run: |
+          echo "No older TVG history to backfill."
+
+      - name: Fetch older TVG historical results
+        if: steps.compute_range.outputs.should_run == 'true'
+        run: |
+          python scripts/fetch_tvg_results.py --start "${{ steps.compute_range.outputs.start }}" --end "${{ steps.compute_range.outputs.end }}" --delay 0.5
+
+      - name: Commit fetched TVG raw results
+        if: steps.compute_range.outputs.should_run == 'true'
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add data/raw/tvg_results_*.json || true
+          if git diff --staged --quiet; then
+            echo "No new TVG raw results to commit"
+          else
+            git commit -m "chore: backfill older US TVG historical results [skip ci]" || true
+            git push
+          fi
