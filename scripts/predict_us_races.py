@@ -239,8 +239,17 @@ def _build_horse_features(runner: dict, race_ctx: dict,
     if len(horse_history) > 0:
         hist = horse_history.copy()
         hist['pos_num'] = pd.to_numeric(hist.get('pos', hist.get('position', None)), errors='coerce')
-        hist['btn_num'] = pd.to_numeric(hist.get('btn', 0), errors='coerce').fillna(0)
-        hist['or_num']  = pd.to_numeric(hist.get('or_numeric', hist.get('or', 0)), errors='coerce').fillna(0)
+
+        btn_values = hist['btn'] if 'btn' in hist.columns else pd.Series([0] * len(hist), index=hist.index)
+        hist['btn_num'] = pd.to_numeric(btn_values, errors='coerce').fillna(0)
+
+        if 'or_numeric' in hist.columns:
+            or_values = hist['or_numeric']
+        elif 'or' in hist.columns:
+            or_values = hist['or']
+        else:
+            or_values = pd.Series([0] * len(hist), index=hist.index)
+        hist['or_num']  = pd.to_numeric(or_values, errors='coerce').fillna(0)
 
         n = len(hist)
         wins   = (hist['pos_num'] == 1).sum()

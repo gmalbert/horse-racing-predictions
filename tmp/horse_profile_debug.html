@@ -1,0 +1,497 @@
+<html><head><script>
+    function addCartEQL(product){
+        var input = $("<input>").attr({type: 'hidden', name: product, value: 'on' });
+        $("#eqProducts").append(input);
+        $("#eqProducts").submit();
+        $(".eqCheck").attr("checked", false);
+    }
+
+    $(function () {
+        $('[data-toggle="popover"]').popover()
+    })
+</script>
+
+
+<style>
+    .popover-content{
+        text-align: left;
+    }
+</style>
+
+
+
+        <script>
+            function newTitle(title){
+                document.title = title;
+            }
+
+            $(document).ready(function(){
+                $("#noResultSearch").blur(function(){
+                    var default_value = $(this).attr("rel");
+                    if ($(this).val() == ""){
+                        $(this).val(default_value);
+                    }
+                }).focus( function(){
+                    var default_value = $(this).attr("rel");
+                    if ($(this).val() == default_value){
+                        $(this).val("");
+                    }
+                });
+            });
+
+        </script>
+
+        <script>
+            $(function(){
+                var active = $("#statistics");
+                //Toggle Tabbed Content
+
+                $('.tab-toggles a').click(function (){
+                    active.removeClass("active");
+                    $(this).addClass("active");
+                    $("#" + active.attr("id") + "Container").hide().addClass('hidden');
+                    $('#' + $(this).attr('id') + 'Container').show().removeClass('hidden');
+
+                    // send event notification to google analytics
+                    gtag('send', 'event', 'Profiles', 'click', $(this).attr('id'));
+
+                    active = $('tab-content');
+                    return false;
+                });
+
+            });
+        </script>
+
+        </head><body><div class="ui-widget-header center">
+            <br>
+            <p></p><h2>The horse you were searching for could not be found. Please try again.</h2><p></p>
+            <br>
+            <form action="" method="post">
+                <div class="profilesNotFoundOuterContainer">
+                    <div class="profileNotFoundInnerContainer">
+                        <input type="text" class="style2" name="horse_name" id="noResultSearch" rel="Horse Name" value="Horse Name" size="30">
+                        <input type="image" src="../img/pagespecific/searchhorse.png" alt="Go!" class="findButton">
+                    </div>
+                </div>
+            </form>
+            <br>
+            <p></p><h2>If horse is unnamed, click <a href="?type=Yob">here</a> to search by Year of Birth and Dam. </h2><p></p>
+            <br>
+        </div>
+        <div class="col-xs-12 site-module-container mobile-homepage-module-divider top-spacer">
+            <h2 class="title homepage-header-text" style="min-width:100%;">
+                Daily Insights
+                <!--Daily Insights logo -->
+                <a href="http://pubads.g.doubleclick.net/gampad/clk?id=5625324198&amp;iu=/2542414/EQ_Click_DailyInsightsHomepage" target="_blank"><img border="0" style="position:relative; max-height:35px; right:0; bottom:5px;" align="right" src="/images/ads/phra/PHRA_logo.png"></a>
+            </h2>
+            
+<!-- Content -->
+
+    <div class="site-module-content">
+        <p class="phone-show table-hide desktop-hide">&nbsp;</p>
+        <div>
+            Receive each day's Daily Insights information delivered directly to your inbox! <a href="\DailyInsights\signup.cfm">Sign Up Today!</a>
+        </div>
+        <div class="daily-insights-homepage-title">
+            Horses - Entered Today
+        </div>
+        <table id="dailyInsightsHorses" class="table-padded phone-collapse" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Horse</th>
+                    <th>Sire</th>
+                    <th>Track</th>
+                    <th>Yearly High</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Highest E Speed Figure (Last 365)</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Highest E Speed Figure (Last 365)</td>
+                                <td data-label="Value">118</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=10467739&amp;registry=T&amp;rbt=TB">Caramel Chip</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=7732652&amp;registry=T&amp;rbt=TB">Midshipman</a></td>
+                                <td data-label="Track"> <a href="https://www.equibase.com/static/entry/BAQ051526USA-EQB.html#RACE3">Belmont At The Big A</a></td>
+                                
+                                    <td data-label="Yearly High"><a data-toggle="tooltip" data-placement="top" title=" Man O Rose (Sire: Stanford) ">119</a></td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Highest Average E Speed Today</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Highest Average E Speed Today</td>
+                                <td data-label="Value">102.60</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=10604024&amp;registry=T&amp;rbt=TB">Astronomer</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=9514713&amp;registry=T&amp;rbt=TB">Air Force Blue</a></td>
+                                <td data-label="Track"> <a href="https://www.equibase.com/static/chart/summary/CD051526USA9-EQB.html">Churchill Downs</a></td>
+                                
+                                    <td data-label="Yearly High">N/A</td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Top Career Earner</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Top Career Earner</td>
+                                <td data-label="Value">$886,332.00</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=10439370&amp;registry=T&amp;rbt=TB">Get Her Number</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=8266889&amp;registry=T&amp;rbt=TB">Dialed In</a></td>
+                                <td data-label="Track"> <a href="https://www.equibase.com/static/chart/summary/CD051526USA3-EQB.html">Churchill Downs</a></td>
+                                
+                                    <td data-label="Yearly High">N/A</td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Longest Active Win Streak</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Longest Active Win Streak</td>
+                                <td data-label="Value">4</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=11339613&amp;registry=T&amp;rbt=TB">Braken Poppa</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=10098310&amp;registry=T&amp;rbt=TB">Aurelius Maximus</a></td>
+                                <td data-label="Track"> <a href="https://www.equibase.com/static/chart/summary/LRL051526USA13-EQB.html">Laurel Park</a></td>
+                                
+                                    <td data-label="Yearly High">N/A</td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Largest Avg Stride Length</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Largest Avg Stride Length</td>
+                                <td data-label="Value"> 26.07</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=10775309&amp;registry=T&amp;rbt=TB">Happyisashappydoes</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=8029897&amp;registry=T&amp;rbt=TB">First Dude</a></td>
+                                <td data-label="Track"> <a href="https://www.equibase.com/static/chart/summary/GP051526USA9-EQB.html">Gulfstream Park</a></td>
+                                
+                                    <td data-label="Yearly High">N/A</td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Sire w/ Most Runners</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Sire w/ Most Runners</td>
+                                <td data-label="Value">12</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=8259272&amp;registry=T&amp;rbt=TB">Maclean's Music</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=1396750&amp;registry=T&amp;rbt=TB">Distorted Humor</a></td>
+                                <td data-label="Track"> N/A</td>
+                                
+                                    <td data-label="Yearly High"><a data-toggle="tooltip" data-placement="top" title=" Constitution (Sire: Tapit) | 03/07/2026 ,Constitution (Sire: Tapit) | 03/07/2026 Lotsa Mischief (Sire: Into Mischief) | 04/25/2026 ,Constitution (Sire: Tapit) | 03/07/2026 Lotsa Mischief (Sire: Into Mischief) | 04/25/2026 Into Mischief (Sire: Harlan's Holiday) | 05/02/2026 ">19</a></td>
+                                
+                            </tr>
+                        
+                            <tr>
+                                <td data-label="Type" class="phone-hide">Broodmare Sire w/ Most Runners</td>
+                                <td class="tablet-hide desktop-hide daily-insights-homepage-efigure">Broodmare Sire w/ Most Runners</td>
+                                <td data-label="Value">16</td>
+                                <td data-label="Horse"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=6106474&amp;registry=T&amp;rbt=TB">Tapit</a></td>
+                                <td data-label="Sire"> <a href="https://www.equibase.com/profiles/Results.cfm?type=Horse&amp;refno=1442325&amp;registry=T&amp;rbt=TB">Pulpit</a></td>
+                                <td data-label="Track"> N/A</td>
+                                
+                                    <td data-label="Yearly High"><a data-toggle="tooltip" data-placement="top" title=" Tapit (Sire: Pulpit) | 05/02/2026 ">36</a></td>
+                                
+                            </tr>
+                        
+            </tbody>
+        </table>
+        <br>
+        <div class="daily-insights-homepage-btns">
+            <a class="button btn-block daily-insights-homepage-btn" href="/DailyInsights/dailyInsights.cfm?location=yesterdayHorses">Yesterday's Top Horses</a>
+            <a class="button btn-block daily-insights-homepage-btn" href="/DailyInsights/dailyInsights.cfm?location=connectionHorses">Leading Connections</a>
+            <a class="button btn-block daily-insights-homepage-btn" href="/DailyInsights/dailyInsights.cfm">View All</a>
+        </div>
+    </div>
+ 
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+
+        </div>
+        <div class="col-xs-12 site-module-container mobile-homepage-module-divider top-spacer">
+            <h2 class="title homepage-header-text">
+                Top Carryovers &amp; Payouts
+            </h2>
+            <div class="site-module-content">
+                
+	<script src="/js/topCarryoversPayouts.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="/css/topCarryoversPayouts.css?currentVersion=1.1">
+	<div class="topCarryoversPayouts-container">
+		<ul class="nav nav-tabs carryoverPayout-tab-list" role="tablist">
+			<li class="active carryoverPayout-tab">
+				<a data-toggle="tab" href="#carryoverContent">Top Carryovers</a>
+			</li>
+			<li class="carryoverPayout-tab">
+				<a data-toggle="tab" href="#payoutContent">Top Payouts</a>
+			</li>
+		</ul>
+		<div class="tab-content">
+			<div id="carryoverContent" class="tab-pane fade in active">
+				<table class="fullwidth carryoverPayout-table">
+					<thead>
+						<tr class="carryoverPayoutHeader-row">
+							<th class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">Track Name</th>
+							<th class="desktop-hide carryoverPayout-special-range-hide super-small-track-hide">Track</th>
+							<th class="carryoverPayout-special-range-show super-small-track-show">Trk</th>
+							<th>Bet Type</th>
+							<th>Date</th>
+							<th>Pool</th>
+						</tr>
+						</thead><tbody>
+							
+								<tr class="carryoverPayoutContent-row">
+									<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+										<div class="carryoverPayout-track-column">
+											<span title="Parx Racing" class="carryoverPayout-track-name">
+												Parx Racing
+											</span>
+										</div>
+									</td>
+									<td class="desktop-hide carryoverPayout-special-range-show">
+										PRX
+									</td>
+									<td class="carryoverPayout-wager-name">
+										Pick 5 Jackpot
+									</td>
+									<td>
+										05/12/2026
+									</td>
+									<td>
+										$172,873.00
+									</td>
+								</tr>
+							
+								<tr class="carryoverPayoutContent-row">
+									<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+										<div class="carryoverPayout-track-column">
+											<span title="Parx Racing" class="carryoverPayout-track-name">
+												Parx Racing
+											</span>
+										</div>
+									</td>
+									<td class="desktop-hide carryoverPayout-special-range-show">
+										PRX
+									</td>
+									<td class="carryoverPayout-wager-name">
+										Pick 5 Jackpot
+									</td>
+									<td>
+										05/12/2026
+									</td>
+									<td>
+										$158,391.00
+									</td>
+								</tr>
+							
+								<tr class="carryoverPayoutContent-row">
+									<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+										<div class="carryoverPayout-track-column">
+											<span title="Churchill Downs" class="carryoverPayout-track-name">
+												Churchill Downs
+											</span>
+										</div>
+									</td>
+									<td class="desktop-hide carryoverPayout-special-range-show">
+										CD
+									</td>
+									<td class="carryoverPayout-wager-name">
+										Pick 6 Jackpot
+									</td>
+									<td>
+										05/15/2026
+									</td>
+									<td>
+										$99,328.00
+									</td>
+								</tr>
+							
+								<tr class="carryoverPayoutContent-row">
+									<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+										<div class="carryoverPayout-track-column">
+											<span title="Laurel Park" class="carryoverPayout-track-name">
+												Laurel Park
+											</span>
+										</div>
+									</td>
+									<td class="desktop-hide carryoverPayout-special-range-show">
+										LRL
+									</td>
+									<td class="carryoverPayout-wager-name">
+										Pick 6 Jackpot
+									</td>
+									<td>
+										05/15/2026
+									</td>
+									<td>
+										$60,855.00
+									</td>
+								</tr>
+							
+								<tr class="carryoverPayoutContent-row">
+									<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+										<div class="carryoverPayout-track-column">
+											<span title="Los Alamitos Quarter Horse" class="carryoverPayout-track-name">
+												Los Alamitos Quarter Horse
+											</span>
+										</div>
+									</td>
+									<td class="desktop-hide carryoverPayout-special-range-show">
+										LA
+									</td>
+									<td class="carryoverPayout-wager-name">
+										Pick 6
+									</td>
+									<td>
+										05/10/2026
+									</td>
+									<td>
+										$49,447.00
+									</td>
+								</tr>
+							
+						</tbody>
+					
+				</table>
+				<div class="carryoverPayout-view-all-div">
+					<a href="/premium/eqpCarryoverCorner.cfm?SAP=TN">View All</a>
+				</div>
+			</div>
+			<div id="payoutContent" class="tab-pane fade">
+				<table class="fullwidth carryoverPayout-table">
+					<thead>
+						<tr class="carryoverPayoutHeader-row">
+							<th class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">Track Name</th>
+							<th class="desktop-hide carryoverPayout-special-range-hide super-small-track-hide">Track</th>
+							<th class="carryoverPayout-special-range-show super-small-track-show">Trk</th>
+							<th>Bet Type</th>
+							<th>Amount</th>
+							<th>Payout</th>
+						</tr>
+					</thead>
+					<tbody>
+						
+							<tr class="carryoverPayoutContent-row">
+								<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+									<div class="carryoverPayout-track-column">
+										<span title="Churchill Downs" class="carryoverPayout-track-name">
+											Churchill Downs
+										</span>
+									</div>
+								</td>
+								<td class="desktop-hide carryoverPayout-special-range-show">
+									CD 
+								</td>
+								<td class="carryoverPayout-wager-name">
+									Pick 5
+								</td>
+								<td>
+									$0.50
+								</td>
+								<td>
+									$43,238.79
+								</td>
+							</tr>
+						
+							<tr class="carryoverPayoutContent-row">
+								<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+									<div class="carryoverPayout-track-column">
+										<span title="Churchill Downs" class="carryoverPayout-track-name">
+											Churchill Downs
+										</span>
+									</div>
+								</td>
+								<td class="desktop-hide carryoverPayout-special-range-show">
+									CD 
+								</td>
+								<td class="carryoverPayout-wager-name">
+									Super High Five
+								</td>
+								<td>
+									$1.00
+								</td>
+								<td>
+									$24,243.05
+								</td>
+							</tr>
+						
+							<tr class="carryoverPayoutContent-row">
+								<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+									<div class="carryoverPayout-track-column">
+										<span title="Evangeline" class="carryoverPayout-track-name">
+											Evangeline
+										</span>
+									</div>
+								</td>
+								<td class="desktop-hide carryoverPayout-special-range-show">
+									EVD
+								</td>
+								<td class="carryoverPayout-wager-name">
+									Pick 4
+								</td>
+								<td>
+									$0.50
+								</td>
+								<td>
+									$11,385.20
+								</td>
+							</tr>
+						
+							<tr class="carryoverPayoutContent-row">
+								<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+									<div class="carryoverPayout-track-column">
+										<span title="Charles Town" class="carryoverPayout-track-name">
+											Charles Town
+										</span>
+									</div>
+								</td>
+								<td class="desktop-hide carryoverPayout-special-range-show">
+									CT 
+								</td>
+								<td class="carryoverPayout-wager-name">
+									Superfecta
+								</td>
+								<td>
+									$1.00
+								</td>
+								<td>
+									$6,422.50
+								</td>
+							</tr>
+						
+							<tr class="carryoverPayoutContent-row">
+								<td class="phone-hide carryoverPayout-tablet-hide carryoverPayout-special-range-hide">
+									<div class="carryoverPayout-track-column">
+										<span title="Charles Town" class="carryoverPayout-track-name">
+											Charles Town
+										</span>
+									</div>
+								</td>
+								<td class="desktop-hide carryoverPayout-special-range-show">
+									CT 
+								</td>
+								<td class="carryoverPayout-wager-name">
+									Pick 5
+								</td>
+								<td>
+									$1.00
+								</td>
+								<td>
+									$3,077.00
+								</td>
+							</tr>
+						
+					</tbody>
+				</table>
+				<div class="carryoverPayout-view-all-div">
+					<a href="/premium/eqbHighestPayouts.cfm?SAP=TN">View All</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+            </div>
+        </div>
+    </body></html>
