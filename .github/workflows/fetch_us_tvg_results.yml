@@ -33,7 +33,7 @@ jobs:
 
       - name: Fetch US TVG historical results
         run: |
-          DAYS=${{ github.event.inputs.days }}
+          DAYS=${{ github.event.inputs.days || '7' }}
           echo "Fetching last $DAYS days of US TVG historical results..."
           python scripts/fetch_tvg_results.py --days "$DAYS"
 
