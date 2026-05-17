@@ -38,11 +38,16 @@ jobs:
           from pathlib import Path
           from datetime import date, timedelta
           import re
+          import os
 
           raw_dir = Path('data/raw')
           files = sorted(raw_dir.glob('tvg_results_*.json'))
           base_start = date(2022, 1, 1)
-          weeks = int('${{ github.event.inputs.weeks }}')
+          raw_weeks = '${{ github.event.inputs.weeks }}'.strip()
+          try:
+              weeks = int(raw_weeks) if raw_weeks else 2
+          except ValueError:
+              weeks = 2
           days = max(1, weeks * 7)
 
           def parse_date(path):
@@ -60,12 +65,14 @@ jobs:
               start = base_start
               end = start + timedelta(days=days - 1)
 
-          if end < base_start or end < start:
-              print('should_run=false')
-          else:
-              print(f'start={start.isoformat()}')
-              print(f'end={end.isoformat()}')
-              print('should_run=true')
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a', encoding='utf-8') as fh:
+              if end < base_start or end < start:
+                  fh.write('should_run=false\n')
+              else:
+                  fh.write(f'start={start.isoformat()}\n')
+                  fh.write(f'end={end.isoformat()}\n')
+                  fh.write('should_run=true\n')
           PY
         shell: bash
 
