@@ -4,20 +4,20 @@ name: Keep Streamlit App Alive
 # due to inactivity on Streamlit Community Cloud.
 #
 # Features:
-# - Runs every 30 minutes with 0-10 minute randomization (pings every ~30-40 minutes)
+# - Runs every 6 hours (sufficient to keep Streamlit alive; avoids burning Actions minutes)
 # - Adds random delay to vary timing and make logs look more natural
 # - Tolerates failures without breaking the workflow
 #
 # To use in another repository:
 # 1. Copy this file to .github/workflows/
 # 2. Update the STREAMLIT_APP_URL below with your app's URL
-# 3. Adjust the schedule if needed (currently runs every 30 minutes)
+# 3. Adjust the schedule if needed (currently runs every 6 hours)
 # 4. Adjust DELAY calculation to change random window (currently 0-20 min)
 
 on:
   schedule:
-    # Run every 30 minutes with randomization (pings roughly every 30-40 minutes)
-    - cron: '*/30 * * * *'
+    # Run every 6 hours — sufficient to keep Streamlit app alive, avoids exhausting Actions minutes
+    - cron: '0 */6 * * *'
   
   workflow_dispatch:  # Allow manual trigger for testing
 
