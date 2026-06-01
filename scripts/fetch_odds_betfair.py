@@ -210,7 +210,7 @@ def fetch_odds_for_race(client: APIClient, race: Dict, race_date: str) -> List[D
     # Parse off_time to match against market start times
     try:
         race_time = datetime.strptime(f"{race_date} {off_time}", '%Y-%m-%d %H:%M')
-    except:
+    except Exception:
         print(f"Invalid off_time: {off_time}")
         return []
     

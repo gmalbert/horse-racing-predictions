@@ -180,7 +180,7 @@ def scrape_racing_post_odds(date_str, course=None):
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CLASS_NAME, "RC-headerBox__raceInfo"))
                     )
-                except:
+                except Exception:
                     print("  ⚠️  Race card didn't load")
                     continue
                 
@@ -192,7 +192,7 @@ def scrape_racing_post_odds(date_str, course=None):
                     
                     print(f"  Course: {course_name}")
                     print(f"  Info: {race_info}")
-                except:
+                except Exception:
                     course_name = "Unknown"
                     race_info = ""
                 
@@ -224,7 +224,7 @@ def scrape_racing_post_odds(date_str, course=None):
                                 try:
                                     horse_name = runner.find_element(By.CSS_SELECTOR, selector).text
                                     break
-                                except:
+                                except Exception:
                                     continue
                             
                             if not horse_name:
@@ -237,7 +237,7 @@ def scrape_racing_post_odds(date_str, course=None):
                                     odds_elem = runner.find_element(By.CSS_SELECTOR, selector)
                                     odds = odds_elem.text
                                     break
-                                except:
+                                except Exception:
                                     continue
                             
                             race_odds['horses'].append({

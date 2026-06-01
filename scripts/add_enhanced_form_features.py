@@ -99,7 +99,7 @@ def engineer_enhanced_form_features(df):
         try:
             slope = np.polyfit(range(len(positions)), positions, 1)[0]
             return -slope  # Negative slope means improving (smaller positions)
-        except:
+        except Exception:
             return 0
     
     df['form_trend'] = df.groupby('horse')['pos_clean'].transform(

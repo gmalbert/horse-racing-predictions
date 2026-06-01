@@ -136,7 +136,7 @@ def match_oddsmatrix_event_to_race(event: Dict, racecards: Dict) -> Optional[Dic
                 event_time = None
         else:
             event_time = None
-    except:
+    except Exception:
         event_time = None
     
     # Search through racecards for matching venue and time

@@ -18,5 +18,5 @@ def extract_trip_features(comment_text):
         # Simple cleanup to ensure valid JSON
         data = json.loads(response['response'].strip())
         return data
-    except:
+    except Exception:
         return {"trouble_at_start": 0, "wide_trip": 0, "strong_finish": 0}

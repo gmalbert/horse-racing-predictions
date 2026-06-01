@@ -125,7 +125,7 @@ def match_scrapebet_event_to_race(event: Dict, racecards: Dict) -> Optional[Dict
             event_time = event_dt.strftime('%H:%M')
         else:
             event_time = None
-    except:
+    except Exception:
         event_time = None
     
     # Search through racecards for matching venue and time

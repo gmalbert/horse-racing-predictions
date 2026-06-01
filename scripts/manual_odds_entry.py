@@ -138,13 +138,13 @@ def parse_odds(odds_str: str) -> float:
                 num = float(parts[0])
                 den = float(parts[1])
                 return round((num / den) + 1.0, 2)
-        except:
+        except Exception:
             pass
     
     # Try decimal
     try:
         return round(float(odds_str), 2)
-    except:
+    except Exception:
         return None
 
 

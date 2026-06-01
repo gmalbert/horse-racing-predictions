@@ -166,7 +166,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
             prize_str = str(race_info.get('prize', '0')).replace('£', '').replace(',', '')
             prize_val = float(prize_str) if prize_str else 0
             features['prize_log'] = np.log1p(prize_val)
-        except:
+        except Exception:
             features['prize_log'] = 8.5
         
         # Race score
@@ -177,7 +177,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
         if or_val and or_val != '-':
             try:
                 features['or_numeric'] = float(or_val)
-            except:
+            except Exception:
                 pass
         
         # Age from racecard
@@ -188,7 +188,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
                 features['is_peak_age'] = 1 if 3 <= features['age'] <= 5 else 0
                 features['is_3yo'] = 1 if features['age'] == 3 else 0
                 features['is_veteran'] = 1 if features['age'] >= 7 else 0
-            except:
+            except Exception:
                 pass
         
         return features
@@ -209,7 +209,7 @@ def build_default_features(runner, race_info, feature_cols):
     if or_val and or_val != '-':
         try:
             or_numeric = float(or_val)
-        except:
+        except Exception:
             or_numeric = 0
     else:
         or_numeric = 0
@@ -257,7 +257,7 @@ def build_default_features(runner, race_info, feature_cols):
         features['is_peak_age'] = 1 if 3 <= features['age'] <= 5 else 0
         features['is_3yo'] = 1 if features['age'] == 3 else 0
         features['is_veteran'] = 1 if features['age'] >= 7 else 0
-    except:
+    except Exception:
         features['age'] = 4
     
     # Race type
@@ -271,7 +271,7 @@ def build_default_features(runner, race_info, feature_cols):
         prize_str = str(race_info.get('prize', '0')).replace('£', '').replace(',', '')
         prize_val = float(prize_str) if prize_str else 0
         features['prize_log'] = np.log1p(prize_val)
-    except:
+    except Exception:
         features['prize_log'] = 8.5
     
     features['race_score'] = race_info.get('race_score', 50.0)

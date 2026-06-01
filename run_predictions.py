@@ -43,7 +43,7 @@ def find_latest_racecard():
             date_str = filename.replace('racecards_', '').replace('.json', '')
             date = datetime.strptime(date_str, '%Y-%m-%d')
             dated_files.append((date, date_str, f))
-        except:
+        except Exception:
             continue
     
     if not dated_files:

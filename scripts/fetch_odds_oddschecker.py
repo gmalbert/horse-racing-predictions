@@ -47,7 +47,7 @@ def get_oddschecker_race_url(course: str, race_time: str, date: str, region: str
     try:
         time_obj = datetime.strptime(race_time, '%H:%M')
         time_slug = time_obj.strftime('%H%M')
-    except:
+    except Exception:
         return None
     
     # Oddschecker URL format
@@ -72,12 +72,12 @@ def fetch_oddschecker_odds(url: str, race_id: int, runners: List[Dict]) -> List[
         resp = requests.get(url, headers=headers, timeout=15)
         if resp.status_code != 200:
             return []
-    except:
+    except Exception:
         return []
     
     try:
         doc = html.fromstring(resp.content)
-    except:
+    except Exception:
         return []
     
     odds_data = []
@@ -145,7 +145,7 @@ def convert_fractional_to_decimal(fractional: str) -> Optional[float]:
     
     try:
         return round(float(fractional), 2)
-    except:
+    except Exception:
         return None
 
 

@@ -140,7 +140,7 @@ def fractional_odds_to_probability(fractional_odds):
             return 0.0
         
         return denominator / (numerator + denominator)
-    except:
+    except Exception:
         return 0.0
 
 

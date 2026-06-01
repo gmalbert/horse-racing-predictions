@@ -210,12 +210,12 @@ def engineer_weight_features(df):
                 stones = int(parts[0])
                 lbs = int(parts[1]) if len(parts) > 1 else 0
                 return stones * 14 + lbs
-            except:
+            except Exception:
                 return np.nan
         else:
             try:
                 return float(weight_str)
-            except:
+            except Exception:
                 return np.nan
     
     # Parse weight column (try lbs first, then wgt for compatibility)
@@ -375,7 +375,7 @@ def engineer_beaten_lengths_features(df):
             if 'dist' in btn_str:
                 return 30.0
             return float(btn_str)
-        except:
+        except Exception:
             return np.nan
     
     # Parse btn column if present

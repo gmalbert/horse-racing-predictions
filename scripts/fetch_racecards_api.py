@@ -113,7 +113,7 @@ def transform_to_standard_format(api_races, date_str):
             try:
                 dt = datetime.fromisoformat(race_time.replace('Z', '+00:00'))
                 off_time = dt.strftime('%H:%M')
-            except:
+            except Exception:
                 off_time = race_time[:5] if len(race_time) >= 5 else '00:00'
         else:
             off_time = '00:00'

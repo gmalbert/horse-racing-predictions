@@ -55,7 +55,7 @@ async def scrape_odds_comparison_page(page, race_url, idx):
                     await button.click()
                     await page.wait_for_timeout(1000)
                     break
-            except:
+            except Exception:
                 continue
         
         # Wait for odds table to load
@@ -76,7 +76,7 @@ async def scrape_odds_comparison_page(page, race_url, idx):
             course_elem = page.locator('h1, .RC-headerBox__courseNamelink, [class*="courseName"]').first
             if await course_elem.count() > 0:
                 course_name = (await course_elem.inner_text()).strip()
-        except:
+        except Exception:
             pass
         
         print(f"  Course: {course_name}")
@@ -204,7 +204,7 @@ async def scrape_racing_post_odds(date_str, headless=False):
                     print(f"  ✓ Accepted cookies")
                     await page.wait_for_timeout(2000)
                     break
-            except:
+            except Exception:
                 continue
         
         # Wait for meetings

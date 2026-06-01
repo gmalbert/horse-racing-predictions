@@ -104,7 +104,7 @@ def apply_tier1_focus_criteria(df, strict_mode=True):
         # Check if numeric
         try:
             dist_match = (pd.to_numeric(df['dist_f'], errors='coerce') >= 7) & (pd.to_numeric(df['dist_f'], errors='coerce') <= 12)
-        except:
+        except Exception:
             dist_match = pd.Series(True, index=df.index)
     elif 'Distance' in df.columns:
         # Try to parse distance if it's string
@@ -200,7 +200,7 @@ def apply_tier2_value_criteria(df):
     elif 'dist_f' in df.columns:
         try:
             dist_match = (pd.to_numeric(df['dist_f'], errors='coerce') >= 5) & (pd.to_numeric(df['dist_f'], errors='coerce') <= 10)
-        except:
+        except Exception:
             dist_match = pd.Series(True, index=df.index)
     else:
         dist_match = pd.Series(True, index=df.index)

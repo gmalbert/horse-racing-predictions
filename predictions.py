@@ -1367,7 +1367,7 @@ def display_predicted_fixtures_tab():
                     )
                     fig.update_layout(height=400)
                     safe_st_call(st.plotly_chart, fig, width='stretch')
-                except:
+                except Exception:
                     st.info("Install plotly to see score distribution chart")
             else:
                 st.info("Install plotly to see score distribution chart")

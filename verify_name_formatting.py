@@ -48,7 +48,7 @@ for horse in all_horses:
         # Convert 'or' to numeric, handling non-numeric values
         try:
             avg_or = pd.to_numeric(matching_records['or'], errors='coerce').mean()
-        except:
+        except Exception:
             avg_or = 0
         matches_list.append({
             'racecard_name': horse['name'],
