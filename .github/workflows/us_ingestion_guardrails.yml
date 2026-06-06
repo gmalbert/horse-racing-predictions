@@ -1,0 +1,98 @@
+name: US Ingestion Guardrails
+
+on:
+  schedule:
+    # Daily at 06:15 UTC
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to validate (YYYY-MM-DD). Defaults to today ET.'
+        required: false
+
+jobs:
+  validate-us-ingestion:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Determine date
+        id: dates
+        run: |
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            echo "target=${{ github.event.inputs.date }}" >> $GITHUB_OUTPUT
+          else
+            echo "target=$(TZ=America/New_York date +%F)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build US all-sources racecards
+        run: |
+          echo "Building US racecards and source report for ${{ steps.dates.outputs.target }}"
+          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.target }}
+
+      - name: Validate US ingestion guardrails
+        run: |
+          python scripts/validate_us_ingestion.py \
+            --date ${{ steps.dates.outputs.target }} \
+            --min-total-races 8 \
+            --min-total-runners 50 \
+            --min-ml-odds-coverage 0.50 \
+            --lookback-days 14 \
+            --min-drift-ratio 0.50
+
+      - name: Audit US odds coverage
+        if: always()
+        run: |
+          python scripts/audit_us_odds_coverage.py --date ${{ steps.dates.outputs.target }}
+
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: us-ingestion-validation-${{ steps.dates.outputs.target }}
+          path: |
+            data/raw/us_racecards_${{ steps.dates.outputs.target }}.json
+            data/raw/us_source_report_${{ steps.dates.outputs.target }}.json
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.json
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.md
+            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.json
+            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.md
+          if-no-files-found: warn
+
+      - name: Commit US ingestion reports
+        if: always()
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -e
+          git config user.name "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add data/raw/us_racecards_${{ steps.dates.outputs.target }}.json || true
+          git add data/raw/us_source_report_${{ steps.dates.outputs.target }}.json || true
+          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.json || true
+          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.md || true
+          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.json || true
+          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.md || true
+          if git diff --staged --quiet; then
+            echo "No US ingestion report changes to commit"
+          else
+            git commit -m "chore: US ingestion validation + odds audit for ${{ steps.dates.outputs.target }} [skip ci]" || true
+            git push
+          fi

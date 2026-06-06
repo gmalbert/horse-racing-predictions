@@ -1,0 +1,36 @@
+{
+  "date": "2026-06-06",
+  "generated_at_utc": "2026-06-06T19:45:30.654869+00:00",
+  "sources": {
+    "us_racecards": {
+      "path": "data\\raw\\us_racecards_2026-06-06.json",
+      "available": true,
+      "races": 354,
+      "coverage": 1.0,
+      "total_runners": 2902,
+      "runners_with_odds": 2902
+    },
+    "nyra_entries": {
+      "path": "data\\raw\\nyra_entries_2026-06-06.json",
+      "available": false,
+      "races": 0,
+      "coverage": 0.0
+    },
+    "oddsportal": {
+      "path": "data\\raw\\oddsportal_us_2026-06-06.json",
+      "available": false,
+      "races": 0,
+      "coverage": 0.0
+    }
+  },
+  "fallback_hierarchy": [
+    "1) us_racecards_<date>.json (TVG/graphql ml_odds)",
+    "2) nyra_entries_<date>.json (NYRA ml_odds where available)",
+    "3) oddsportal_us_<date>.json (major stakes only)",
+    "4) last-known odds snapshot from previous day (stale flag required)"
+  ],
+  "alerts": [
+    "No fallback odds sources available (NYRA + OddsPortal both missing)."
+  ],
+  "status": "WARN"
+}

@@ -28,10 +28,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from odds_converter import probability_to_fractional_odds
 
-# Load feature columns that model expects
-def load_feature_columns():
-    """Load the 47 feature names the model was actually trained on"""
-    return [
+LEGACY_FEATURE_COLUMNS = [
         'career_runs', 'career_win_rate', 'career_place_rate', 'career_earnings', 
         'cd_runs', 'cd_win_rate', 'class_num', 'class_step', 'or_numeric', 
         'or_change', 'or_trend_3', 'avg_last_3_pos', 'wins_last_3', 'days_since_last', 
@@ -42,7 +39,19 @@ def load_feature_columns():
         'first_time_blinkers', 'gear_changed', 'is_handicap', 'is_maiden', 'is_pattern', 
         'prize_log', 'is_sprint', 'is_mile', 'is_middle', 'is_staying', 
         'jockey_career_runs', 'jockey_course_runs', 'jockey_trainer_runs'
-    ]
+]
+
+
+# Load feature columns that model expects
+def load_feature_columns():
+    """Load feature names from model artifact, falling back to legacy defaults."""
+    feature_file = os.path.join('models', 'feature_columns.txt')
+    if os.path.exists(feature_file):
+        with open(feature_file, 'r', encoding='utf-8') as f:
+            cols = [line.strip() for line in f if line.strip()]
+        if cols:
+            return cols
+    return LEGACY_FEATURE_COLUMNS
 
 def strip_country_suffix(name):
     """Remove country suffix like (IRE), (GB), (FR), (USA) from horse names"""
@@ -373,6 +382,22 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
     
     return predictions
 
+
+def load_historical_data():
+    """Load the best available historical feature dataset for inference."""
+    candidates = [
+        'data/processed/race_scores_engineered.parquet',
+        'data/processed/race_scores_with_all_features_no_leakage.parquet',
+        'data/processed/race_scores_connections_v2.parquet',
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            df = pd.read_parquet(path)
+            return df, path
+    raise FileNotFoundError(
+        'No historical feature dataset found. Expected one of: ' + ', '.join(candidates)
+    )
+
 def main():
     import warnings
     warnings.filterwarnings('ignore')
@@ -433,8 +458,12 @@ def main():
     
     # Load historical data
     print("Loading historical data...")
-    historical_df = pd.read_parquet('data/processed/race_scores_connections_v2.parquet')
-    print(f"[OK] Loaded {len(historical_df):,} historical records\n")
+    try:
+        historical_df, historical_path = load_historical_data()
+    except FileNotFoundError as exc:
+        print(f"[ERROR] {exc}")
+        return
+    print(f"[OK] Loaded {len(historical_df):,} historical records from {historical_path}\n")
     
     # Ensure date_dt column
     if 'date_dt' not in historical_df.columns:

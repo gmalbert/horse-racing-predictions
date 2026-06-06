@@ -15,10 +15,12 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -55,6 +57,7 @@ GQL_HEADERS = {
 }
 
 SOURCE_NAME = "tvg"
+EASTERN_TZ = ZoneInfo("America/New_York")
 
 # ---------------------------------------------------------------------------
 # GraphQL queries
@@ -220,25 +223,41 @@ def _race_type_to_breed(type_obj: dict | None) -> str:
 # ---------------------------------------------------------------------------
 
 def _posttime_to_local_hhmm(post_time_iso: str) -> str:
-    """Convert ISO UTC post time to HH:MM local (Eastern Racing time approx)."""
+    """Convert ISO UTC post time to HH:MM Eastern Time."""
     if not post_time_iso:
         return ""
     try:
         dt = datetime.fromisoformat(post_time_iso.replace("Z", "+00:00"))
-        return dt.strftime("%H:%M")  # Return UTC HH:MM - callers can convert if needed
+        return dt.astimezone(EASTERN_TZ).strftime("%H:%M")
     except Exception:
         return post_time_iso[:16]
 
 
 def _posttime_to_race_date(post_time_iso: str) -> str:
-    """Extract YYYY-MM-DD race date from ISO post time."""
+    """Extract YYYY-MM-DD race date in Eastern Time from ISO post time."""
     if not post_time_iso:
         return ""
     try:
         dt = datetime.fromisoformat(post_time_iso.replace("Z", "+00:00"))
-        return dt.strftime("%Y-%m-%d")
+        return dt.astimezone(EASTERN_TZ).strftime("%Y-%m-%d")
     except Exception:
         return post_time_iso[:10]
+
+
+def _is_wager_product_track(track_name: str) -> bool:
+    """Return True for TVG wager products (DD/P5/P6/etc), not real track cards."""
+    if not track_name:
+        return False
+    name = track_name.upper()
+    patterns = [
+        r"\bP[3456]\b",
+        r"\bDD\b",
+        r"\bDOUBLE\b",
+        r"\bPICK\s*[3456]\b",
+        r"\bSTAKES\s+DAY\b",
+        r"\bFRI[-\s]*SAT\b",
+    ]
+    return any(re.search(p, name) for p in patterns)
 
 
 # ---------------------------------------------------------------------------
@@ -261,6 +280,9 @@ def get_us_track_codes(session: requests.Session) -> list[tuple[str, str]]:
     for track in data.get("tracks", []):
         country = track.get("location", {}).get("country", "")
         if country == "USA":
+            track_name = track.get("name", "")
+            if _is_wager_product_track(track_name):
+                continue
             # Only include tracks that have races today
             races = track.get("races", [])
             if races:
@@ -286,6 +308,9 @@ def get_all_us_track_codes(session: requests.Session) -> list[tuple[str, str]]:
     for track in data.get("tracks", []):
         country = track.get("location", {}).get("country", "")
         if country == "USA":
+            track_name = track.get("name", "")
+            if _is_wager_product_track(track_name):
+                continue
             us_tracks.append((track["code"], track["name"]))
 
     return us_tracks

@@ -1,0 +1,2167 @@
+{
+  "id": "LA",
+  "code": "LA",
+  "name": "Los Alamitos Quarter Horse",
+  "location": {
+    "country": "USA"
+  },
+  "numberOfRaces": 8,
+  "races": [
+    {
+      "id": "LA-1",
+      "number": "1",
+      "postTime": "2026-06-07T01:25:00Z",
+      "numRunners": "7",
+      "distance": "4.5f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Maiden Claiming",
+        "id": 338
+      },
+      "purse": 9000.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Free Nomination",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Heredia Oscar",
+              "jockey": "Orduna-Rojas Francisco",
+              "weight": 125,
+              "age": 4,
+              "sex": "F",
+              "dam": "Freedom Journey",
+              "sire": "Oscar Nominated",
+              "damSire": "Good Journey",
+              "ownerName": "Magna Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01251.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01251.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Greg The Great",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Meier Monty R",
+              "jockey": "Payeras Edgar",
+              "weight": 125,
+              "age": 4,
+              "sex": "F",
+              "dam": "Red Sunset",
+              "sire": "Fullbridled",
+              "damSire": "Sierra Sunset",
+              "ownerName": "Orsi, Bernardo and Schmitt Sr. , George F.",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01252.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01252.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Salty Sally",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Farias Adan",
+              "jockey": "Garcia Erick",
+              "weight": 122,
+              "age": 3,
+              "sex": "F",
+              "dam": "The Giant Is Lit",
+              "sire": "Stay Thirsty",
+              "damSire": "Giant's Causeway",
+              "ownerName": "David Hinkins",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01253.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01253.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Duchess Cat",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Williams Arturo J",
+              "jockey": "Vargas Salvador R",
+              "weight": 117,
+              "age": 3,
+              "sex": "F",
+              "dam": "Montpelier",
+              "sire": "Point Piper",
+              "damSire": "More Than Ready",
+              "ownerName": "Favio Guillen",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01254.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01254.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Shedunit",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Treece Charles S",
+              "jockey": "Ramirez Ricardo S",
+              "weight": 125,
+              "age": 4,
+              "sex": "F",
+              "dam": "Salmon Lake",
+              "sire": "Code West",
+              "damSire": "Blame",
+              "ownerName": "Terrence M Lane",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01255.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01255.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Beauty Jenny",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Aquino Angela M",
+              "jockey": "Ortega Cesar",
+              "weight": 125,
+              "age": 4,
+              "sex": "F",
+              "dam": "Patsy's Kim",
+              "sire": "Maximum Security",
+              "damSire": "Dixie Union",
+              "ownerName": "Angela Aquino",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01256.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01256.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Courtsdream",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Paldanius Sheldon W",
+              "jockey": "Flores Pedro",
+              "weight": 122,
+              "age": 3,
+              "sex": "F",
+              "dam": "Summerofdreams",
+              "sire": "Halladay",
+              "damSire": "Siberian Summer",
+              "ownerName": "William L. Hedrick",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01257.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01257.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-2",
+      "number": "2",
+      "postTime": "2026-06-07T01:53:00Z",
+      "numRunners": "7",
+      "distance": "4.5f",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "Thoroughbred",
+        "code": "T"
+      },
+      "raceClass": {
+        "name": "Claiming",
+        "id": 313
+      },
+      "purse": 11500.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Cioppina Pasadina",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Treece Charles S",
+              "jockey": "Ortega Cesar",
+              "weight": 123,
+              "age": 4,
+              "sex": "F",
+              "dam": "Blissful Lady",
+              "sire": "Stay Thirsty",
+              "damSire": "Creative Cause",
+              "ownerName": "Andy Andrews",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01531.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01531.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "City Glitter",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Ruvalcaba Alberto",
+              "jockey": "Herrera Cristobal",
+              "weight": 123,
+              "age": 8,
+              "sex": "M",
+              "dam": "Mood Route",
+              "sire": "Idiot Proof",
+              "damSire": "Mud Route",
+              "ownerName": "Jerry R. Martin",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01532.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01532.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Shes Just Fluffy",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Rodriguez Francisco",
+              "jockey": "Monroy Francisco",
+              "weight": 123,
+              "age": 6,
+              "sex": "M",
+              "dam": "Tuff And Charming",
+              "sire": "Dosificado (Chi)",
+              "damSire": "Silver Charm",
+              "ownerName": "Rodriguez Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01533.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01533.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Roman Empress",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Uranga Jesus J",
+              "jockey": "Vargas Salvador R",
+              "weight": 120,
+              "age": 7,
+              "sex": "M",
+              "dam": "Roman Charity",
+              "sire": "Empire Way",
+              "damSire": "Roman Ruler",
+              "ownerName": "Jesus J. Uranga",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01534.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01534.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Liquid Spirit",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Farias Jorge",
+              "jockey": "Bautista Alfredo L",
+              "weight": 118,
+              "age": 4,
+              "sex": "F",
+              "dam": "Fast Breaking News",
+              "sire": "Conquest Farenheit",
+              "damSire": "Flower Alley",
+              "ownerName": "Karen Hilburn",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01535.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01535.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Feisty Mitole",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Nunez Jesus",
+              "jockey": "Payeras Edgar",
+              "weight": 125,
+              "age": 5,
+              "sex": "M",
+              "dam": "Fiercely",
+              "sire": "Mitole",
+              "damSire": "Hard Spun",
+              "ownerName": "Mike Flory",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01536.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01536.svg"
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Dallas Alice",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Heredia Oscar",
+              "jockey": "Orduna-Rojas Francisco",
+              "weight": 123,
+              "age": 6,
+              "sex": "M",
+              "dam": "Lady Sweetness",
+              "sire": "Grazen",
+              "damSire": "Candy Ride (Arg)",
+              "ownerName": "Zepeda Racing, Inc. and Magna Racing Stable",
+              "timeform": {
+                "silkUrl": "https://timeform-usa.tvg.com/ussilks/20260606la01537.png",
+                "silkUrlSvg": "https://timeform-usa.tvg.com/ussilkshires/20260606la01537.svg"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-3",
+      "number": "3",
+      "postTime": "2026-06-07T02:21:00Z",
+      "numRunners": "9",
+      "distance": "220y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Maiden",
+        "id": 340
+      },
+      "purse": 9500.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Golden Token",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Lozano Ruben",
+              "weight": 126,
+              "age": 2,
+              "sex": "C",
+              "dam": "Significant Choice",
+              "sire": "Golden Boi",
+              "damSire": "A Regal Choice",
+              "ownerName": "Rancho Humilde",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Behind The Bar",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Casselman Michael V",
+              "jockey": "Viramontes Armando",
+              "weight": 123,
+              "age": 2,
+              "sex": "F",
+              "dam": "Ynot Bar",
+              "sire": "Favorite Cartel",
+              "damSire": "Chicks Beduino",
+              "ownerName": "Steve D Burns",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Call Me Champion",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Flores Jose A",
+              "jockey": "Lara Irving",
+              "weight": 126,
+              "age": 2,
+              "sex": "C",
+              "dam": "Wave Her First",
+              "sire": "Call Me Cole",
+              "damSire": "First Down Dash",
+              "ownerName": "Miguel Osorio",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Talisman",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Peinado Oscar M",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Shes Da One On Fire",
+              "sire": "Apollitical Blood",
+              "damSire": "Walk Thru Fire",
+              "ownerName": "Alfredo Alonzo Garcia",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Who Dis",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Casselman Michael V",
+              "jockey": "Klaiber Justine",
+              "weight": 123,
+              "age": 2,
+              "sex": "F",
+              "dam": "Remember Who",
+              "sire": "Favorite Cartel",
+              "damSire": "Seperate Interest",
+              "ownerName": "Kristin K. Eller",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Val Empire",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Zuazo Ramiro L",
+              "jockey": "Vargas Salvador R",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Val Kiky",
+              "sire": "Foose",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Jose Luis Valdez",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Confidenz",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Aleman Juan G",
+              "jockey": "Arriaga Martin",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Bodacious Dream",
+              "sire": "Freighttrain B",
+              "damSire": "Corona Cartel",
+              "ownerName": "Gary & Jeralyn Messenger",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Favorite Shine",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Glenn, Jr. James W",
+              "jockey": "Lara Gabriel A",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Rite",
+              "sire": "Mpshinning",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Edward C. Allred",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Cd El Rey Favorito",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Gomez Jaime H",
+              "jockey": "Lopez Henry R",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Jess Beautiful Fire",
+              "sire": "Favorite Cartel",
+              "damSire": "Mr Jess Perry",
+              "ownerName": "CD Horses, Inc.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-4",
+      "number": "4",
+      "postTime": "2026-06-07T02:49:00Z",
+      "numRunners": "7",
+      "distance": "300y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Maiden",
+        "id": 340
+      },
+      "purse": 8500.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Oh Boi",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Willoughby Scott",
+              "jockey": "Lara Gabriel A",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Jess Mas",
+              "sire": "Golden Boi",
+              "damSire": "One Sweet Jess",
+              "ownerName": "Parsons, Mark and Parsons, Jr., Mark",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "In The No",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Lozano Ruben",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Baccarat Bar",
+              "sire": "Mpshinning",
+              "damSire": "Hawkinson",
+              "ownerName": "Rancho Humilde",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Taphouse",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Viramontes Rodolfo",
+              "jockey": "Viramontes Armando",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Rousey",
+              "sire": "One Famous Icon",
+              "damSire": "Stel Corona",
+              "ownerName": "Jose Ramon Sandoval",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Shes Jess Shinning",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Gonzalez Felix L",
+              "jockey": "Gasca Erasmo",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Cartel Jess Rockin",
+              "sire": "Mpshinning",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Maria Carlos and Martha B . Trujillo",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": 5
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": 5
+          },
+          "runners": [
+            {
+              "horseName": "Byeanose",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Figueroa Roman",
+              "jockey": "Lara Irving",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Burnin Bye",
+              "sire": "Mpshinning",
+              "damSire": "Separatist",
+              "ownerName": "Elvis Alvarez and Shirley Schvaneveldt",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 9,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Favoriteshadesofred",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Willis Eddie D",
+              "jockey": "Klaiber Justine",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Jess Paint Your Lips",
+              "sire": "Favorite Cartel",
+              "damSire": "Jess Louisiana Blue",
+              "ownerName": "Bella Vista Farms LLC and Andy Knight",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Favorite Daytona",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Gomez Jaime H",
+              "jockey": "Lopez Henry R",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Daytona 1000",
+              "sire": "Favorite Cartel",
+              "damSire": "Corona Cartel",
+              "ownerName": "Daniel Reynoso",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-5",
+      "number": "5",
+      "postTime": "2026-06-07T03:17:00Z",
+      "numRunners": "7",
+      "distance": "300y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Maiden",
+        "id": 340
+      },
+      "purse": 8500.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Niece Laura",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Glenn, Jr. James W",
+              "jockey": "Ortega Cesar",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "London Laura",
+              "sire": "Favorite Cartel",
+              "damSire": "Walk Thru Fire",
+              "ownerName": "Edward C. Allred",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Cape Blanco",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Willis Eddie D",
+              "jockey": "Klaiber Justine",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Best Of You",
+              "sire": "Kiss My Hocks",
+              "damSire": "Apollitical Jess",
+              "ownerName": "Zynda Racing",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Kr Candy Dragon",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Aleman Juan G",
+              "jockey": "Arriaga Martin",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Kr Dragonfly",
+              "sire": "Jess Good Candy",
+              "damSire": "Separatist",
+              "ownerName": "Kidd Ranch",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 10,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Martha Starr",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Jones Paul C",
+              "jockey": "Lara Irving",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Haute Cartel",
+              "sire": "Walk Thru Fire",
+              "damSire": "Corona Cartel",
+              "ownerName": "R R Rasner Revocable Trust",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Ximenarey",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Gomez Jaime H",
+              "jockey": "Lara Gabriel A",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "All About Love",
+              "sire": "Foose",
+              "damSire": "Feature Mr Jess",
+              "ownerName": "Francisco Diaz",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Czech Berry Delight",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Gonzalez Felix L",
+              "jockey": "Lopez Henry R",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Blackberry Czech",
+              "sire": "Pyc Paint Your Wagon",
+              "damSire": "Corona Czech",
+              "ownerName": "Salvador Pimienta",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Boi Sterrus",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Lozano Ruben",
+              "weight": 126,
+              "age": 2,
+              "sex": "F",
+              "dam": "Tres Seis Folszookie",
+              "sire": "Golden Boi",
+              "damSire": "Tres Seis",
+              "ownerName": "Jesus Cuevas",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-6",
+      "number": "6",
+      "postTime": "2026-06-07T03:43:00Z",
+      "numRunners": "7",
+      "distance": "300y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Maiden Claiming",
+        "id": 338
+      },
+      "purse": 8695.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Myopic",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Willoughby Scott",
+              "jockey": "Lara Gabriel A",
+              "weight": 123,
+              "age": 2,
+              "sex": "F",
+              "dam": "Fast Magoo",
+              "sire": "Kiddy Up",
+              "damSire": "Even The Score",
+              "ownerName": "Edward C. Allred",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Jess Good Time Mrl",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Gomez Jaime H",
+              "jockey": "Peinado Oscar M",
+              "weight": 123,
+              "age": 2,
+              "sex": "F",
+              "dam": "Rite On Time",
+              "sire": "Jess Good Candy",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Haras Portofino",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Pupilo",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Farias Adan",
+              "jockey": "Cruz Damian D",
+              "weight": 126,
+              "age": 2,
+              "sex": "C",
+              "dam": "Miss Madam Secretary",
+              "sire": "Arimathea",
+              "damSire": "First Down Dash",
+              "ownerName": "Isla Vista Ranch SS, Inc.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Kool Monday",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Aleman Juan G",
+              "jockey": "Arriaga Martin",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Kool Temptor",
+              "sire": "Cyber Monday",
+              "damSire": "Tempting Dash",
+              "ownerName": "Salvador D Salazar &  V. Ruesga Equine Ranch",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Winter Hawk Cartel",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Magallanes Hector",
+              "jockey": "Gasca Erasmo",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Royal Snowflight",
+              "sire": "The Cartel Hawk",
+              "damSire": "Mr. Easy Money",
+              "ownerName": "Tim Floyd",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Faith Eagle",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Gonzalez Felix L",
+              "jockey": "Lopez Henry R",
+              "weight": 123,
+              "age": 2,
+              "sex": "F",
+              "dam": "Ventura Jess Jqm",
+              "sire": "One Dashing Eagle",
+              "damSire": "Apollitical Jess",
+              "ownerName": "Clanfield Act Stables",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 7,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Mg Vegas Boi",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Lozano Ruben",
+              "weight": 126,
+              "age": 2,
+              "sex": "C",
+              "dam": "Pm Runaway Dash",
+              "sire": "Golden Boi",
+              "damSire": "Heza Fast Dash",
+              "ownerName": "M & G Farms, Inc.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-7",
+      "number": "7",
+      "postTime": "2026-06-07T04:09:00Z",
+      "numRunners": "7",
+      "distance": "350y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Allowance",
+        "id": 306
+      },
+      "purse": 13800.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Budder Off Friends",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Farias Adan",
+              "jockey": "Lopez Henry R",
+              "weight": 126,
+              "age": 6,
+              "sex": "M",
+              "dam": "Budderfly Effect",
+              "sire": "Fdd Dynasty",
+              "damSire": "Strawflyin Buds",
+              "ownerName": "David Hinkins",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Straight Tequila",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Figueroa Roman",
+              "jockey": "Lara Gabriel A",
+              "weight": 126,
+              "age": 3,
+              "sex": "F",
+              "dam": "Tequila Sangria",
+              "sire": "Mpshinning",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Mark Smith and Shirley Schvaneveldt",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Vgk Zigfield Follies",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Farias Adan",
+              "jockey": "Nicasio Eduardo",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Zigfield Follies",
+              "sire": "Jess Good Candy",
+              "damSire": "One Famous Eagle",
+              "ownerName": "David Hinkins",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Walk When I Walk",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Morfin Sergio",
+              "jockey": "Ramirez Ricardo S",
+              "weight": 126,
+              "age": 3,
+              "sex": "F",
+              "dam": "Ilikethewayshewalks",
+              "sire": "Favorite Cartel",
+              "damSire": "Walk Thru Fire",
+              "ownerName": "Woodhouse-Singleton Racing",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Naive",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Casselman Michael V",
+              "jockey": "Viramontes Armando",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Knocking On The Door",
+              "sire": "Favorite Cartel",
+              "damSire": "Foose",
+              "ownerName": "Cade Burns",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "morningLineOdds": {
+            "numerator": 5,
+            "denominator": 2
+          },
+          "runners": [
+            {
+              "horseName": "Fairlea Flyin",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Willis Eddie D",
+              "jockey": "Klaiber Justine",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Azoomin With Jessie",
+              "sire": "Flying Cowboy 123",
+              "damSire": "Azoom",
+              "ownerName": "Edward B. Melzer Revocable Trust",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Competent",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Casselman Michael V",
+              "jockey": "Arriaga Martin",
+              "weight": 126,
+              "age": 4,
+              "sex": "F",
+              "dam": "Sex On Fire",
+              "sire": "Seperate Interest",
+              "damSire": "Walk Thru Fire",
+              "ownerName": "Steve D. Burns and Michael V. Casselman",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LA-8",
+      "number": "8",
+      "postTime": "2026-06-07T04:37:00Z",
+      "numRunners": "9",
+      "distance": "300y",
+      "surface": {
+        "name": "Dirt",
+        "code": "D"
+      },
+      "type": {
+        "name": "QuarterHorse",
+        "code": "Q"
+      },
+      "raceClass": {
+        "name": "Maiden",
+        "id": 340
+      },
+      "purse": 9500.0,
+      "bettingInterests": [
+        {
+          "biNumber": 1,
+          "saddleColor": "#BC0000",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 20,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Crossed The Line",
+              "runnerId": "1",
+              "scratched": false,
+              "trainer": "Zamudio Valentin A",
+              "jockey": "Lozano Ruben",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Tahma Hawk",
+              "sire": "Favorite Cartel",
+              "damSire": "Hawkinson",
+              "ownerName": "Rancho Humilde",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 2,
+          "saddleColor": "#C3CDD4",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Tacos N Coronas",
+              "runnerId": "2",
+              "scratched": false,
+              "trainer": "Diaz Lindolfo",
+              "jockey": "Viramontes Armando",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Royaltys Molly",
+              "sire": "Corona Cartel",
+              "damSire": "Royaltys Choice",
+              "ownerName": "J. Francisco Diaz",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 3,
+          "saddleColor": "#253B84",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 8,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Indecision",
+              "runnerId": "3",
+              "scratched": false,
+              "trainer": "Jones Paul C",
+              "jockey": "Lopez Henry R",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Eyesa Painted Bug",
+              "sire": "Mental Error",
+              "damSire": "Eyesa Special",
+              "ownerName": "Thompson Racing, Inc., Lisa Beauprez and Paul C. Jones",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 4,
+          "saddleColor": "#C1A800",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 12,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Shining Champion",
+              "runnerId": "4",
+              "scratched": false,
+              "trainer": "Morfin Sergio",
+              "jockey": "Ramirez Ricardo S",
+              "weight": 126,
+              "age": 2,
+              "sex": "C",
+              "dam": "Lola Empanada",
+              "sire": "Mpshinning",
+              "damSire": "Favorite Cartel",
+              "ownerName": "Sergio Morfin Racing Stable, Inc.",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 5,
+          "saddleColor": "#1C5B1B",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 15,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Apollitical Eye Mrl",
+              "runnerId": "5",
+              "scratched": false,
+              "trainer": "Gomez Jaime H",
+              "jockey": "Lara Irving",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "In The Open",
+              "sire": "Apollitical Jess",
+              "damSire": "Mr Eye Opener",
+              "ownerName": "Jaime H. Gomez",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 6,
+          "saddleColor": "#252525",
+          "numberColor": "#FFFFFF",
+          "currentOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 4,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Quite Perfect",
+              "runnerId": "6",
+              "scratched": false,
+              "trainer": "Aleman Juan G",
+              "jockey": "Arriaga Martin",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Nearly Perfect",
+              "sire": "Golden Boi",
+              "damSire": "Seperate Interest",
+              "ownerName": "Lex A. Fabrizio",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 7,
+          "saddleColor": "#B63D13",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 6,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Val Camel",
+              "runnerId": "7",
+              "scratched": false,
+              "trainer": "Zuazo Ramiro L",
+              "jockey": "Vargas Salvador R",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Libertarian Lady",
+              "sire": "Mental Error",
+              "damSire": "Stel Corona",
+              "ownerName": "Jose Luis Valdez",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 8,
+          "saddleColor": "#B27692",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 2,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Please Paul",
+              "runnerId": "8",
+              "scratched": false,
+              "trainer": "Glenn, Jr. James W",
+              "jockey": "Peinado Oscar M",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "For Pee Jay",
+              "sire": "Golden Boi",
+              "damSire": "Foose",
+              "ownerName": "Edward C. Allred",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        },
+        {
+          "biNumber": 9,
+          "saddleColor": "#13A19C",
+          "numberColor": "#000000",
+          "currentOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "morningLineOdds": {
+            "numerator": 3,
+            "denominator": null
+          },
+          "runners": [
+            {
+              "horseName": "Emperador Felix",
+              "runnerId": "9",
+              "scratched": false,
+              "trainer": "Nunez Jesus",
+              "jockey": "Lara Gabriel A",
+              "weight": 126,
+              "age": 2,
+              "sex": "G",
+              "dam": "Remember To Dash",
+              "sire": "A Mere Felix",
+              "damSire": "First Down Dash",
+              "ownerName": "EG High Desert Farms LLC",
+              "timeform": {
+                "silkUrl": null,
+                "silkUrlSvg": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
