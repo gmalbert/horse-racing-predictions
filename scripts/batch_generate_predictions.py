@@ -26,18 +26,39 @@ PREDICT_SCRIPT = PROJECT_ROOT / "scripts" / "predict_todays_races.py"
 
 
 def find_racecards():
-    """Find all racecard files in data/raw/ and extract dates"""
-    pattern = re.compile(r"racecards_(\d{4}-\d{2}-\d{2})\.json")
-    racecards = []
-    
-    for file in DATA_RAW.glob("racecards_*.json"):
-        match = pattern.match(file.name)
+    """Find racecard files in data/raw/ and extract dates.
+
+    Supports:
+    - racecards_YYYY-MM-DD.json (current default)
+    - YYYY-MM-DD.json (seen in some external/rpscrape workflows)
+    """
+    prefixed_pattern = re.compile(r"^racecards_(\d{4}-\d{2}-\d{2})\.json$")
+    date_only_pattern = re.compile(r"^(\d{4}-\d{2}-\d{2})\.json$")
+    racecards_by_date = {}
+
+    # Search recursively so files under data/raw/gb/ are also picked up.
+    for file in DATA_RAW.rglob("*.json"):
+        filename = file.name
+        date_str = None
+        match = prefixed_pattern.match(filename)
         if match:
             date_str = match.group(1)
-            racecards.append((date_str, file))
-    
-    # Sort by date
-    racecards.sort(key=lambda x: x[0])
+        else:
+            match = date_only_pattern.match(filename)
+            if match:
+                date_str = match.group(1)
+
+        if not date_str:
+            continue
+
+        # Prefer canonical racecards_*.json over date-only names if both exist.
+        existing = racecards_by_date.get(date_str)
+        if existing is None:
+            racecards_by_date[date_str] = file
+        elif file.name.startswith("racecards_") and not existing.name.startswith("racecards_"):
+            racecards_by_date[date_str] = file
+
+    racecards = sorted(racecards_by_date.items(), key=lambda x: x[0])
     return racecards
 
 
@@ -123,7 +144,7 @@ def main():
     
     if not racecards:
         print("\n[!] No racecards found in data/raw/")
-        print("    Expected format: racecards_YYYY-MM-DD.json")
+        print("    Expected format: racecards_YYYY-MM-DD.json or YYYY-MM-DD.json")
         return
     
     print(f"\nFound {len(racecards)} racecard file(s)")

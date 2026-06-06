@@ -239,12 +239,70 @@ def engineer_weight_features(df):
     df['prev_weight'] = df.groupby('horse')['weight_lbs'].shift(1)
     df['weight_change'] = df['weight_lbs'] - df['prev_weight']
     df['weight_change'] = df['weight_change'].fillna(0)
+
+    # Ensure deterministic temporal ordering for all horse-level weight history features.
+    df = df.sort_values(['horse', 'date']).reset_index(drop=True)
+
+    # Weight trend over prior runs only (shifted to avoid using current race in rolling window).
+    prior_weight_change = df.groupby('horse')['weight_change'].shift(1)
+    df['weight_trend'] = (
+        prior_weight_change
+        .groupby(df['horse'])
+        .rolling(window=3, min_periods=1)
+        .mean()
+        .reset_index(level=0, drop=True)
+    )
+
+    # Weight-for-age proxy: older horses generally concede more weight; compare to race mean age.
+    age_series = pd.to_numeric(df['age'], errors='coerce') if 'age' in df.columns else pd.Series(4.0, index=df.index)
+    race_age_mean = age_series.groupby([df['date'], df['course_clean'], df['off']]).transform('mean')
+    df['weight_for_age'] = (df['weight_lbs'] - race_age_mean * 1.5)
+
+    # Pounds-per-length from prior form only: higher means stronger carrying ability relative to margin.
+    btn_numeric = pd.to_numeric(df.get('btn', 0), errors='coerce')
+    raw_lb_per_length = np.where(btn_numeric > 0, df['weight_lbs'] / btn_numeric, np.nan)
+    prior_lb_per_length = pd.Series(raw_lb_per_length, index=df.index).groupby(df['horse']).shift(1)
+    df['lb_per_length'] = (
+        prior_lb_per_length
+        .groupby(df['horse'])
+        .rolling(window=5, min_periods=1)
+        .mean()
+        .reset_index(level=0, drop=True)
+    )
+
+    # Handicap efficiency from prior handicap races only.
+    pos_numeric = pd.to_numeric(df.get('pos_clean', np.nan), errors='coerce')
+    if 'field_size' in df.columns:
+        field_size_numeric = pd.to_numeric(df['field_size'], errors='coerce').clip(lower=1)
+    else:
+        race_group_size = df.groupby(['date', 'course_clean', 'off'])['horse'].transform('count')
+        field_size_numeric = pd.to_numeric(race_group_size, errors='coerce').clip(lower=1)
+    relative_finish = 1.0 - ((pos_numeric - 1.0) / (field_size_numeric - 1.0).replace(0, 1))
+    raw_handicap_eff = relative_finish + (df['weight_vs_avg'] / 20.0)
+    if 'is_handicap' in df.columns:
+        is_handicap_hist = pd.to_numeric(df['is_handicap'], errors='coerce').fillna(0).astype(int)
+    else:
+        is_handicap_hist = pd.Series(0, index=df.index)
+    handicap_only = pd.Series(np.where(is_handicap_hist == 1, raw_handicap_eff, np.nan), index=df.index)
+    prior_handicap_eff = handicap_only.groupby(df['horse']).shift(1)
+    df['handicap_efficiency'] = (
+        prior_handicap_eff
+        .groupby(df['horse'])
+        .expanding()
+        .mean()
+        .reset_index(level=0, drop=True)
+    )
     
     # Fill NAs
     df['weight_lbs'] = df['weight_lbs'].fillna(140)
     df['weight_vs_avg'] = df['weight_vs_avg'].fillna(0)
+    df['weight_trend'] = df['weight_trend'].fillna(0)
+    df['weight_for_age'] = df['weight_for_age'].fillna(0)
+    df['lb_per_length'] = df['lb_per_length'].fillna(0)
+    df['handicap_efficiency'] = df['handicap_efficiency'].fillna(0)
     
     print("  Weight features: weight_lbs, weight_vs_avg, is_top_weight, weight_change")
+    print("  Advanced weight: weight_for_age, weight_trend, lb_per_length, handicap_efficiency")
     
     return df
 
@@ -804,6 +862,7 @@ def prepare_training_data(df):
         
         # Weight features
         'weight_lbs', 'weight_vs_avg', 'is_top_weight', 'weight_change',
+        'weight_for_age', 'weight_trend', 'lb_per_length', 'handicap_efficiency',
         
         # Age features
         'age', 'is_peak_age', 'is_3yo', 'is_veteran', 'age_vs_avg',

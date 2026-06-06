@@ -17,6 +17,7 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 import os
+import re
 
 import pandas as pd
 import streamlit as st
@@ -44,8 +45,27 @@ _THEME_CSS = """
 [data-testid="stTabs"] [data-baseweb="tab"][aria-selected="true"] { border-bottom-color: var(--accent) !important; color: var(--accent) !important; }
 [data-testid="stButton"] > button { background-color: var(--primary) !important; color: var(--button-text, #fff) !important; border: none !important; border-radius: 6px !important; }
 [data-testid="stButton"] > button:hover { filter: brightness(1.15) !important; }
-[data-testid="metric-container"] { background-color: var(--card) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 10px !important; }
+[data-testid="metric-container"] { background-color: var(--card) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 10px !important; min-height: 114px !important; }
 [data-testid="metric-container"] label { color: var(--accent) !important; }
+[data-testid="metric-container"] [data-testid="stMetricLabel"],
+[data-testid="metric-container"] [data-testid="stMetricLabel"] * {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricValue"],
+[data-testid="metric-container"] [data-testid="stMetricValue"] * {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    line-height: 1.1 !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricDelta"],
+[data-testid="metric-container"] [data-testid="stMetricDelta"] * {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+}
 [data-testid="stExpander"] summary { background-color: var(--card) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 6px !important; }
 [data-testid="stDataFrame"] { border: 1px solid var(--border) !important; border-radius: 6px !important; }
 [data-baseweb="select"] { background-color: var(--card) !important; border-color: var(--border) !important; }
@@ -53,6 +73,12 @@ _THEME_CSS = """
 [data-testid="stSidebarNav"] a { color: var(--text) !important; }
 [data-testid="stSidebarNav"] a[aria-current="page"] { color: var(--accent) !important; font-weight: 700 !important; }
 [data-testid="stAlert"] { border-left-color: var(--accent) !important; background-color: var(--card) !important; color: var(--text) !important; }
+@media (max-width: 980px) {
+    [data-testid="metric-container"] {
+        min-height: 126px !important;
+        padding: 12px !important;
+    }
+}
 </style>
 """
 
@@ -87,22 +113,82 @@ def _show_file_status(path: Path, label: str):
         st.info(f"⬜ {label} — not yet available")
 
 
+def _safe_tail(text: str | None, max_chars: int = 4000) -> str:
+    if not text:
+        return ""
+    return text[-max_chars:]
+
+
+def _render_subprocess_error(
+    title: str,
+    cmd: list[str],
+    result: subprocess.CompletedProcess[str] | None = None,
+    exc: Exception | None = None,
+):
+    """Render detailed subprocess diagnostics for cloud-friendly debugging."""
+    st.error(f"❌ {title}")
+
+    cmd_str = subprocess.list2cmdline(cmd)
+    lines = [
+        f"cwd: {BASE_DIR}",
+        f"command: {cmd_str}",
+    ]
+
+    if result is not None:
+        lines.append(f"returncode: {result.returncode}")
+
+    if exc is not None:
+        lines.append(f"exception: {type(exc).__name__}: {exc}")
+        if isinstance(exc, subprocess.TimeoutExpired):
+            out = exc.stdout if isinstance(exc.stdout, str) else ""
+            err = exc.stderr if isinstance(exc.stderr, str) else ""
+            if out:
+                lines.append("\n--- stdout (tail) ---\n" + _safe_tail(out))
+            if err:
+                lines.append("\n--- stderr (tail) ---\n" + _safe_tail(err))
+    elif result is not None:
+        out_tail = _safe_tail(result.stdout)
+        err_tail = _safe_tail(result.stderr)
+        if out_tail:
+            lines.append("\n--- stdout (tail) ---\n" + out_tail)
+        if err_tail:
+            lines.append("\n--- stderr (tail) ---\n" + err_tail)
+        if not out_tail and not err_tail:
+            lines.append("\n(no stdout/stderr captured)")
+
+    details = "\n".join(lines)
+
+    log_dir = BASE_DIR / "tmp" / "error_logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_") or "error"
+    timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"{slug}_{timestamp}.log"
+    log_file.write_text(details, encoding="utf-8")
+
+    with st.expander("Error details"):
+        st.code(details, language="text")
+        st.caption(f"Saved diagnostic log: {log_file}")
+
+
 # ── Pipeline actions ───────────────────────────────────────────────────────────
 
 def _ingest_us_entries(date_str: str, label: str = ""):
     """Run ingest_us_entries.py (TVG fetch + write CSV + merge racecards JSON)."""
+    cmd = [sys.executable, "scripts/ingest_us_entries.py", "--date", date_str]
     with st.spinner(f"📡 Fetching US entries from TVG for {label}{date_str}… (~5s)"):
-        result = subprocess.run(
-            [sys.executable, "scripts/ingest_us_entries.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+            )
+        except Exception as exc:
+            _render_subprocess_error("TVG fetch failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success(f"✅ US entries fetched for {date_str}!")
             st.rerun()
         else:
-            st.error("❌ TVG fetch failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("TVG fetch failed", cmd, result=result)
 
 
 def _generate_us_predictions(date_str: str, label: str = ""):
@@ -111,35 +197,46 @@ def _generate_us_predictions(date_str: str, label: str = ""):
     if not rc.exists():
         st.error(f"❌ No racecards for {date_str} — fetch entries first.")
         return
+    cmd = [sys.executable, "scripts/predict_us_races.py", "--date", date_str]
     with st.spinner(f"🤖 Generating US predictions for {label}{date_str}…"):
-        result = subprocess.run(
-            [sys.executable, "scripts/predict_us_races.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+            )
+        except Exception as exc:
+            _render_subprocess_error("Prediction generation failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success("✅ US predictions generated!")
             st.balloons()
             st.rerun()
         else:
-            st.error("❌ Prediction generation failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("Prediction generation failed", cmd, result=result)
 
 
 def _betfair_fetch_odds(date_str: str, label: str = ""):
+    cmd = [
+        sys.executable,
+        "scripts/fetch_betfair_us_odds.py",
+        "--date",
+        date_str,
+        "--overlay",
+    ]
     with st.spinner(f"💹 Fetching Betfair odds for {label}{date_str}…"):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_betfair_us_odds.py",
-             "--date", date_str, "--overlay"],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+            )
+        except Exception as exc:
+            _render_subprocess_error("Betfair fetch failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success(f"✅ Betfair odds fetched for {date_str}!")
             st.rerun()
         else:
-            st.error("❌ Betfair fetch failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("Betfair fetch failed", cmd, result=result)
 
 
 # ── Main page ──────────────────────────────────────────────────────────────────
@@ -216,12 +313,13 @@ def _tab_schedule():
                 try:
                     df = pd.read_csv(entries_csv)
                     # Summary metrics
-                    mc1, mc2, mc3, mc4 = st.columns(4)
-                    mc1.metric("Tracks",  df["track_code"].nunique())
-                    mc2.metric("Races",   df["race_number"].nunique() if "race_number" in df.columns else "—")
-                    mc3.metric("Entries", len(df))
+                    mr1c1, mr1c2 = st.columns(2)
+                    mr2c1, mr2c2 = st.columns(2)
+                    mr1c1.metric("Tracks",  df["track_code"].nunique())
+                    mr1c2.metric("Races",   df["race_number"].nunique() if "race_number" in df.columns else "—")
+                    mr2c1.metric("Entries", len(df))
                     scratches = int(df["scratched"].sum()) if "scratched" in df.columns else 0
-                    mc4.metric("Scratches", scratches)
+                    mr2c2.metric("Scratches", scratches)
 
                     # Track grid
                     st.markdown("##### Tracks racing today")
@@ -533,14 +631,16 @@ def _display_race_detail(race_df: pd.DataFrame, key_prefix: str):
     dist_band  = race_df["distance_band"].iloc[0] if "distance_band" in race_df.columns else ""
     race_class = race_df["race_class"].iloc[0] if "race_class" in race_df.columns else "—"
 
-    mc1, mc2, mc3, mc4 = st.columns(4)
-    mc1.metric("Surface",  surface or "—")
-    mc2.metric("Going",    going   or "—")
-    mc3.metric("Distance", f"{dist_str} ({dist_band})" if dist_str else dist_band or "—")
-    mc4.metric("Class",    f"{race_class} ({len(race_df)} runners)")
+    hr1, hr2 = st.columns(2)
+    hr3, hr4 = st.columns(2)
+    hr1.metric("Surface",  surface or "—")
+    hr2.metric("Going",    going   or "—")
+    hr3.metric("Distance", f"{dist_str} ({dist_band})" if dist_str else dist_band or "—")
+    hr4.metric("Class",    f"{race_class} ({len(race_df)} runners)")
 
     st.markdown("##### 🏆 Top Picks")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
+    col3 = st.container()
     top3 = race_df.head(3)
     col1.metric("Win favourite",   top3.iloc[0]["horse"] if len(top3) > 0 else "—",
                 f"{top3.iloc[0]['win_probability']:.1%}" if len(top3) > 0 else "")
@@ -561,7 +661,8 @@ def _display_race_detail(race_df: pd.DataFrame, key_prefix: str):
 
         st.markdown("---")
         st.markdown("##### 🎯 Exacta / Trifecta Probabilities")
-        e1, e2, e3 = st.columns(3)
+        e1, e2 = st.columns(2)
+        e3 = st.container()
         e1.metric("🥇🥈 Exacta (1-2 in order)", f"{exacta_prob:.1%}",
                   help=f"{top3.iloc[0]['horse']} → {top3.iloc[1]['horse']}")
         e2.metric("🥇🥈🥉 Trifecta (1-2-3)", f"{trifecta_prob:.1%}",
@@ -583,7 +684,8 @@ def _display_race_detail(race_df: pd.DataFrame, key_prefix: str):
         prob_top3  = min(float(top3.iloc[0].get("show_probability",  prob_top2 * 1.2)), 0.98)
         inc_place  = prob_top2 - prob_win
         inc_show   = prob_top3 - prob_top2
-        cp1, cp2, cp3 = st.columns(3)
+        cp1, cp2 = st.columns(2)
+        cp3 = st.container()
         cp1.metric("🥇 Win (1st)",        f"{prob_win:.1%}")
         cp2.metric("🥇🥈 Win or Place",   f"{prob_top2:.1%} (+{inc_place:.1%})")
         cp3.metric("🥇🥈🥉 Win/Place/Show", f"{prob_top3:.1%} (+{inc_show:.1%})")
@@ -704,7 +806,8 @@ def _display_value_bet_calculator(race_df: pd.DataFrame, key_prefix: str):
         edge = model_prob - bookie_implied
 
         st.markdown("---")
-        v1, v2, v3, v4 = st.columns(4)
+        v1, v2 = st.columns(2)
+        v3, v4 = st.columns(2)
         v1.metric("Model Win %",      f"{model_prob:.1%}")
         v2.metric("Model Fair Odds",  f"{model_frac} ({model_dec:.2f})")
         v3.metric("Bookie Implied %", f"{bookie_implied:.1%}")
@@ -779,7 +882,8 @@ def _tab_fixtures():
                 df_abr = df_abr.sort_values(["date", "grade"], na_position="last")
 
                 # Summary metrics
-                m1, m2, m3, m4 = st.columns(4)
+                m1, m2 = st.columns(2)
+                m3, m4 = st.columns(2)
                 future = df_abr[df_abr["date"] >= pd.Timestamp(today_str)]
                 m1.metric("Total Stakes", len(df_abr))
                 m2.metric("Upcoming", len(future))
@@ -895,7 +999,8 @@ def _tab_fixtures():
                     if entries:
                         df_eq = pd.DataFrame(entries)
                         # Summary
-                        s1, s2, s3, s4 = st.columns(4)
+                        s1, s2 = st.columns(2)
+                        s3, s4 = st.columns(2)
                         s1.metric("Tracks", df_eq["track_code"].nunique() if "track_code" in df_eq.columns else "—")
                         s2.metric("Races",  df_eq["race_number"].nunique() if "race_number" in df_eq.columns else "—")
                         s3.metric("Entries", len(df_eq))
@@ -954,38 +1059,43 @@ def _fetch_abr_stakes(year: int, force: bool = False):
     """Run fetch_abr_stakes.py and show result."""
     force_flag = ["--force"] if force else []
     label = "Re-fetching" if force else "Fetching"
+    cmd = [sys.executable, "scripts/fetch_abr_stakes.py", "--year", str(year)] + force_flag
     with st.spinner(f"📥 {label} ABR stakes calendar for {year}… (uses browser rendering, ~15 s)"):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_abr_stakes.py",
-             "--year", str(year)] + force_flag,
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=90,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=90,
+            )
+        except Exception as exc:
+            _render_subprocess_error("ABR fetch failed", cmd, exc=exc)
+            return
     if result.returncode == 0:
         st.success(f"✅ ABR stakes calendar for {year} fetched!")
         st.rerun()
     else:
-        st.error("❌ ABR fetch failed")
-        with st.expander("Error details"):
-            st.code(result.stderr[-2000:], language="text")
+        _render_subprocess_error("ABR fetch failed", cmd, result=result)
 
 
 def _fetch_equibase_entries(date_str: str, label: str = ""):
     """Run fetch_equibase_entries.py for a single date and show result."""
+    cmd = [sys.executable, "scripts/fetch_equibase_entries.py", "--date", date_str]
     with st.spinner(
         f"📥 Fetching Equibase entries for {label} {date_str}… "
         "(up to 3 min — Equibase uses bot-protection that slows requests)"
     ):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_equibase_entries.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+            )
+        except Exception as exc:
+            _render_subprocess_error(f"Equibase fetch failed for {date_str}", cmd, exc=exc)
+            return
     if result.returncode == 0:
         st.success(f"✅ Equibase entries fetched for {date_str}!")
         st.rerun()
     else:
-        st.error(f"❌ Equibase fetch failed for {date_str}")
-        with st.expander("Error details"):
-            st.code(result.stderr[-2000:], language="text")
+        _render_subprocess_error(f"Equibase fetch failed for {date_str}", cmd, result=result)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1258,7 +1368,9 @@ def _tab_top_races():
         return
 
     # ── Summary metrics ───────────────────────────────────────────────────────
-    m1, m2, m3, m4, m5 = st.columns(5)
+    m1, m2 = st.columns(2)
+    m3, m4 = st.columns(2)
+    m5 = st.container()
     m1.metric("Races ranked", len(scored))
     m2.metric("Graded stakes", int((scored["grade"].isin(["G1","G2","G3"])).sum()))
     m3.metric("Tracks", scored["course"].nunique())
@@ -1319,7 +1431,8 @@ winner with 15% gap to #2 would score: 14 + 4.5 + 10 + 40 + 20 + 30 = **118.5**.
     grp = sel_row["_grp"]
     grp_sorted = grp.sort_values("win_probability", ascending=False).reset_index(drop=True)
 
-    dr1, dr2, dr3, dr4 = st.columns(4)
+    dr1, dr2 = st.columns(2)
+    dr3, dr4 = st.columns(2)
     dr1.metric("Track", sel_row["course"])
     dr2.metric("Race", sel_row["race_name"])
     dr3.metric("Grade", sel_row["grade"])
@@ -1333,7 +1446,8 @@ winner with 15% gap to #2 would score: 14 + 4.5 + 10 + 40 + 20 + 30 = **118.5**.
         sh = float(top_horse_row["show_probability"])
         spread = sh - w  # range from win to show prob
         conf_label = "High" if spread < 0.12 else ("Medium" if spread < 0.22 else "Low")
-        cf1, cf2, cf3, cf4 = st.columns(4)
+        cf1, cf2 = st.columns(2)
+        cf3, cf4 = st.columns(2)
         cf1.metric("Top pick win%", f"{w:.1%}")
         cf2.metric("Top pick place%", f"{pl:.1%}")
         cf3.metric("Top pick show%", f"{sh:.1%}")
@@ -1452,7 +1566,8 @@ def _tab_model_insights():
         if cal_metrics_f.exists():
             try:
                 cal = json.loads(cal_metrics_f.read_text())
-                c1, c2, c3, c4 = st.columns(4)
+                c1, c2 = st.columns(2)
+                c3, c4 = st.columns(2)
                 c1.metric("Brier Score",      f"{cal['metrics']['brier_score_calibrated']:.4f}")
                 c2.metric("Calibration Gain", f"+{cal['metrics']['brier_improvement_pct']:.1f}%")
                 c3.metric("Cal. Samples",     f"{cal['n_calibration_samples']:,}")
@@ -1508,7 +1623,8 @@ def _tab_model_insights():
         try:
             df_diag = pd.read_csv(latest)
             date_tag = latest.stem.replace("us_predictions_", "")
-            d1, d2, d3, d4 = st.columns(4)
+            d1, d2 = st.columns(2)
+            d3, d4 = st.columns(2)
             d1.metric("Date",         date_tag)
             d2.metric("Tracks",       df_diag["course"].nunique() if "course" in df_diag.columns else "—")
             d3.metric("Races",        df_diag[["race_time", "course"]].drop_duplicates().shape[0])
@@ -1547,7 +1663,8 @@ def _tab_model_insights():
             top3_acc   = (acc_all[acc_all["predicted_rank"] <= 3]["top3_correct"].mean()
                           if "top3_correct" in acc_all.columns else None)
 
-            a1, a2, a3, a4 = st.columns(4)
+            a1, a2 = st.columns(2)
+            a3, a4 = st.columns(2)
             a1.metric("Days tracked", len(accuracy_files[:30]))
             a2.metric("Races evaluated", top1_races.groupby(["course", "race_time"]).ngroups
                        if "race_time" in top1_races.columns else len(top1_races))

@@ -172,6 +172,13 @@ jobs:
           echo "📈 Running OR context features (13 new features)..."
           python scripts/add_or_context_features.py
 
+      - name: Verify no leakage
+        id: verify_leakage
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.or_context.outcome == 'success'
+        run: |
+          echo "🛡️ Verifying no-leakage constraints..."
+          python scripts/verify_no_leakage.py
+
       - name: Add enhanced form features (V2.1)
         id: enhanced_form
         if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.or_context.outcome == 'success'
@@ -214,7 +221,7 @@ jobs:
 
       - name: Retrain ML model (Phase 3)
         id: retrain
-        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.pedigree_full.outcome == 'success'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.pedigree_full.outcome == 'success' && steps.verify_leakage.outcome == 'success'
         env:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
@@ -243,10 +250,21 @@ jobs:
       - name: Build engineered dataset
         id: build_engineered
         if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
-        continue-on-error: true
         run: |
           echo "🔧 Building race_scores_engineered.parquet (all 75 features)..."
           python scripts/build_engineered_dataset.py
+
+      - name: Validate feature contract
+        id: validate_contract
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.build_engineered.outcome == 'success'
+        run: |
+          echo "🧩 Validating model feature contract..."
+          python scripts/validate_feature_contract.py \
+            --feature-file models/feature_columns.txt \
+            --dataset data/processed/race_scores_engineered.parquet \
+            --dataset data/processed/race_scores_with_all_features_no_leakage.parquet \
+            --dataset data/processed/race_scores_connections_v2.parquet \
+            --max-missing-ratio 0.05
 
       - name: Train stacked ensemble model
         id: train_ensemble
@@ -258,15 +276,26 @@ jobs:
 
       - name: Run walk-forward backtest
         id: backtest
-        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success'
-        continue-on-error: true
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.retrain.outcome == 'success' && steps.validate_contract.outcome == 'success'
         run: |
           echo "📊 Running walk-forward backtest (6 folds)..."
           python scripts/backtest_walk_forward.py --folds 6
 
+      - name: Enforce backtest quality gate
+        id: backtest_gate
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.backtest.outcome == 'success'
+        run: |
+          echo "🚦 Enforcing backtest quality thresholds..."
+          python scripts/enforce_backtest_gate.py \
+            --results-file data/processed/backtest_results.json \
+            --min-folds 4 \
+            --min-mean-auc 0.58 \
+            --min-mean-top1 0.10 \
+            --max-mean-level-drawdown 500
+
       - name: Update last run timestamp
         id: update_timestamp
-        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.score_fixtures.outcome == 'success'
+        if: steps.check_data.outputs.has_new_data == 'true' && steps.validate_cache.outputs.has_data == 'true' && steps.score_fixtures.outcome == 'success' && steps.backtest_gate.outcome == 'success'
         run: |
           echo "📝 Updating last run timestamp..."
           date -u +%F > .last_weekly_run

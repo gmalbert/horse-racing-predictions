@@ -145,37 +145,55 @@ def merge_into_us_racecards(entries: list[RaceEntry], race_date: str) -> Path:
         existing_rcs = existing.get("racecards", [])
         seen_keys: set[tuple] = set()
         updated = 0
+        dropped = 0
+        merged_rcs = []
 
         for rc in existing_rcs:
             key = (rc.get("track", rc.get("course", "")), rc.get("race", ""))
+            source_name = str(rc.get("source", "")).lower()
+
+            # Drop stale TVG rows that no longer exist in the latest TVG payload.
+            if source_name == "tvg" and key not in tvg_by_key:
+                dropped += 1
+                continue
+
             seen_keys.add(key)
-            # Fill in runners from TVG if currently empty
-            if not rc.get("runners") and key in tvg_by_key:
-                rc["runners"] = tvg_by_key[key]["runners"]
-                # Also fill race-level fields from TVG if blank
-                for field in ("surface", "distance", "race_class", "purse", "breed"):
-                    if not rc.get(field) and tvg_by_key[key].get(field):
-                        rc[field] = tvg_by_key[key][field]
-                updated += 1
+            if key in tvg_by_key:
+                # Always refresh TVG races so times/names reflect latest source data.
+                # Keep existing non-TVG rows intact.
+                if source_name == "tvg":
+                    replacement = tvg_by_key[key]
+                    rc.clear()
+                    rc.update(replacement)
+                    updated += 1
+                elif not rc.get("runners"):
+                    # Non-TVG race with empty runners can still be enriched from TVG.
+                    rc["runners"] = tvg_by_key[key]["runners"]
+                    for field in ("surface", "distance", "race_class", "purse", "breed"):
+                        if not rc.get(field) and tvg_by_key[key].get(field):
+                            rc[field] = tvg_by_key[key][field]
+                    updated += 1
+
+            merged_rcs.append(rc)
 
         # Append TVG races not already in the file
         added = 0
         for key, rc in tvg_by_key.items():
             if key not in seen_keys:
-                existing_rcs.append(rc)
+                merged_rcs.append(rc)
                 added += 1
 
-        existing["racecards"] = existing_rcs
+        existing["racecards"] = merged_rcs
         # Update counts
         existing["source_counts"] = existing.get("source_counts", {})
         existing["source_counts"]["tvg_races"] = len(tvg_by_key)
-        existing["source_counts"]["total_races"] = len(existing_rcs)
+        existing["source_counts"]["total_races"] = len(merged_rcs)
         existing["tvg_merged_at_utc"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         rc_path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
         logger.info(
-            "us_racecards: updated %d existing races + added %d new TVG races → %d total",
-            updated, added, len(existing_rcs)
+            "us_racecards: updated %d existing races + added %d new TVG races + dropped %d stale TVG races → %d total",
+            updated, added, dropped, len(merged_rcs)
         )
     else:
         # No existing file — write TVG data directly

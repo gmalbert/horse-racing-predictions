@@ -5,6 +5,8 @@ Displays today's and tomorrow's race predictions with model insights.
 Uses precomputed CSVs for fast loading.
 """
 import base64
+import json
+import re
 import pandas as pd
 import streamlit as st
 import subprocess
@@ -24,6 +26,41 @@ try:
     HAS_PLOTLY = True
 except ImportError:
     HAS_PLOTLY = False
+
+
+def _is_cloud_environment():
+    """Return True when running in a hosted/cloud Streamlit environment."""
+    cloud_mode = os.getenv("STREAMLIT_CLOUD", "").strip().lower()
+    sharing_mode = os.getenv("STREAMLIT_SHARING_MODE", "").strip().lower()
+    space_id = os.getenv("SPACE_ID", "").strip()
+    hf_space_id = os.getenv("HF_SPACE_ID", "").strip()
+    return (
+        cloud_mode in {"1", "true", "yes", "on"}
+        or sharing_mode == "streamlit"
+        or bool(space_id)
+        or bool(hf_space_id)
+    )
+
+
+def _has_odds_files(date_str):
+    """Return True when either odds source already exists for a day."""
+    raw_dir = BASE_DIR / "data" / "raw"
+    return any(
+        (raw_dir / filename).exists()
+        for filename in (
+            f"rp_odds_{date_str}.csv",
+            f"atr_odds_best_{date_str}.csv",
+        )
+    )
+
+
+def _arrow_safe_df(df):
+    """Return a copy with object columns normalized for Arrow serialization."""
+    safe_df = df.copy()
+    for col in safe_df.columns:
+        if pd.api.types.is_object_dtype(safe_df[col]):
+            safe_df[col] = safe_df[col].astype("string")
+    return safe_df
 
 
 # ── Page config — called ONCE at module level for st.navigation() ──────────────
@@ -51,8 +88,27 @@ THEME_BASE_CSS = """
 [data-testid="stButton"] > button { background-color: var(--primary) !important; color: var(--button-text, #fff) !important; border: none !important; border-radius: 6px !important; }
 [data-testid="stButton"] > button:hover { filter: brightness(1.15) !important; }
 /* Metrics */
-[data-testid="metric-container"] { background-color: var(--card) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 10px !important; }
+[data-testid="metric-container"] { background-color: var(--card) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 10px !important; min-height: 114px !important; }
 [data-testid="metric-container"] label { color: var(--accent) !important; }
+[data-testid="metric-container"] [data-testid="stMetricLabel"],
+[data-testid="metric-container"] [data-testid="stMetricLabel"] * {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricValue"],
+[data-testid="metric-container"] [data-testid="stMetricValue"] * {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    line-height: 1.1 !important;
+}
+[data-testid="metric-container"] [data-testid="stMetricDelta"],
+[data-testid="metric-container"] [data-testid="stMetricDelta"] * {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+}
 /* Expanders */
 [data-testid="stExpander"] summary { background-color: var(--card) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 6px !important; }
 /* DataFrames */
@@ -65,6 +121,12 @@ THEME_BASE_CSS = """
 [data-testid="stSidebarNav"] a[aria-current="page"] { color: var(--accent) !important; font-weight: 700 !important; }
 /* Info / warning / success boxes */
 [data-testid="stAlert"] { border-left-color: var(--accent) !important; background-color: var(--card) !important; color: var(--text) !important; }
+@media (max-width: 980px) {
+    [data-testid="metric-container"] {
+        min-height: 126px !important;
+        padding: 12px !important;
+    }
+}
 </style>
 """
 
@@ -162,6 +224,9 @@ def display_fetch_generate_ui(today_str, tomorrow_str, today_needs_data, tomorro
                                today_predictions_file, tomorrow_predictions_file):
     """Display UI for fetching racecards and generating predictions"""
     num_days_needing_data = sum([today_needs_data, tomorrow_needs_data])
+    is_cloud = _is_cloud_environment()
+    today_fetch_locked = is_cloud and today_racecards_file.exists()
+    tomorrow_fetch_locked = is_cloud and tomorrow_racecards_file.exists()
     
     # Step 1: Fetch Racecards
     st.markdown("### Step 1: Fetch Racecards")
@@ -177,20 +242,32 @@ def display_fetch_generate_ui(today_str, tomorrow_str, today_needs_data, tomorro
     
     if today_needs_data and col1a:
         with col1a:
-            if st.button("📥 Fetch Today's Racecards", type="secondary"):
+            if st.button(
+                "📥 Fetch Today's Racecards",
+                type="secondary",
+                disabled=today_fetch_locked,
+            ):
                 fetch_racecards(today_str)
+            elif today_fetch_locked:
+                st.caption("Cloud repulls are blocked because today's racecards already exist.")
     
     if tomorrow_needs_data and col1b:
         with col1b:
-            if st.button("📥 Fetch Tomorrow's Racecards", type="secondary"):
+            if st.button(
+                "📥 Fetch Tomorrow's Racecards",
+                type="secondary",
+                disabled=tomorrow_fetch_locked,
+            ):
                 fetch_racecards(tomorrow_str, "tomorrow's")
+            elif tomorrow_fetch_locked:
+                st.caption("Cloud repulls are blocked because tomorrow's racecards already exist.")
     
     with col1c:
         if today_needs_data:
-            show_racecard_status(today_racecards_file, "Today's")
+            show_racecard_status(today_racecards_file, "Today's", today_str)
         if tomorrow_needs_data:
-            show_racecard_status(tomorrow_racecards_file, "Tomorrow's")
-    
+            show_racecard_status(tomorrow_racecards_file, "Tomorrow's", tomorrow_str)
+
     st.markdown("---")
     
     # Step 2: Generate Predictions
@@ -243,7 +320,8 @@ def display_upcoming_schedule_tab():
             st.caption("Complete fixture calendar for premium races")
 
             if not upcoming.empty:
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col2 = st.columns(2)
+                col3, col4 = st.columns(2)
                 with col1:
                     st.metric("📊 Total Fixtures", f"{len(upcoming):,}")
                 with col2:
@@ -328,6 +406,11 @@ def display_top_predictive_races_tab():
 def fetch_racecards(date_str, label=""):
     """Fetch racecards for a given date"""
     label_text = label if label else "racecards"
+    racecards_file = BASE_DIR / "data" / "raw" / f"racecards_{date_str}.json"
+    if _is_cloud_environment() and racecards_file.exists():
+        st.info(f"📭 Cloud repull blocked: racecards for {date_str} already exist.")
+        return
+
     with st.spinner(f"📡 Fetching {label_text} from external source..."):
         try:
             result = subprocess.run(
@@ -339,7 +422,13 @@ def fetch_racecards(date_str, label=""):
             )
             
             if result.returncode == 0:
-                st.success(f"✅ {label_text.capitalize()} fetched successfully!")
+                race_count = _count_races_in_file(racecards_file)
+                if race_count > 0:
+                    st.success(f"✅ {label_text.capitalize()} fetched successfully! ({race_count} races)")
+                else:
+                    st.warning(
+                        f"ℹ️ {label_text.capitalize()} fetch completed, but no races were available for {date_str}."
+                    )
                 if result.stdout:
                     with st.expander("📋 Fetch Details"):
                         st.code(result.stdout, language="text")
@@ -347,7 +436,8 @@ def fetch_racecards(date_str, label=""):
             else:
                 st.error(f"❌ Failed to fetch {label_text}")
                 with st.expander("View Error Details"):
-                    st.code(result.stderr, language="text")
+                    details = result.stderr if result.stderr else result.stdout
+                    st.code(details or "No stderr/stdout captured", language="text")
         except subprocess.TimeoutExpired:
             st.error(f"❌ {label_text.capitalize()} fetch timed out (>2 minutes)")
         except Exception as e:
@@ -360,6 +450,8 @@ def generate_predictions(date_str, racecards_file, label=""):
     if not racecards_file.exists():
         st.error(f"❌ Racecards not found for {date_str}")
         st.info(f"Please click 'Fetch {label_text.capitalize()} Racecards' button above first")
+    elif _count_races_in_file(racecards_file) == 0:
+        st.info(f"📭 No races available for {date_str}, so predictions were skipped.")
     else:
         with st.spinner(f"🤖 Running Machine Learning predictions {label_text}..."):
             try:
@@ -393,22 +485,92 @@ def generate_predictions(date_str, racecards_file, label=""):
                 else:
                     st.error(f"❌ {label_text.capitalize()} prediction generation failed")
                     with st.expander("View Error Details"):
-                        st.code(result.stderr, language="text")
+                        details = result.stderr if result.stderr else result.stdout
+                        st.code(details or "No stderr/stdout captured", language="text")
             except subprocess.TimeoutExpired:
                 st.error(f"❌ {label_text.capitalize()} prediction generation timed out")
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
 
-def show_racecard_status(racecards_file, label):
+def _count_races_in_file(racecards_file):
+    """Return number of races in racecards JSON, supporting nested and list shapes."""
+    try:
+        with open(racecards_file, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception:
+        return 0
+
+    if isinstance(data, list):
+        return len(data)
+
+    if isinstance(data, dict):
+        for key in ("racecards", "races", "results"):
+            if isinstance(data.get(key), list):
+                return len(data[key])
+
+        count = 0
+        for region_data in data.values():
+            if not isinstance(region_data, dict):
+                continue
+            for course_data in region_data.values():
+                if not isinstance(course_data, dict):
+                    continue
+                count += len(course_data)
+        return count
+
+    return 0
+
+
+def _nearest_racecards_file(date_str, max_days=3):
+    """Find nearest available racecards_YYYY-MM-DD.json around date_str."""
+    if not date_str:
+        return None
+
+    raw_dir = BASE_DIR / "data" / "raw"
+    if not raw_dir.exists():
+        return None
+
+    try:
+        target = pd.Timestamp(date_str).date()
+    except Exception:
+        return None
+
+    best = None
+    pattern = re.compile(r"^racecards_(\d{4}-\d{2}-\d{2})\.json$")
+    for path in raw_dir.glob("racecards_*.json"):
+        m = pattern.match(path.name)
+        if not m:
+            continue
+        try:
+            d = pd.Timestamp(m.group(1)).date()
+        except Exception:
+            continue
+        delta = (d - target).days
+        if abs(delta) > max_days:
+            continue
+        if best is None or abs(delta) < abs(best[1]):
+            best = (path.name, delta)
+    return best
+
+
+def show_racecard_status(racecards_file, label, date_str=None):
     """Show status of racecards file"""
     if racecards_file.exists():
         file_time = pd.Timestamp.fromtimestamp(racecards_file.stat().st_mtime)
         time_str = file_time.strftime('%I:%M %p').lstrip('0')
-        st.success(f"✅ {label} racecards\nFetched at {time_str}")
+        race_count = _count_races_in_file(racecards_file)
+        st.success(f"✅ {label} racecards ({race_count} races)\nFetched at {time_str}")
     else:
         status_type = "warning" if "Today" in label else "info"
         msg = f"⚠️ No racecards for {label.lower()}"
+        if date_str:
+            nearest = _nearest_racecards_file(date_str)
+            msg += f"\nExpected: racecards_{date_str}.json"
+            if nearest is not None:
+                nearest_name, day_delta = nearest
+                sign = "+" if day_delta > 0 else ""
+                msg += f"\nNearest available: {nearest_name} ({sign}{day_delta} day(s))"
         if status_type == "warning":
             st.warning(msg)
         else:
@@ -476,6 +638,7 @@ def display_live_odds_controls(today_str, tomorrow_str,
                                 today_predictions_file, tomorrow_predictions_file):
     """Always-visible panel letting users scrape / refresh live bookmaker odds."""
     RAW_DIR = BASE_DIR / "data" / "raw"
+    is_cloud = _is_cloud_environment()
 
     today_rp   = RAW_DIR / f"rp_odds_{today_str}.csv"
     today_atr  = RAW_DIR / f"atr_odds_best_{today_str}.csv"
@@ -503,16 +666,28 @@ def display_live_odds_controls(today_str, tomorrow_str,
         with col1:
             st.markdown("**Today** " + ("✅" if today_has_odds else "❌"))
             if today_predictions_file.exists():
-                if st.button("🎰 Scrape Today's Odds", key="scrape_odds_today"):
+                if st.button(
+                    "🎰 Scrape Today's Odds",
+                    key="scrape_odds_today",
+                    disabled=is_cloud and today_has_odds,
+                ):
                     _run_odds_scraping(today_str, label="today")
+                elif is_cloud and today_has_odds:
+                    st.caption("Cloud repulls are blocked because today's odds already exist.")
             else:
                 st.caption("Generate predictions first")
 
         with col2:
             st.markdown("**Tomorrow** " + ("✅" if tmrw_has_odds else "❌"))
             if tomorrow_predictions_file.exists():
-                if st.button("🎰 Scrape Tomorrow's Odds", key="scrape_odds_tmrw"):
+                if st.button(
+                    "🎰 Scrape Tomorrow's Odds",
+                    key="scrape_odds_tmrw",
+                    disabled=is_cloud and tmrw_has_odds,
+                ):
                     _run_odds_scraping(tomorrow_str, label="tomorrow")
+                elif is_cloud and tmrw_has_odds:
+                    st.caption("Cloud repulls are blocked because tomorrow's odds already exist.")
             else:
                 st.caption("Generate predictions first")
 
@@ -551,6 +726,10 @@ def _run_odds_scraping(date_str, label=""):
     RP scraper opens a visible Chrome window to bypass bot detection.
     A window will appear briefly and close automatically when done.
     """
+    if _is_cloud_environment() and _has_odds_files(date_str):
+        st.info(f"📭 Cloud repull blocked: odds for {date_str} already exist.")
+        return
+
     scripts = [
         ([sys.executable, "scripts/scrape_rp_odds.py",    "--date", date_str], "RP odds"),
         ([sys.executable, "scripts/scrape_atr_odds.py",   "--date", date_str], "ATR odds"),
@@ -708,6 +887,7 @@ def display_top_predictions(predictions):
         inplace=True,
     )
 
+    top_per_day = _arrow_safe_df(top_per_day)
     height = get_dataframe_height(top_per_day)
     safe_st_call(st.dataframe, top_per_day, hide_index=True, width='stretch', height=height)
 
@@ -750,11 +930,22 @@ def display_race_by_race(predictions):
     
     selected_race_info = races.iloc[selected_race_idx]
     
-    race_preds = predictions[
-        (predictions['date'] == selected_race_info['date']) &
-        (predictions['race_time'] == selected_race_info['race_time']) &
-        (predictions['course'] == selected_race_info['course'])
-    ].copy()
+    mask = predictions['date'] == selected_race_info['date']
+    for col in ['race_time', 'course', 'race_name']:
+        selected_val = selected_race_info[col]
+        if pd.isna(selected_val):
+            mask &= predictions[col].isna()
+        else:
+            mask &= predictions[col] == selected_val
+
+    race_preds = predictions[mask].copy()
+
+    if race_preds.empty:
+        st.warning(
+            "Selected race has no matching horse rows in the predictions table. "
+            "Try another race option."
+        )
+        return
     
     race_preds = race_preds.sort_values('win_probability', ascending=False)
     
@@ -776,24 +967,28 @@ def display_race_by_race(predictions):
 
 def display_race_details(selected_race_info, race_preds):
     """Display race details"""
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
+    row1_col1, row1_col2 = st.columns(2)
+    row2_col1, row2_col2 = st.columns(2)
+    row3_col1 = st.container()
+    with row1_col1:
         st.metric("Day", selected_race_info['day_label'])
-    with col2:
+    with row1_col2:
         st.metric("Date", selected_race_info['date'])
-    with col3:
+    with row2_col1:
         st.metric("Course", selected_race_info['course'])
-    with col4:
+    with row2_col2:
         st.metric("Time", selected_race_info['race_time'])
-    with col5:
-        race_class = race_preds.iloc[0]['race_class']
-        st.metric("Class & Runners", f"Class {race_class} ({len(race_preds)})")
+    with row3_col1:
+        race_class = race_preds['race_class'].iloc[0] if ('race_class' in race_preds.columns and not race_preds.empty) else None
+        race_class_label = f"Class {race_class}" if pd.notna(race_class) else "Class N/A"
+        st.metric("Class & Runners", f"{race_class_label} ({len(race_preds)})")
 
 
 def display_top_picks(race_preds):
     """Display top picks for win, place, and show"""
     st.markdown("##### 🏆 Top Picks")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
+    col3 = st.container()
     
     top_win = race_preds.nlargest(1, 'win_probability').iloc[0]
     top_place = race_preds.nlargest(1, 'place_probability').iloc[0]
@@ -831,7 +1026,8 @@ def display_exacta_trifecta(race_preds):
         
         exacta_prob = p1 * p_second_given_first if p1 < 0.99 else 0
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
+        col3 = st.container()
         with col1:
             st.metric(
                 "🥇🥈 Exacta (1-2 in order)", 
@@ -875,7 +1071,8 @@ def display_exacta_trifecta(race_preds):
         incremental_place = prob_top_2 - prob_win
         incremental_show = prob_top_3 - prob_top_2
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
+        col3 = st.container()
         with col1:
             st.metric("🥇 Win (1st)", f"{prob_win:.1%}")
         with col2:
@@ -991,6 +1188,7 @@ def display_all_horses_table(race_preds):
     )
     display_df = display_df.sort_values('Win Rank')
 
+    display_df = _arrow_safe_df(display_df)
     st.dataframe(display_df, hide_index=True, width='stretch',
                  height=get_dataframe_height(display_df))
 
@@ -1077,7 +1275,8 @@ def display_value_bet_calculator(race_preds, selected_race_idx):
         st.markdown("---")
         st.markdown(f"**Analysis for {selected_horse}:**")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2 = st.columns(2)
+        col3, col4 = st.columns(2)
 
         with col1:
             st.metric("Model Win %", f"{model_prob:.1%}")
@@ -1159,7 +1358,8 @@ def display_model_insights():
                     with open(calibration_metrics_file, 'r') as f:
                         cal_metrics = json.load(f)
                     
-                    col1, col2, col3, col4 = st.columns(4)
+                    col1, col2 = st.columns(2)
+                    col3, col4 = st.columns(2)
                     with col1:
                         brier_calib = cal_metrics['metrics']['brier_score_calibrated']
                         st.metric("Brier Score", f"{brier_calib:.4f}", help="Lower is better. Measures probability accuracy.")
@@ -1218,7 +1418,8 @@ def display_model_insights():
                 with open(diagnostics_file, 'r') as f:
                     diagnostics = json.load(f)
                 
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col2 = st.columns(2)
+                col3, col4 = st.columns(2)
                 with col1:
                     st.metric("Prediction Date", diagnostics['date'])
                 with col2:
@@ -1306,7 +1507,8 @@ def display_predicted_fixtures_tab():
             fixtures_scored['date'] = pd.to_datetime(fixtures_scored['date'])
             
             # Overview metrics
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2 = st.columns(2)
+            col3, col4 = st.columns(2)
             with col1:
                 st.metric("Total Fixtures", f"{len(fixtures_scored):,}")
             with col2:

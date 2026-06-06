@@ -23,6 +23,7 @@ import re
 import warnings
 from datetime import datetime
 from pathlib import Path
+import traceback
 
 import numpy as np
 import pandas as pd
@@ -183,6 +184,27 @@ def _fractional_odds_to_probability(odds_raw: str | None) -> float | None:
     if num <= 0 or den <= 0:
         return None
     return den / (num + den)
+
+
+def _resolve_runner_odds(runner: dict) -> tuple[str, str]:
+    """Return (odds_text, source_label) using the configured fallback hierarchy."""
+    candidates = [
+        ("ml_odds", "us_racecards.ml_odds"),
+        ("odds", "nyra_entries.odds"),
+        ("morning_line", "fallback.morning_line"),
+        ("morningLine", "fallback.morningLine"),
+        ("line", "fallback.line"),
+    ]
+
+    for key, source in candidates:
+        value = runner.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text and text not in {"-", "N/A", "None"}:
+            return text, source
+
+    return "", "none"
 
 
 # ── Feature building ──────────────────────────────────────────────────────────
@@ -434,6 +456,8 @@ def predict_us_race(race: dict, historical_df: pd.DataFrame,
         except Exception:
             raw_prob = 1.0 / field_size
 
+        market_odds_text, odds_source = _resolve_runner_odds(runner)
+
         raw_preds.append({
             'horse': horse_name,
             'jockey': runner.get('jockey') or '',
@@ -443,11 +467,15 @@ def predict_us_race(race: dict, historical_df: pd.DataFrame,
             'weight_lbs': _parse_weight(runner.get('weight') or runner.get('lbs')),
             'form': runner.get('form') or '',
             'draw': runner.get('draw') or runner.get('stall') or runner.get('number') or '',
-            'ml_odds': runner.get('ml_odds') or '',
+            'market_odds_fractional': market_odds_text,
+            'odds_source': odds_source,
             'raw_win_probability': raw_prob,
         })
 
-    market_probs = [_fractional_odds_to_probability(pred.get('ml_odds')) for pred in raw_preds]
+    market_probs = [
+        _fractional_odds_to_probability(pred.get('market_odds_fractional'))
+        for pred in raw_preds
+    ]
     valid_market = [prob for prob in market_probs if prob is not None and prob > 0]
     raw_values = np.array([pred['raw_win_probability'] for pred in raw_preds], dtype=float)
 
@@ -561,7 +589,7 @@ def main():
     try:
         model, feature_cols, model_label, model_artifact = load_model()
     except FileNotFoundError as exc:
-        print(f"[ERROR] {exc}")
+        print(f"[ERROR] {exc}", file=sys.stderr)
         sys.exit(1)
 
     # ── Load racecards ──────────────────────────────────────────────────────
@@ -572,8 +600,8 @@ def main():
             print(f"[INFO] us_racecards not found; using nyra_entries_{date_str}.json")
             racecard_file = nyra_file
         else:
-            print(f"[ERROR] No US racecards found for {date_str}")
-            print(f"        Run: python scripts/fetch_nyra_entries.py --date {date_str}")
+            print(f"[ERROR] No US racecards found for {date_str}", file=sys.stderr)
+            print(f"        Run: python scripts/fetch_nyra_entries.py --date {date_str}", file=sys.stderr)
             sys.exit(1)
 
     with open(racecard_file, encoding='utf-8') as fh:
@@ -680,4 +708,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"[FATAL] Unhandled exception: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        sys.exit(1)
