@@ -5,6 +5,8 @@ Displays today's and tomorrow's race predictions with model insights.
 Uses precomputed CSVs for fast loading.
 """
 import base64
+import json
+import re
 import pandas as pd
 import streamlit as st
 import subprocess
@@ -187,10 +189,10 @@ def display_fetch_generate_ui(today_str, tomorrow_str, today_needs_data, tomorro
     
     with col1c:
         if today_needs_data:
-            show_racecard_status(today_racecards_file, "Today's")
+            show_racecard_status(today_racecards_file, "Today's", today_str)
         if tomorrow_needs_data:
-            show_racecard_status(tomorrow_racecards_file, "Tomorrow's")
-    
+            show_racecard_status(tomorrow_racecards_file, "Tomorrow's", tomorrow_str)
+
     st.markdown("---")
     
     # Step 2: Generate Predictions
@@ -328,6 +330,7 @@ def display_top_predictive_races_tab():
 def fetch_racecards(date_str, label=""):
     """Fetch racecards for a given date"""
     label_text = label if label else "racecards"
+    racecards_file = BASE_DIR / "data" / "raw" / f"racecards_{date_str}.json"
     with st.spinner(f"📡 Fetching {label_text} from external source..."):
         try:
             result = subprocess.run(
@@ -339,7 +342,13 @@ def fetch_racecards(date_str, label=""):
             )
             
             if result.returncode == 0:
-                st.success(f"✅ {label_text.capitalize()} fetched successfully!")
+                race_count = _count_races_in_file(racecards_file)
+                if race_count > 0:
+                    st.success(f"✅ {label_text.capitalize()} fetched successfully! ({race_count} races)")
+                else:
+                    st.warning(
+                        f"ℹ️ {label_text.capitalize()} fetch completed, but no races were available for {date_str}."
+                    )
                 if result.stdout:
                     with st.expander("📋 Fetch Details"):
                         st.code(result.stdout, language="text")
@@ -347,7 +356,8 @@ def fetch_racecards(date_str, label=""):
             else:
                 st.error(f"❌ Failed to fetch {label_text}")
                 with st.expander("View Error Details"):
-                    st.code(result.stderr, language="text")
+                    details = result.stderr if result.stderr else result.stdout
+                    st.code(details or "No stderr/stdout captured", language="text")
         except subprocess.TimeoutExpired:
             st.error(f"❌ {label_text.capitalize()} fetch timed out (>2 minutes)")
         except Exception as e:
@@ -360,6 +370,8 @@ def generate_predictions(date_str, racecards_file, label=""):
     if not racecards_file.exists():
         st.error(f"❌ Racecards not found for {date_str}")
         st.info(f"Please click 'Fetch {label_text.capitalize()} Racecards' button above first")
+    elif _count_races_in_file(racecards_file) == 0:
+        st.info(f"📭 No races available for {date_str}, so predictions were skipped.")
     else:
         with st.spinner(f"🤖 Running Machine Learning predictions {label_text}..."):
             try:
@@ -393,22 +405,92 @@ def generate_predictions(date_str, racecards_file, label=""):
                 else:
                     st.error(f"❌ {label_text.capitalize()} prediction generation failed")
                     with st.expander("View Error Details"):
-                        st.code(result.stderr, language="text")
+                        details = result.stderr if result.stderr else result.stdout
+                        st.code(details or "No stderr/stdout captured", language="text")
             except subprocess.TimeoutExpired:
                 st.error(f"❌ {label_text.capitalize()} prediction generation timed out")
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
 
-def show_racecard_status(racecards_file, label):
+def _count_races_in_file(racecards_file):
+    """Return number of races in racecards JSON, supporting nested and list shapes."""
+    try:
+        with open(racecards_file, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception:
+        return 0
+
+    if isinstance(data, list):
+        return len(data)
+
+    if isinstance(data, dict):
+        for key in ("racecards", "races", "results"):
+            if isinstance(data.get(key), list):
+                return len(data[key])
+
+        count = 0
+        for region_data in data.values():
+            if not isinstance(region_data, dict):
+                continue
+            for course_data in region_data.values():
+                if not isinstance(course_data, dict):
+                    continue
+                count += len(course_data)
+        return count
+
+    return 0
+
+
+def _nearest_racecards_file(date_str, max_days=3):
+    """Find nearest available racecards_YYYY-MM-DD.json around date_str."""
+    if not date_str:
+        return None
+
+    raw_dir = BASE_DIR / "data" / "raw"
+    if not raw_dir.exists():
+        return None
+
+    try:
+        target = pd.Timestamp(date_str).date()
+    except Exception:
+        return None
+
+    best = None
+    pattern = re.compile(r"^racecards_(\d{4}-\d{2}-\d{2})\.json$")
+    for path in raw_dir.glob("racecards_*.json"):
+        m = pattern.match(path.name)
+        if not m:
+            continue
+        try:
+            d = pd.Timestamp(m.group(1)).date()
+        except Exception:
+            continue
+        delta = (d - target).days
+        if abs(delta) > max_days:
+            continue
+        if best is None or abs(delta) < abs(best[1]):
+            best = (path.name, delta)
+    return best
+
+
+def show_racecard_status(racecards_file, label, date_str=None):
     """Show status of racecards file"""
     if racecards_file.exists():
         file_time = pd.Timestamp.fromtimestamp(racecards_file.stat().st_mtime)
         time_str = file_time.strftime('%I:%M %p').lstrip('0')
-        st.success(f"✅ {label} racecards\nFetched at {time_str}")
+        race_count = _count_races_in_file(racecards_file)
+        st.success(f"✅ {label} racecards ({race_count} races)\nFetched at {time_str}")
     else:
         status_type = "warning" if "Today" in label else "info"
         msg = f"⚠️ No racecards for {label.lower()}"
+        if date_str:
+            nearest = _nearest_racecards_file(date_str)
+            msg += f"\nExpected: racecards_{date_str}.json"
+            if nearest is not None:
+                nearest_name, day_delta = nearest
+                sign = "+" if day_delta > 0 else ""
+                msg += f"\nNearest available: {nearest_name} ({sign}{day_delta} day(s))"
         if status_type == "warning":
             st.warning(msg)
         else:

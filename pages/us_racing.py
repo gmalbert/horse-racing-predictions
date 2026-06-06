@@ -17,6 +17,7 @@ import sys
 from datetime import timedelta
 from pathlib import Path
 import os
+import re
 
 import pandas as pd
 import streamlit as st
@@ -87,22 +88,82 @@ def _show_file_status(path: Path, label: str):
         st.info(f"⬜ {label} — not yet available")
 
 
+def _safe_tail(text: str | None, max_chars: int = 4000) -> str:
+    if not text:
+        return ""
+    return text[-max_chars:]
+
+
+def _render_subprocess_error(
+    title: str,
+    cmd: list[str],
+    result: subprocess.CompletedProcess[str] | None = None,
+    exc: Exception | None = None,
+):
+    """Render detailed subprocess diagnostics for cloud-friendly debugging."""
+    st.error(f"❌ {title}")
+
+    cmd_str = subprocess.list2cmdline(cmd)
+    lines = [
+        f"cwd: {BASE_DIR}",
+        f"command: {cmd_str}",
+    ]
+
+    if result is not None:
+        lines.append(f"returncode: {result.returncode}")
+
+    if exc is not None:
+        lines.append(f"exception: {type(exc).__name__}: {exc}")
+        if isinstance(exc, subprocess.TimeoutExpired):
+            out = exc.stdout if isinstance(exc.stdout, str) else ""
+            err = exc.stderr if isinstance(exc.stderr, str) else ""
+            if out:
+                lines.append("\n--- stdout (tail) ---\n" + _safe_tail(out))
+            if err:
+                lines.append("\n--- stderr (tail) ---\n" + _safe_tail(err))
+    elif result is not None:
+        out_tail = _safe_tail(result.stdout)
+        err_tail = _safe_tail(result.stderr)
+        if out_tail:
+            lines.append("\n--- stdout (tail) ---\n" + out_tail)
+        if err_tail:
+            lines.append("\n--- stderr (tail) ---\n" + err_tail)
+        if not out_tail and not err_tail:
+            lines.append("\n(no stdout/stderr captured)")
+
+    details = "\n".join(lines)
+
+    log_dir = BASE_DIR / "tmp" / "error_logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_") or "error"
+    timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"{slug}_{timestamp}.log"
+    log_file.write_text(details, encoding="utf-8")
+
+    with st.expander("Error details"):
+        st.code(details, language="text")
+        st.caption(f"Saved diagnostic log: {log_file}")
+
+
 # ── Pipeline actions ───────────────────────────────────────────────────────────
 
 def _ingest_us_entries(date_str: str, label: str = ""):
     """Run ingest_us_entries.py (TVG fetch + write CSV + merge racecards JSON)."""
+    cmd = [sys.executable, "scripts/ingest_us_entries.py", "--date", date_str]
     with st.spinner(f"📡 Fetching US entries from TVG for {label}{date_str}… (~5s)"):
-        result = subprocess.run(
-            [sys.executable, "scripts/ingest_us_entries.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+            )
+        except Exception as exc:
+            _render_subprocess_error("TVG fetch failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success(f"✅ US entries fetched for {date_str}!")
             st.rerun()
         else:
-            st.error("❌ TVG fetch failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("TVG fetch failed", cmd, result=result)
 
 
 def _generate_us_predictions(date_str: str, label: str = ""):
@@ -111,35 +172,46 @@ def _generate_us_predictions(date_str: str, label: str = ""):
     if not rc.exists():
         st.error(f"❌ No racecards for {date_str} — fetch entries first.")
         return
+    cmd = [sys.executable, "scripts/predict_us_races.py", "--date", date_str]
     with st.spinner(f"🤖 Generating US predictions for {label}{date_str}…"):
-        result = subprocess.run(
-            [sys.executable, "scripts/predict_us_races.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+            )
+        except Exception as exc:
+            _render_subprocess_error("Prediction generation failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success("✅ US predictions generated!")
             st.balloons()
             st.rerun()
         else:
-            st.error("❌ Prediction generation failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("Prediction generation failed", cmd, result=result)
 
 
 def _betfair_fetch_odds(date_str: str, label: str = ""):
+    cmd = [
+        sys.executable,
+        "scripts/fetch_betfair_us_odds.py",
+        "--date",
+        date_str,
+        "--overlay",
+    ]
     with st.spinner(f"💹 Fetching Betfair odds for {label}{date_str}…"):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_betfair_us_odds.py",
-             "--date", date_str, "--overlay"],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=120,
+            )
+        except Exception as exc:
+            _render_subprocess_error("Betfair fetch failed", cmd, exc=exc)
+            return
         if result.returncode == 0:
             st.success(f"✅ Betfair odds fetched for {date_str}!")
             st.rerun()
         else:
-            st.error("❌ Betfair fetch failed")
-            with st.expander("Error details"):
-                st.code(result.stderr[-2000:], language="text")
+            _render_subprocess_error("Betfair fetch failed", cmd, result=result)
 
 
 # ── Main page ──────────────────────────────────────────────────────────────────
@@ -954,38 +1026,43 @@ def _fetch_abr_stakes(year: int, force: bool = False):
     """Run fetch_abr_stakes.py and show result."""
     force_flag = ["--force"] if force else []
     label = "Re-fetching" if force else "Fetching"
+    cmd = [sys.executable, "scripts/fetch_abr_stakes.py", "--year", str(year)] + force_flag
     with st.spinner(f"📥 {label} ABR stakes calendar for {year}… (uses browser rendering, ~15 s)"):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_abr_stakes.py",
-             "--year", str(year)] + force_flag,
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=90,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=90,
+            )
+        except Exception as exc:
+            _render_subprocess_error("ABR fetch failed", cmd, exc=exc)
+            return
     if result.returncode == 0:
         st.success(f"✅ ABR stakes calendar for {year} fetched!")
         st.rerun()
     else:
-        st.error("❌ ABR fetch failed")
-        with st.expander("Error details"):
-            st.code(result.stderr[-2000:], language="text")
+        _render_subprocess_error("ABR fetch failed", cmd, result=result)
 
 
 def _fetch_equibase_entries(date_str: str, label: str = ""):
     """Run fetch_equibase_entries.py for a single date and show result."""
+    cmd = [sys.executable, "scripts/fetch_equibase_entries.py", "--date", date_str]
     with st.spinner(
         f"📥 Fetching Equibase entries for {label} {date_str}… "
         "(up to 3 min — Equibase uses bot-protection that slows requests)"
     ):
-        result = subprocess.run(
-            [sys.executable, "scripts/fetch_equibase_entries.py", "--date", date_str],
-            cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
-        )
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=str(BASE_DIR), capture_output=True, text=True, timeout=300,
+            )
+        except Exception as exc:
+            _render_subprocess_error(f"Equibase fetch failed for {date_str}", cmd, exc=exc)
+            return
     if result.returncode == 0:
         st.success(f"✅ Equibase entries fetched for {date_str}!")
         st.rerun()
     else:
-        st.error(f"❌ Equibase fetch failed for {date_str}")
-        with st.expander("Error details"):
-            st.code(result.stderr[-2000:], language="text")
+        _render_subprocess_error(f"Equibase fetch failed for {date_str}", cmd, result=result)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
