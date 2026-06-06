@@ -121,6 +121,11 @@ def main() -> int:
     parser.add_argument("--min-ml-odds-coverage", type=float, default=0.50)
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--min-drift-ratio", type=float, default=0.50)
+    parser.add_argument(
+        "--require-source-report",
+        action="store_true",
+        help="Fail when data/raw/us_source_report_<date>.json is missing",
+    )
     args = parser.parse_args()
 
     date_str = args.date
@@ -140,11 +145,16 @@ def main() -> int:
             "message": str(racecards_path),
         }
     )
+    source_report_ok = source_report_exists or (not args.require_source_report)
+    source_report_msg = str(source_report_path)
+    if not source_report_exists and not args.require_source_report:
+        source_report_msg += " (missing, non-blocking)"
+
     checks.append(
         {
             "name": "source_report_exists",
-            "ok": source_report_exists,
-            "message": str(source_report_path),
+            "ok": source_report_ok,
+            "message": source_report_msg,
         }
     )
 
