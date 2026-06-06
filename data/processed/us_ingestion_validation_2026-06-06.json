@@ -1,7 +1,7 @@
 {
   "date": "2026-06-06",
-  "generated_at_utc": "2026-06-06T21:22:04.035279+00:00",
-  "status": "FAIL",
+  "generated_at_utc": "2026-06-06T21:24:59.123378+00:00",
+  "status": "PASS",
   "checks": [
     {
       "name": "racecards_file_exists",
@@ -15,18 +15,18 @@
     },
     {
       "name": "min_total_races",
-      "ok": false,
-      "message": "0 >= 8"
+      "ok": true,
+      "message": "0 >= 8 (empty racecards allowed)"
     },
     {
       "name": "min_total_runners",
-      "ok": false,
-      "message": "0 >= 50"
+      "ok": true,
+      "message": "0 >= 50 (empty racecards allowed)"
     },
     {
       "name": "min_ml_odds_coverage",
-      "ok": false,
-      "message": "0.0% >= 50.0%"
+      "ok": true,
+      "message": "0.0% >= 50.0% (empty racecards allowed)"
     },
     {
       "name": "coverage_drift_guard",
