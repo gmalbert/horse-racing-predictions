@@ -1,12 +1,12 @@
 # US Odds Coverage Audit
 
 - Date: 2026-06-06
-- Generated At (UTC): 2026-06-06T19:45:30.654869+00:00
+- Generated At (UTC): 2026-06-06T21:14:47.831215+00:00
 
 ## Source Coverage
 
-- us_racecards: available=True, races=354, coverage=100.0%
-- nyra_entries: available=False, races=0, coverage=0.0%
+- us_racecards: available=True, races=0, coverage=0.0%
+- nyra_entries: available=True, races=0, coverage=0.0%
 - oddsportal: available=False, races=0, coverage=0.0%
 
 ## Fallback Hierarchy
@@ -18,4 +18,4 @@
 
 ## Alerts
 
-- No fallback odds sources available (NYRA + OddsPortal both missing).
+- Primary source coverage low: 0.0% < 50.0%.

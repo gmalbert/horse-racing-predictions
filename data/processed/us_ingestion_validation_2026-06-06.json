@@ -1,46 +1,51 @@
 {
   "date": "2026-06-06",
-  "generated_at_utc": "2026-06-06T19:45:29.883603+00:00",
+  "generated_at_utc": "2026-06-06T21:14:47.787054+00:00",
   "status": "FAIL",
   "checks": [
     {
       "name": "racecards_file_exists",
       "ok": true,
-      "message": "data\\raw\\us_racecards_2026-06-06.json"
+      "message": "data/raw/us_racecards_2026-06-06.json"
     },
     {
       "name": "source_report_exists",
-      "ok": false,
-      "message": "data\\raw\\us_source_report_2026-06-06.json"
+      "ok": true,
+      "message": "data/raw/us_source_report_2026-06-06.json"
     },
     {
       "name": "min_total_races",
-      "ok": true,
-      "message": "354 >= 8"
+      "ok": false,
+      "message": "0 >= 8"
     },
     {
       "name": "min_total_runners",
-      "ok": true,
-      "message": "2902 >= 50"
+      "ok": false,
+      "message": "0 >= 50"
     },
     {
       "name": "min_ml_odds_coverage",
-      "ok": true,
-      "message": "100.0% >= 50.0%"
+      "ok": false,
+      "message": "0.0% >= 50.0%"
     },
     {
       "name": "coverage_drift_guard",
       "ok": true,
-      "message": "today=354 vs median=26.5, min_allowed=13.2"
+      "message": "Insufficient history for drift baseline; check skipped"
+    },
+    {
+      "name": "source_report_total_matches_racecards",
+      "ok": true,
+      "message": "report_total=0, racecards_total=0"
     }
   ],
   "metrics": {
-    "total_races": 354,
-    "total_runners": 2902,
-    "unique_tracks": 34,
-    "runners_with_ml_odds": 2902,
-    "ml_odds_coverage": 1.0,
-    "historical_median_total_races": 26.5
+    "total_races": 0,
+    "total_runners": 0,
+    "unique_tracks": 0,
+    "runners_with_ml_odds": 0,
+    "ml_odds_coverage": 0.0,
+    "historical_median_total_races": 0.0
   },
   "alerts": []
 }
