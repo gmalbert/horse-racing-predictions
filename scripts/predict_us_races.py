@@ -23,6 +23,7 @@ import re
 import warnings
 from datetime import datetime
 from pathlib import Path
+import traceback
 
 import numpy as np
 import pandas as pd
@@ -561,7 +562,7 @@ def main():
     try:
         model, feature_cols, model_label, model_artifact = load_model()
     except FileNotFoundError as exc:
-        print(f"[ERROR] {exc}")
+        print(f"[ERROR] {exc}", file=sys.stderr)
         sys.exit(1)
 
     # ── Load racecards ──────────────────────────────────────────────────────
@@ -572,8 +573,8 @@ def main():
             print(f"[INFO] us_racecards not found; using nyra_entries_{date_str}.json")
             racecard_file = nyra_file
         else:
-            print(f"[ERROR] No US racecards found for {date_str}")
-            print(f"        Run: python scripts/fetch_nyra_entries.py --date {date_str}")
+            print(f"[ERROR] No US racecards found for {date_str}", file=sys.stderr)
+            print(f"        Run: python scripts/fetch_nyra_entries.py --date {date_str}", file=sys.stderr)
             sys.exit(1)
 
     with open(racecard_file, encoding='utf-8') as fh:
@@ -680,4 +681,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"[FATAL] Unhandled exception: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        sys.exit(1)

@@ -124,31 +124,94 @@ def get_race_urls(dates: List[str], country: str = None) -> Dict[str, List[Tuple
         country: Country filter (uk, ire, us, fr, uae, etc.) or None for all
     """
     race_urls = defaultdict(list)
-    
-    for date in dates:
-        # Racing Post supports country-specific URLs
-        if country:
-            url = f'https://www.racingpost.com/racecards/{date}/{country}'
-        else:
-            url = f'https://www.racingpost.com/racecards/{date}'
-        
-        status, response = get_request(url)
-        
-        if status != 200 or not response:
-            print(f"Failed to fetch racecards for {date}")
-            continue
-        
-        doc = html.fromstring(response.content)
-        
+
+    race_href_re = re.compile(
+        r'^/racecards/(?P<course_id>\d+)/[^/]+/(?P<race_date>\d{4}-\d{2}-\d{2})/(?P<race_id>\d+)/?$'
+    )
+
+    def _extract_links_from_doc(doc, wanted_date: str) -> List[Tuple[str, str]]:
+        extracted: List[Tuple[str, str]] = []
+
+        # Legacy structure (kept for backwards compatibility)
         for meeting in doc.xpath('//section[@data-accordion-row]'):
             course = meeting.xpath(".//span[contains(@class, 'RC-accordion__courseName')]")
             if course and valid_meeting(course[0].text_content().strip().lower()):
-                for race in meeting.xpath(".//a[@class='RC-meetingItem__link js-navigate-url']"):
+                for race in meeting.xpath(".//a[contains(@class, 'RC-meetingItem__link')]"):
                     race_id = race.attrib.get('data-race-id')
                     href = race.attrib.get('href')
                     if race_id and href:
-                        race_urls[date].append((race_id, href))
-        
+                        extracted.append((race_id, href))
+
+        # Newer structure: discover race links from href pattern directly.
+        for href in doc.xpath('//a/@href'):
+            if not isinstance(href, str):
+                continue
+            match = race_href_re.match(href)
+            if not match:
+                continue
+            if match.group('race_date') != wanted_date:
+                continue
+            extracted.append((match.group('race_id'), href))
+
+        # Deduplicate while preserving order
+        seen = set()
+        deduped: List[Tuple[str, str]] = []
+        for race_id, href in extracted:
+            key = (race_id, href)
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append((race_id, href))
+        return deduped
+    
+    for date in dates:
+        candidate_urls = []
+        if country:
+            candidate_urls.append(f'https://www.racingpost.com/racecards/{date}/{country}')
+            candidate_urls.append(f'https://www.racingpost.com/racecards/{date}/{country}/')
+        candidate_urls.append(f'https://www.racingpost.com/racecards/{date}')
+        candidate_urls.append(f'https://www.racingpost.com/racecards/{date}/')
+        candidate_urls.append('https://www.racingpost.com/racecards/')
+        candidate_urls.append('https://www.racingpost.com/racecards/tomorrow/')
+
+        try:
+            next_day = (
+                datetime.datetime.strptime(date, '%Y-%m-%d').date()
+                + datetime.timedelta(days=1)
+            ).isoformat()
+            candidate_urls.append(f'https://www.racingpost.com/racecards/{next_day}/')
+        except Exception:
+            pass
+
+        merged_links: List[Tuple[str, str]] = []
+        for url in candidate_urls:
+            status, response = get_request(url)
+            if not response:
+                continue
+            if status not in (200, 406):
+                continue
+
+            try:
+                doc = html.fromstring(response.content)
+            except Exception:
+                continue
+
+            links = _extract_links_from_doc(doc, date)
+            if links:
+                merged_links.extend(links)
+
+        # Final dedupe for the date
+        seen = set()
+        for race_id, href in merged_links:
+            key = (race_id, href)
+            if key in seen:
+                continue
+            seen.add(key)
+            race_urls[date].append((race_id, href))
+
+        if not race_urls[date]:
+            print(f"Failed to discover races for {date} from listing pages")
+
         print(f"Found {len(race_urls[date])} races for {date}")
     
     return dict(race_urls)
@@ -373,10 +436,19 @@ def main():
     race_urls = get_race_urls(dates, args.country)
     
     # Scrape racecards
+    any_scraped = False
+    any_discovered = False
     for date in dates:
         if date not in race_urls or not race_urls[date]:
             print(f"\nNo races found for {date}")
+            # Persist an empty file so the UI can surface the date state explicitly.
+            output_path = output_dir / f'racecards_{date}.json'
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=2, ensure_ascii=False)
+            print(f"Saved empty racecards to {output_path}")
             continue
+
+        any_discovered = True
         
         print(f"\nScraping {len(race_urls[date])} races for {date}...")
         racecards = scrape_racecards(race_urls, date)
@@ -385,8 +457,21 @@ def main():
         output_path = output_dir / f'racecards_{date}.json'
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(racecards, f, indent=2, ensure_ascii=False)
+
+        scraped_count = sum(
+            len(times)
+            for region in racecards.values()
+            for course in region.values()
+            for times in [course]
+        )
+        if scraped_count > 0:
+            any_scraped = True
         
         print(f"\nSaved racecards to {output_path}")
+
+    if any_discovered and not any_scraped:
+        print("\nError: races were discovered but none could be scraped (likely Racing Post anti-bot blocking).")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
