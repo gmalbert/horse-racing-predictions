@@ -595,6 +595,27 @@ def main() -> None:
         "racecards": merged_races,
         "source_counts": source_counts,
     }
+
+    fallback_used = False
+    attempted_source_counts = dict(source_counts)
+    if source_counts["total_races"] == 0 and out_racecards.exists():
+        previous = _load_json(out_racecards) or {}
+        previous_races = previous.get("racecards") or []
+        if previous_races:
+            print("[WARN] Fresh fetch returned zero races; reusing existing non-empty racecards snapshot")
+            racecards_payload = previous
+            racecards_payload["fallback_used"] = True
+            racecards_payload["fallback_generated_at_utc"] = datetime.now(timezone.utc).isoformat()
+            source_counts = previous.get("source_counts") or {
+                "nyra_races": 0,
+                "t1_races": 0,
+                "t2_tb_races": 0,
+                "t2_h_races": 0,
+                "t3_races": 0,
+                "total_races": len(previous_races),
+            }
+            fallback_used = True
+
     out_racecards.write_text(json.dumps(racecards_payload, indent=2), encoding="utf-8")
 
     source_report = {
@@ -604,6 +625,8 @@ def main() -> None:
         "pipeline_runs": {"t1_all": t1_pipeline_result, "nyra": nyra_result},
         "groups": {"T1": t1_rows, "T2-TB": t2_tb_report, "T2-H": t2_h_report, "T3": t3_report},
         "source_counts": source_counts,
+        "attempted_source_counts": attempted_source_counts,
+        "fallback_used": fallback_used,
         "json_discovery_summary": json_discovery.get("summary") if json_discovery else None,
     }
     out_report = RAW_DIR / f"us_source_report_{date_str}.json"
