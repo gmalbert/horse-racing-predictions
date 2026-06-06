@@ -23,6 +23,8 @@ import argparse
 import json
 import sys
 import warnings
+import re
+import unicodedata
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -51,8 +53,21 @@ MODEL_DIR = ROOT / "models"
 # Data loading
 # ─────────────────────────────────────────────────────────────
 
-def load_data() -> pd.DataFrame:
-    """Load best available historical dataset."""
+def load_data(data_file: str | None = None) -> pd.DataFrame:
+    """Load historical dataset (explicit file or best available candidate)."""
+    if data_file:
+        p = Path(data_file)
+        if not p.is_absolute():
+            p = ROOT / p
+        if not p.exists():
+            raise FileNotFoundError(f"Dataset not found: {p}")
+        print(f"[data] Loading {p.name}")
+        df = pd.read_parquet(p)
+        df["date_dt"] = pd.to_datetime(df["date"], errors="coerce")
+        df = df.dropna(subset=["date_dt"])
+        print(f"[data] {len(df):,} rows | {df['date_dt'].min().date()} – {df['date_dt'].max().date()}")
+        return df
+
     candidates = [
         "race_scores_engineered.parquet",   # saved by phase3 — full 75-feature set
         "race_scores_or_context.parquet",
@@ -72,6 +87,110 @@ def load_data() -> pd.DataFrame:
             print(f"[data] {len(df):,} rows | {df['date_dt'].min().date()} – {df['date_dt'].max().date()}")
             return df
     raise FileNotFoundError("No historical parquet dataset found in data/processed/")
+
+
+def _strip_country_suffix(name: str) -> str:
+    text = str(name or "")
+    text = re.sub(r"\s*\([A-Z]{2,3}\)\s*$", "", text)
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = text.lower()
+    text = re.sub(r"[\'`\u2019]", "", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _load_market_odds(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() == ".parquet":
+        return pd.read_parquet(path)
+    return pd.read_csv(path)
+
+
+def _build_market_odds_diagnostics(
+    out: pd.DataFrame,
+    odds_work: pd.DataFrame,
+    odds_join: pd.DataFrame,
+    source_name: str,
+) -> dict:
+    total_rows = int(len(out))
+    matched_rows = int(out["market_odds"].notna().sum()) if "market_odds" in out.columns else 0
+    coverage = (matched_rows / total_rows) if total_rows else 0.0
+
+    source_key_rows = int(len(odds_work))
+    source_unique_keys = int(odds_work[["date_key", "horse_norm"]].drop_duplicates().shape[0])
+    source_duplicate_key_rows = int(source_key_rows - source_unique_keys)
+
+    matched_unique_keys = int(
+        out.loc[out["market_odds"].notna(), ["date_key", "horse_norm"]].drop_duplicates().shape[0]
+    ) if matched_rows else 0
+
+    date_key_coverage = (
+        out["date_key"].isin(set(odds_join["date_key"])).mean() if total_rows else 0.0
+    )
+    horse_key_coverage = (
+        out["horse_norm"].isin(set(odds_join["horse_norm"])).mean() if total_rows else 0.0
+    )
+
+    unmatched = out[out["market_odds"].isna()] if "market_odds" in out.columns else out.iloc[0:0]
+    top_unmatched_dates = (
+        unmatched["date_key"].value_counts().head(5).to_dict() if len(unmatched) else {}
+    )
+
+    return {
+        "source": source_name,
+        "total_rows": total_rows,
+        "matched_rows": matched_rows,
+        "coverage": round(float(coverage), 6),
+        "source_key_rows": source_key_rows,
+        "source_unique_keys": source_unique_keys,
+        "source_duplicate_key_rows": source_duplicate_key_rows,
+        "matched_unique_keys": matched_unique_keys,
+        "date_key_coverage": round(float(date_key_coverage), 6),
+        "horse_key_coverage": round(float(horse_key_coverage), 6),
+        "top_unmatched_dates": {str(k): int(v) for k, v in top_unmatched_dates.items()},
+    }
+
+
+def attach_market_odds(df: pd.DataFrame, odds_file: str | None) -> pd.DataFrame:
+    """Attach market odds by normalized horse/date keys when an odds file is provided."""
+    if not odds_file:
+        return df
+
+    path = Path(odds_file)
+    if not path.exists():
+        print(f"[odds] File not found: {path} (skipping market odds merge)")
+        return df
+
+    odds_df = _load_market_odds(path)
+    required = {"date", "horse", "market_odds"}
+    if not required.issubset(set(odds_df.columns)):
+        print(f"[odds] Missing required columns in {path}; expected {sorted(required)}")
+        return df
+
+    out = df.copy()
+    out["date_key"] = out["date"].astype(str)
+    out["horse_norm"] = out["horse"].apply(_strip_country_suffix)
+
+    odds_work = odds_df.copy()
+    odds_work["date_key"] = odds_work["date"].astype(str)
+    if "horse_norm" not in odds_work.columns:
+        odds_work["horse_norm"] = odds_work["horse"].apply(_strip_country_suffix)
+
+    odds_join = odds_work[["date_key", "horse_norm", "market_odds"]].drop_duplicates(
+        subset=["date_key", "horse_norm"], keep="last"
+    )
+
+    out = out.merge(odds_join, on=["date_key", "horse_norm"], how="left")
+    diagnostics = _build_market_odds_diagnostics(out, odds_work, odds_join, path.name)
+    print(
+        "[odds] Joined market odds from "
+        f"{path.name} | coverage={diagnostics['coverage']:.1%} "
+        f"| matched_rows={diagnostics['matched_rows']:,}/{diagnostics['total_rows']:,} "
+        f"| duplicate_source_keys={diagnostics['source_duplicate_key_rows']:,}"
+    )
+    out.attrs["market_odds_diagnostics"] = diagnostics
+
+    return out
 
 
 def get_feature_cols(df: pd.DataFrame) -> list[str]:
@@ -516,12 +635,18 @@ def print_summary(results: list[dict]) -> None:
 
 def parse_args():
     p = argparse.ArgumentParser(description="Walk-forward backtesting for horse racing model")
+    p.add_argument("--data-file", type=str, default=None,
+                   help="Optional parquet file path to use instead of default dataset selection")
     p.add_argument("--train-months", type=int, default=24, help="Training window months (default 24)")
     p.add_argument("--test-months",  type=int, default=1,  help="Test window months (default 1)")
     p.add_argument("--folds",        type=int, default=12, help="Number of CV folds (default 12)")
     p.add_argument("--min-prob",     type=float, default=0.15, help="Minimum win prob for level staking")
     p.add_argument("--min-edge",     type=float, default=0.05, help="Minimum edge for value betting")
     p.add_argument("--kelly-frac",   type=float, default=0.25, help="Kelly fraction (default 0.25)")
+    p.add_argument("--market-odds-file", type=str, default=None,
+                   help="Optional CSV/Parquet with columns date, horse, market_odds")
+    p.add_argument("--odds-diagnostics-file", type=str, default=None,
+                   help="Optional output JSON path for market-odds join diagnostics")
     p.add_argument("--plot",         action="store_true", help="Save equity curve plots to data/processed/")
     return p.parse_args()
 
@@ -530,7 +655,16 @@ def main():
     args = parse_args()
 
     # Load data
-    df = load_data()
+    df = load_data(args.data_file)
+    df = attach_market_odds(df, args.market_odds_file)
+
+    diagnostics = df.attrs.get("market_odds_diagnostics")
+    if diagnostics:
+        diagnostics_path = Path(args.odds_diagnostics_file) if args.odds_diagnostics_file else (DATA_DIR / "backtest_market_odds_diagnostics.json")
+        diagnostics_path.parent.mkdir(parents=True, exist_ok=True)
+        diagnostics_path.write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
+        print(f"[odds] Diagnostics written → {diagnostics_path}")
+
     feature_cols = get_feature_cols(df)
 
     if not feature_cols:
