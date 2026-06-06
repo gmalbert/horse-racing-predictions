@@ -186,6 +186,27 @@ def _fractional_odds_to_probability(odds_raw: str | None) -> float | None:
     return den / (num + den)
 
 
+def _resolve_runner_odds(runner: dict) -> tuple[str, str]:
+    """Return (odds_text, source_label) using the configured fallback hierarchy."""
+    candidates = [
+        ("ml_odds", "us_racecards.ml_odds"),
+        ("odds", "nyra_entries.odds"),
+        ("morning_line", "fallback.morning_line"),
+        ("morningLine", "fallback.morningLine"),
+        ("line", "fallback.line"),
+    ]
+
+    for key, source in candidates:
+        value = runner.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text and text not in {"-", "N/A", "None"}:
+            return text, source
+
+    return "", "none"
+
+
 # ── Feature building ──────────────────────────────────────────────────────────
 
 def _build_race_context_features(race: dict, furlongs: float | None) -> dict:
@@ -435,6 +456,8 @@ def predict_us_race(race: dict, historical_df: pd.DataFrame,
         except Exception:
             raw_prob = 1.0 / field_size
 
+        market_odds_text, odds_source = _resolve_runner_odds(runner)
+
         raw_preds.append({
             'horse': horse_name,
             'jockey': runner.get('jockey') or '',
@@ -444,11 +467,15 @@ def predict_us_race(race: dict, historical_df: pd.DataFrame,
             'weight_lbs': _parse_weight(runner.get('weight') or runner.get('lbs')),
             'form': runner.get('form') or '',
             'draw': runner.get('draw') or runner.get('stall') or runner.get('number') or '',
-            'ml_odds': runner.get('ml_odds') or '',
+            'market_odds_fractional': market_odds_text,
+            'odds_source': odds_source,
             'raw_win_probability': raw_prob,
         })
 
-    market_probs = [_fractional_odds_to_probability(pred.get('ml_odds')) for pred in raw_preds]
+    market_probs = [
+        _fractional_odds_to_probability(pred.get('market_odds_fractional'))
+        for pred in raw_preds
+    ]
     valid_market = [prob for prob in market_probs if prob is not None and prob > 0]
     raw_values = np.array([pred['raw_win_probability'] for pred in raw_preds], dtype=float)
 

@@ -30,6 +30,7 @@ jobs:
             data/processed/race_scores_with_betting_tiers.parquet
             data/processed/race_scores_with_all_features_no_leakage.parquet
             data/processed/race_scores_connections_v2.parquet
+            data/processed/race_scores_engineered.parquet
           key: horse-racing-data-v2
           restore-keys: |
             horse-racing-data-
@@ -43,6 +44,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Validate feature contract
+        run: |
+          python scripts/validate_feature_contract.py \
+            --feature-file models/feature_columns.txt \
+            --dataset data/processed/race_scores_engineered.parquet \
+            --dataset data/processed/race_scores_with_all_features_no_leakage.parquet \
+            --dataset data/processed/race_scores_connections_v2.parquet \
+            --max-missing-ratio 0.60
 
       - name: Determine dates
         id: dates

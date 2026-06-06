@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import glob
+import re
 
 # Paths
 BASE_DIR = Path(__file__).parent
@@ -27,30 +28,51 @@ PREDICTIONS_DIR = BASE_DIR / "data" / "processed"
 PYTHON = sys.executable
 
 
-def find_latest_racecard():
-    """Find the most recent racecards JSON file"""
-    pattern = str(DATA_DIR / "racecards_*.json")
-    files = glob.glob(pattern)
-    
-    if not files:
-        return None
-    
-    # Extract dates and find newest
-    dated_files = []
-    for f in files:
-        filename = Path(f).name
-        try:
-            date_str = filename.replace('racecards_', '').replace('.json', '')
-            date = datetime.strptime(date_str, '%Y-%m-%d')
-            dated_files.append((date, date_str, f))
-        except Exception:
+def find_racecard_files_by_date():
+    """Discover racecard files keyed by date.
+
+    Supports:
+    - racecards_YYYY-MM-DD.json
+    - YYYY-MM-DD.json
+    """
+    prefixed_pattern = re.compile(r"^racecards_(\d{4}-\d{2}-\d{2})\.json$")
+    date_only_pattern = re.compile(r"^(\d{4}-\d{2}-\d{2})\.json$")
+    files_by_date = {}
+
+    for file_path in DATA_DIR.rglob("*.json"):
+        filename = file_path.name
+        date_str = None
+
+        match = prefixed_pattern.match(filename)
+        if match:
+            date_str = match.group(1)
+        else:
+            match = date_only_pattern.match(filename)
+            if match:
+                date_str = match.group(1)
+
+        if not date_str:
             continue
-    
-    if not dated_files:
+
+        existing = files_by_date.get(date_str)
+        if existing is None:
+            files_by_date[date_str] = file_path
+        elif file_path.name.startswith("racecards_") and not existing.name.startswith("racecards_"):
+            files_by_date[date_str] = file_path
+
+    return files_by_date
+
+
+def find_latest_racecard():
+    """Find the most recent racecards JSON date from supported formats."""
+    files_by_date = find_racecard_files_by_date()
+    if not files_by_date:
         return None
-    
-    dated_files.sort(reverse=True)
-    return dated_files[0][1]  # Return date string
+
+    try:
+        return max(files_by_date.keys())
+    except ValueError:
+        return None
 
 
 def run_predictions(date_str):
@@ -59,12 +81,15 @@ def run_predictions(date_str):
     print(f"RUNNING PREDICTIONS FOR {date_str}")
     print("="*60)
     
-    racecard_file = DATA_DIR / f"racecards_{date_str}.json"
+    files_by_date = find_racecard_files_by_date()
+    racecard_file = files_by_date.get(date_str, DATA_DIR / f"racecards_{date_str}.json")
     
     if not racecard_file.exists():
         print(f"\n❌ ERROR: Racecard file not found: {racecard_file}")
         print("\nExpected location:")
         print(f"  {racecard_file}")
+        print("\nExpected filename format:")
+        print("  racecards_YYYY-MM-DD.json or YYYY-MM-DD.json")
         print("\nMake sure you've copied the racecards JSON file to data/raw/")
         return False
     
@@ -149,7 +174,7 @@ Examples:
         date_str = find_latest_racecard()
         if not date_str:
             print("\n❌ No racecard files found in data/raw/")
-            print("\nExpected format: racecards_YYYY-MM-DD.json")
+            print("\nExpected format: racecards_YYYY-MM-DD.json or YYYY-MM-DD.json")
             print(f"Location: {DATA_DIR}")
             print("\nPlease copy a racecard file or specify --date")
             return 1

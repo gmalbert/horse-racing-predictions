@@ -25,6 +25,14 @@ import requests
 from lxml import html
 
 
+SESSION = requests.Session()
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+]
+
+
 # ============================================================================
 # Utility Functions (inlined)
 # ============================================================================
@@ -41,25 +49,36 @@ def normalize_name(name: str) -> str:
 
 def get_request(url: str, headers: dict = None) -> Tuple[int, requests.Response]:
     """Make HTTP GET request with retry logic."""
-    if headers is None:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-GB,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
-        }
-    
-    for attempt in range(3):
+    base_headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-GB,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+    }
+
+    max_attempts = 4
+    retry_statuses = {403, 406, 429, 503}
+
+    for attempt in range(max_attempts):
         try:
-            resp = requests.get(url, headers=headers, timeout=30)
+            request_headers = dict(base_headers)
+            request_headers['User-Agent'] = USER_AGENTS[attempt % len(USER_AGENTS)]
+            if headers:
+                request_headers.update(headers)
+
+            resp = SESSION.get(url, headers=request_headers, timeout=(10, 30))
+            if resp.status_code in retry_statuses and attempt < (max_attempts - 1):
+                time.sleep((2 ** attempt) + 0.5)
+                continue
             return resp.status_code, resp
         except requests.RequestException as e:
-            if attempt == 2:
+            if attempt == (max_attempts - 1):
                 print(f"Failed to fetch {url}: {e}")
                 return 0, None
-            time.sleep(2 ** attempt)  # Exponential backoff
+            time.sleep((2 ** attempt) + 0.5)  # Exponential backoff with jitter
     return 0, None
 
 
@@ -269,6 +288,79 @@ def parse_prize(doc) -> str:
     return None
 
 
+def extract_runners_from_next_data(page_html: bytes) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Extract runner payload from Next.js JSON embedded in racecard HTML.
+
+    Returns:
+        (runners, race_meta)
+        runners: list of runner dicts normalized to legacy cardrunners-style keys
+        race_meta: race-level fields used by downstream mapping
+    """
+    try:
+        text = page_html.decode('utf-8', errors='ignore')
+        match = re.search(
+            r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+            text,
+            re.S,
+        )
+        if not match:
+            return [], {}
+
+        next_data = json.loads(match.group(1))
+        data = (
+            next_data.get('props', {})
+            .get('pageProps', {})
+            .get('initialState', {})
+            .get('racePage', {})
+            .get('data', {})
+        )
+        race = data.get('race', {})
+        runners_raw = data.get('runners', []) or []
+        if not runners_raw:
+            return [], {}
+
+        race_meta = {
+            'raceDatetime': race.get('localMeetingRaceDateTime') or race.get('raceTime'),
+            'raceTypeCode': race.get('raceType'),
+            'courseUid': race.get('courseId'),
+            'courseName': race.get('meetingName') or race.get('courseName'),
+            'distanceFurlongRounded': race.get('distanceFurlongs'),
+            'distanceYard': race.get('distanceYards'),
+        }
+
+        normalized = []
+        for runner in runners_raw:
+            normalized.append({
+                'horseAge': runner.get('age'),
+                'horseName': runner.get('horseName'),
+                'startNumber': runner.get('startNumber'),
+                'draw': runner.get('draw'),
+                'jockeyName': runner.get('jockeyName'),
+                'jockeyUid': runner.get('jockeyId'),
+                'trainerStylename': runner.get('trainerName'),
+                'trainerId': runner.get('trainerId'),
+                'horseUid': runner.get('horseId'),
+                'officialRatingToday': runner.get('officialRatingToday'),
+                'rpPostmark': runner.get('rpPostmark'),
+                'rpTopspeed': runner.get('rpTopspeed'),
+                'weightCarriedLbs': runner.get('lhWeightCarriedLbs') or runner.get('weightCarried'),
+                'rpHorseHeadGearCode': runner.get('horseHeadGear') or runner.get('headGearCode'),
+                'figuresCalculated': runner.get('figuresCalculated') or [],
+                'daysSinceLastRun': runner.get('daysSinceLastRun'),
+                'nonRunner': runner.get('nonRunner', False),
+                # Keep legacy field name consumed by off-time parsing.
+                'raceDatetime': race_meta['raceDatetime'],
+                'raceTypeCode': race_meta['raceTypeCode'],
+                'courseUid': race_meta['courseUid'],
+                'distanceFurlongRounded': race_meta['distanceFurlongRounded'],
+                'distanceYard': race_meta['distanceYard'],
+            })
+
+        return normalized, race_meta
+    except Exception:
+        return [], {}
+
+
 def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> Dict:
     """Scrape racecards for a given date."""
     races = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
@@ -283,7 +375,7 @@ def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> 
         status_racecard, resp_racecard = get_request(url_racecard)
         status_runners, resp_runners = get_request(url_runners)
         
-        if status_racecard != 200 or status_runners != 200:
+        if status_racecard != 200 or not resp_racecard:
             print(f"FAILED (status: {status_racecard}, {status_runners})")
             continue
         
@@ -293,15 +385,28 @@ def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> 
             print(f"FAILED (parse error: {e})")
             continue
         
-        try:
-            runners_json = resp_runners.json()['runners']
-            runners_list = list(runners_json.values())
-            if not runners_list:
-                print("SKIP (no runners)")
-                continue
-            runner = runners_list[0]
-        except Exception as e:
-            print(f"FAILED (JSON error: {e})")
+        runners_list: List[Dict[str, Any]] = []
+        runner: Dict[str, Any] = {}
+        race_meta: Dict[str, Any] = {}
+        
+        if status_runners == 200 and resp_runners is not None:
+            try:
+                runners_json = resp_runners.json()['runners']
+                runners_list = list(runners_json.values())
+                if runners_list:
+                    runner = runners_list[0]
+            except Exception:
+                runners_list = []
+        
+        # Fallback: Racing Post now often returns 406 for cardrunners endpoint.
+        # Use embedded Next.js data from the racecard HTML when available.
+        if not runners_list:
+            runners_list, race_meta = extract_runners_from_next_data(resp_racecard.content)
+            if runners_list:
+                runner = runners_list[0]
+
+        if not runners_list:
+            print(f"FAILED (status: {status_racecard}, {status_runners})")
             continue
         
         race = {}
@@ -311,7 +416,7 @@ def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> 
         race['date'] = date
         
         # Race time
-        date_str = runner.get('raceDatetime', '')
+        date_str = runner.get('raceDatetime', '') or race_meta.get('raceDatetime', '')
         if date_str:
             try:
                 dt = datetime.datetime.fromisoformat(date_str.replace('Z', '+00:00'))
@@ -322,8 +427,8 @@ def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> 
             race['off_time'] = ""
         
         # Course
-        race['course_id'] = runner.get('courseUid')
-        race['course'] = find(doc, 'h1', 'RC-courseHeader__name')
+        race['course_id'] = runner.get('courseUid') or race_meta.get('courseUid')
+        race['course'] = find(doc, 'h1', 'RC-courseHeader__name') or race_meta.get('courseName', '')
         race['course_detail'] = find(doc, 'span', 'RC-header__straightRoundJubilee').strip('()')
         
         # Handle special course names
@@ -335,11 +440,14 @@ def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> 
         
         # Race details
         race['race_name'] = find(doc, 'span', 'RC-header__raceInstanceTitle')
-        race['race_type'] = RACE_TYPE.get(runner.get('raceTypeCode', 'F'), 'Flat')
+        race['race_type'] = RACE_TYPE.get(
+            runner.get('raceTypeCode') or race_meta.get('raceTypeCode') or 'F',
+            'Flat'
+        )
         
         # Distance
-        race['distance_f'] = runner.get('distanceFurlongRounded')
-        race['distance_y'] = runner.get('distanceYard')
+        race['distance_f'] = runner.get('distanceFurlongRounded') or race_meta.get('distanceFurlongRounded')
+        race['distance_y'] = runner.get('distanceYard') or race_meta.get('distanceYard')
         race['distance_round'] = find(doc, 'strong', 'RC-header__raceDistanceRound')
         race['distance'] = find(doc, 'span', 'RC-header__raceDistance').strip('()')
         race['distance'] = race['distance'] or race['distance_round']
