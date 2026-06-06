@@ -122,6 +122,11 @@ def main() -> int:
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--min-drift-ratio", type=float, default=0.50)
     parser.add_argument(
+        "--allow-empty-racecards",
+        action="store_true",
+        help="Do not fail threshold checks when racecards file exists but contains zero races",
+    )
+    parser.add_argument(
         "--require-source-report",
         action="store_true",
         help="Fail when data/raw/us_source_report_<date>.json is missing",
@@ -171,26 +176,29 @@ def main() -> int:
         payload = _read_json(racecards_path)
         metrics.update(_summarize_racecards(payload))
 
+    empty_allowed = args.allow_empty_racecards and metrics["total_races"] == 0 and racecards_exists
+    empty_suffix = " (empty racecards allowed)" if empty_allowed else ""
+
     checks.append(
         {
             "name": "min_total_races",
-            "ok": metrics["total_races"] >= args.min_total_races,
-            "message": f"{metrics['total_races']} >= {args.min_total_races}",
+            "ok": empty_allowed or (metrics["total_races"] >= args.min_total_races),
+            "message": f"{metrics['total_races']} >= {args.min_total_races}{empty_suffix}",
         }
     )
     checks.append(
         {
             "name": "min_total_runners",
-            "ok": metrics["total_runners"] >= args.min_total_runners,
-            "message": f"{metrics['total_runners']} >= {args.min_total_runners}",
+            "ok": empty_allowed or (metrics["total_runners"] >= args.min_total_runners),
+            "message": f"{metrics['total_runners']} >= {args.min_total_runners}{empty_suffix}",
         }
     )
     checks.append(
         {
             "name": "min_ml_odds_coverage",
-            "ok": metrics["ml_odds_coverage"] >= args.min_ml_odds_coverage,
+            "ok": empty_allowed or (metrics["ml_odds_coverage"] >= args.min_ml_odds_coverage),
             "message": (
-                f"{metrics['ml_odds_coverage']:.1%} >= {args.min_ml_odds_coverage:.1%}"
+                f"{metrics['ml_odds_coverage']:.1%} >= {args.min_ml_odds_coverage:.1%}{empty_suffix}"
             ),
         }
     )

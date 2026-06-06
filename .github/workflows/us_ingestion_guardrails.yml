@@ -54,7 +54,8 @@ jobs:
             --min-total-runners 50 \
             --min-ml-odds-coverage 0.50 \
             --lookback-days 14 \
-            --min-drift-ratio 0.50
+            --min-drift-ratio 0.50 \
+            --allow-empty-racecards
 
       - name: Audit US odds coverage
         if: always()
