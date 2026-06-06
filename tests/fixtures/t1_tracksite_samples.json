@@ -1,0 +1,79 @@
+{
+  "tb_tam_track": {
+    "date": "2026-05-11",
+    "track_code": "TAM",
+    "track_name": "Tampa Bay Downs",
+    "selected": {
+      "final_url": "https://www.tampabaydowns.com/racing/horseplayers/results/"
+    },
+    "text_sample": "Race 1 - Maiden Claiming\nOff at: 1:05 PM\nPurse: $25,000\nDistance: 6 Furlongs\nSurface: Dirt\nTrack Condition: Fast\n1\tBlue Sky\tA Rider\t5.40\t3.10\t2.60\n2\tRed Hill\tB Rider\t\t4.20\t3.00\nAlso ran: Green River\nRace 2 - Allowance\nOff at: 1:37 PM\nPurse: $35,000\nDistance: 1 Mile\nSurface: Turf\nTrack Condition: Good\n1\tSilver Star\tC Rider\t6.20\t3.80\t2.70"
+  },
+  "qh_summary_track": {
+    "date": "2026-05-11",
+    "track_code": "ZIA",
+    "track_name": "Zia Park",
+    "best_page": {
+      "url": "https://www.ziaparkracing.com/racing/entries",
+      "summary_fields": {
+        "first_race_post": "12:30 PM",
+        "race_count_hint": 9,
+        "next_race_day": "2026-05-12",
+        "has_entries_section": true,
+        "has_results_section": false
+      }
+    }
+  },
+  "h_summary_track": {
+    "date": "2026-05-11",
+    "track_code": "RSC",
+    "track_name": "Rosecroft",
+    "best_page": {
+      "url": "https://www.rosecroft.com/racing/entries-results",
+      "summary_fields": {
+        "first_race_post": "",
+        "race_count_hint": 10,
+        "next_race_day": "2026-05-12",
+        "has_entries_section": true,
+        "has_results_section": true
+      }
+    }
+  },
+  "pdf_info_qh": {
+    "title": "Zia Park Entries",
+    "post_times": ["12:45 PM", "1:15 PM"],
+    "needs_ocr": false,
+    "extracted_successfully": true,
+    "extracted_text_chars": 1240,
+    "filename": "zia_entries.pdf"
+  },
+  "pdf_info_h": {
+    "title": "Rosecroft Program",
+    "post_times": ["7:15 PM", "7:45 PM"],
+    "needs_ocr": true,
+    "extracted_successfully": true,
+    "extracted_text_chars": 950,
+    "filename": "rosecroft_program.pdf"
+  },
+  "tb_summary_track": {
+    "date": "2026-05-11",
+    "track_code": "LS",
+    "track_name": "Lone Star Park",
+    "selected": {
+      "final_url": "https://www.lonestarpark.com/entries/"
+    },
+    "summary": {
+      "first_race_time": "1:00 PM",
+      "race_count_hint": 8,
+      "next_race_day": "2026-05-12",
+      "mentions_entries": true,
+      "mentions_results": false
+    }
+  },
+  "pdf_info_tb": {
+    "title": "Lone Star Entries",
+    "post_times": ["1:05 PM", "1:40 PM"],
+    "needs_ocr": false,
+    "extracted_text_chars": 1420,
+    "track_code": "LS"
+  }
+}
