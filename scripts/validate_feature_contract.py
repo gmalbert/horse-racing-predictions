@@ -14,6 +14,39 @@ import sys
 import pandas as pd
 
 
+def is_lfs_pointer(path: Path) -> bool:
+    """Return True for small LFS pointer files that are not real parquet data."""
+    if not path.exists():
+        return False
+
+    try:
+        file_size = path.stat().st_size
+        if file_size >= 1024:
+            return False
+
+        with path.open("rb") as handle:
+            header = handle.read(200)
+        return b"version https://git-lfs.github.com" in header or b"oid sha256:" in header
+    except OSError:
+        return False
+
+
+def is_valid_parquet_file(path: Path) -> bool:
+    """Best-effort validity check for parquet files before reading them."""
+    if not path.exists() or path.stat().st_size < 64:
+        return False
+
+    if is_lfs_pointer(path):
+        return False
+
+    try:
+        with path.open("rb") as handle:
+            header = handle.read(4)
+        return header == b"PAR1" or path.suffix.lower() in {".parquet", ".pq"}
+    except OSError:
+        return False
+
+
 def load_expected_features(path: Path) -> list[str]:
     if not path.exists():
         raise FileNotFoundError(f"Missing feature contract file: {path}")
@@ -33,7 +66,16 @@ def choose_best_dataset(expected: list[str], dataset_candidates: list[Path]):
 
     best = None
     for path in available:
-        df = pd.read_parquet(path)
+        if not is_valid_parquet_file(path):
+            print(f"[WARN] Skipping invalid or placeholder dataset: {path}")
+            continue
+
+        try:
+            df = pd.read_parquet(path)
+        except Exception as exc:
+            print(f"[WARN] Skipping unreadable dataset {path}: {exc}")
+            continue
+
         present = [c for c in expected if c in df.columns]
         missing = [c for c in expected if c not in df.columns]
         score = len(present)
@@ -46,6 +88,11 @@ def choose_best_dataset(expected: list[str], dataset_candidates: list[Path]):
         }
         if best is None or candidate["score"] > best["score"]:
             best = candidate
+
+    if best is None:
+        raise FileNotFoundError(
+            "No valid parquet dataset found. Checked: " + ", ".join(str(p) for p in available)
+        )
 
     return best
 
