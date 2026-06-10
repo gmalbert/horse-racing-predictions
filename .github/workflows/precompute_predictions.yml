@@ -23,6 +23,9 @@ jobs:
       - name: Cache historical race data
         uses: actions/cache@v4
         with:
+          # Note: race_scores_engineered.parquet excluded because it's tracked
+          # by LFS and would be cached as a pointer. It's rebuilt on-demand if
+          # validation fails (see validate/rebuild steps below).
           path: |
             data/processed/all_gb_races.parquet
             data/processed/all_gb_races_cleaned.parquet
@@ -30,10 +33,9 @@ jobs:
             data/processed/race_scores_with_betting_tiers.parquet
             data/processed/race_scores_with_all_features_no_leakage.parquet
             data/processed/race_scores_connections_v2.parquet
-            data/processed/race_scores_engineered.parquet
-          key: horse-racing-data-v2
+          key: horse-racing-data-v3-no-lfs
           restore-keys: |
-            horse-racing-data-
+            horse-racing-data-v3-
 
       - name: Setup Python
         uses: actions/setup-python@v4
