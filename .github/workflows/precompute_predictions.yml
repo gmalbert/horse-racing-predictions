@@ -46,6 +46,24 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Validate feature contract
+        id: validate
+        run: |
+          python scripts/validate_feature_contract.py \
+            --feature-file models/feature_columns.txt \
+            --dataset data/processed/race_scores_engineered.parquet \
+            --dataset data/processed/race_scores_with_all_features_no_leakage.parquet \
+            --dataset data/processed/race_scores_connections_v2.parquet \
+            --max-missing-ratio 0.60
+        continue-on-error: true
+
+      - name: Rebuild engineered dataset if validation failed
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "Validation failed - rebuilding engineered dataset"
+          python scripts/build_engineered_dataset.py
+
+      - name: Re-validate feature contract
+        if: steps.validate.outcome == 'failure'
         run: |
           python scripts/validate_feature_contract.py \
             --feature-file models/feature_columns.txt \
