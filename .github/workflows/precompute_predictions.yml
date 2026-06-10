@@ -47,6 +47,23 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Check if engineered dataset exists
+        id: check_dataset
+        run: |
+          if [ ! -f "data/processed/race_scores_engineered.parquet" ] || [ ! -s "data/processed/race_scores_engineered.parquet" ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️  Engineered dataset missing or empty - will rebuild"
+          else
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Engineered dataset exists"
+          fi
+
+      - name: Build engineered dataset if missing
+        if: steps.check_dataset.outputs.exists == 'false'
+        run: |
+          echo "📦 Building engineered dataset from scratch..."
+          python scripts/build_engineered_dataset.py
+
       - name: Validate feature contract
         id: validate
         run: |
@@ -131,7 +148,7 @@ jobs:
 
       - name: Scrape ATR multi-bookmaker odds — today + tomorrow
         if: steps.predict.outcome == 'success'
-        timeout-minutes: 6
+        timeout-minutes: 12
         run: |
           echo "Scraping ATR odds for ${{ steps.dates.outputs.today }}"
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" \
@@ -182,5 +199,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore: precompute predictions + odds for ${{ steps.dates.outputs.today }} and ${{ steps.dates.outputs.tomorrow }} [skip ci]" || true
+            # Pull any remote changes before pushing to avoid rejection
+            git pull --rebase origin main || echo "No remote changes to rebase"
             git push
           fi
