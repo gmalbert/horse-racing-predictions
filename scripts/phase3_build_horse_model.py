@@ -47,23 +47,23 @@ def load_data():
     legacy_path = data_dir / 'race_scores.parquet'
     
     if or_context_path.exists():
-        print(f"\n✓ Loading: {or_context_path}")
+        print(f"\n[OK] Loading: {or_context_path}")
         df = pd.read_parquet(or_context_path)
         print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree + Going Preferences + OR Context")
     elif going_pref_path.exists():
-        print(f"\n✓ Loading: {going_pref_path}")
+        print(f"\n[OK] Loading: {going_pref_path}")
         df = pd.read_parquet(going_pref_path)
         print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree + Going Preferences")
     elif pedigree_path.exists():
-        print(f"\n✓ Loading: {pedigree_path}")
+        print(f"\n[OK] Loading: {pedigree_path}")
         df = pd.read_parquet(pedigree_path)
         print(f"  Contains: All features + Enhanced Form + Connections V2 + Pedigree")
     elif connections_v2_path.exists():
-        print(f"\n✓ Loading: {connections_v2_path}")
+        print(f"\n[OK] Loading: {connections_v2_path}")
         df = pd.read_parquet(connections_v2_path)
         print(f"  Contains: All features + Enhanced Form + Connections V2")
     elif no_leak_path.exists():
-        print(f"\n✓ Loading: {no_leak_path}")
+        print(f"\n[OK] Loading: {no_leak_path}")
         df = pd.read_parquet(no_leak_path)
         print(f"  Contains: Pedigree (no leak) + Pace + Recent Form features")
     else:
@@ -343,160 +343,127 @@ def engineer_age_features(df):
 def engineer_trainer_form(df):
     """
     Calculate trainer recent form (hot/cold streak).
-    Uses rolling window to avoid lookahead.
+    Uses efficient expanding windows to approximate rolling time windows.
+    MEMORY OPTIMIZED - no loops, pure pandas vectorized operations.
     """
     print("\nEngineering trainer form...")
     
     df = df.copy()
     df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
     
-    # Sort chronologically
-    df = df.sort_values('date_dt').reset_index(drop=True)
+    # Sort by trainer and date
+    df = df.sort_values(['trainer', 'date_dt']).reset_index(drop=True)
     
-    # Track trainer stats over rolling 14-day and 30-day windows
-    trainer_stats = {}
+    # Create won column if not exists
+    if 'won' not in df.columns:
+        df['won'] = (df.get('pos', 999) == 1).astype(int)
     
-    features_14d = []
-    features_30d = []
+    # Use expanding window (all prior rows) with shift to avoid lookahead
+    # This is a simplified approximation that's memory-efficient
+    # More accurate time-window calculation would require merge_asof or loops
     
-    for idx, row in df.iterrows():
-        trainer = row.get('trainer', 'Unknown')
-        race_date = row['date_dt']
-        won = 1 if row.get('won', 0) == 1 else 0
-        
-        # Get stats from last 14/30 days
-        if trainer in trainer_stats:
-            history = trainer_stats[trainer]
-            
-            # Filter to last 14 days
-            recent_14d = [h for h in history if (race_date - h['date']).days <= 14]
-            if recent_14d:
-                runs_14d = len(recent_14d)
-                wins_14d = sum(h['won'] for h in recent_14d)
-                features_14d.append(wins_14d / runs_14d if runs_14d > 0 else 0.0)
-            else:
-                features_14d.append(0.0)
-            
-            # Filter to last 30 days
-            recent_30d = [h for h in history if (race_date - h['date']).days <= 30]
-            if recent_30d:
-                runs_30d = len(recent_30d)
-                wins_30d = sum(h['won'] for h in recent_30d)
-                features_30d.append(wins_30d / runs_30d if runs_30d > 0 else 0.0)
-            else:
-                features_30d.append(0.0)
-        else:
-            features_14d.append(0.0)
-            features_30d.append(0.0)
-        
-        # Update trainer history AFTER recording
-        if trainer not in trainer_stats:
-            trainer_stats[trainer] = []
-        trainer_stats[trainer].append({'date': race_date, 'won': won})
-        
-        # Keep only last 60 days of history (memory optimization)
-        trainer_stats[trainer] = [
-            h for h in trainer_stats[trainer] 
-            if (race_date - h['date']).days <= 60
-        ]
+    # Group by trainer and calculate expanding mean (shifted to exclude current row)
+    df['trainer_win_rate_expanding'] = (
+        df.groupby('trainer')['won']
+        .transform(lambda x: x.shift(1).expanding().mean())
+        .fillna(0.0)
+    )
     
-    df['trainer_win_rate_14d'] = features_14d
-    df['trainer_win_rate_30d'] = features_30d
+    # Use expanding as approximation for both 14d and 30d windows
+    # (More accurate calculation causes memory issues with 639K rows)
+    df['trainer_win_rate_14d'] = df['trainer_win_rate_expanding']
+    df['trainer_win_rate_30d'] = df['trainer_win_rate_expanding']
     
-    print("  Trainer form: trainer_win_rate_14d, trainer_win_rate_30d")
+    # Clean up
+    df.drop('trainer_win_rate_expanding', axis=1, inplace=True)
+    
+    print("  Trainer form: trainer_win_rate_14d, trainer_win_rate_30d (expanding approximation)")
+    print("  Note: Using expanding window instead of time-based rolling due to memory constraints")
     
     return df
 
 def engineer_trainer_course_features(df):
     """
     Calculate trainer performance at specific courses.
-    Some trainers are course specialists with exceptional records.
+    MEMORY OPTIMIZED - uses groupby with expanding window.
     """
     print("\nEngineering trainer-course features...")
     
     df = df.copy()
     df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
-    df = df.sort_values('date_dt').reset_index(drop=True)
     
-    trainer_course_stats = {}  # (trainer, course) -> {runs, wins}
+    # Sort by trainer, course, and date
+    df = df.sort_values(['trainer', 'course_clean', 'date_dt']).reset_index(drop=True)
     
-    trainer_course_features = {
-        'trainer_course_runs': [],
-        'trainer_course_win_pct': []
-    }
+    # Create won column if not exists
+    if 'won' not in df.columns:
+        df['won'] = (df.get('pos', 999) == 1).astype(int)
     
-    for idx, row in df.iterrows():
-        trainer = row.get('trainer', 'Unknown')
-        course = row.get('course_clean', 'Unknown')
-        won = 1 if row.get('won', 0) == 1 else 0
-        
-        # Get historical stats at this course
-        tc_stats = trainer_course_stats.get((trainer, course), {'runs': 0, 'wins': 0})
-        
-        trainer_course_features['trainer_course_runs'].append(tc_stats['runs'])
-        trainer_course_features['trainer_course_win_pct'].append(
-            tc_stats['wins'] / tc_stats['runs'] if tc_stats['runs'] > 0 else 0.0
-        )
-        
-        # Update AFTER recording
-        if (trainer, course) not in trainer_course_stats:
-            trainer_course_stats[(trainer, course)] = {'runs': 0, 'wins': 0}
-        trainer_course_stats[(trainer, course)]['runs'] += 1
-        trainer_course_stats[(trainer, course)]['wins'] += won
+    # Use expanding window for each trainer-course combo (shifted to avoid lookahead)
+    df['trainer_course_runs'] = df.groupby(['trainer', 'course_clean']).cumcount()
+    df['trainer_course_wins_cumsum'] = (
+        df.groupby(['trainer', 'course_clean'])['won']
+        .transform(lambda x: x.shift(1).expanding().sum())
+        .fillna(0.0)
+    )
     
-    for feat_name, feat_values in trainer_course_features.items():
-        df[feat_name] = feat_values
+    # Calculate win percentage
+    df['trainer_course_win_pct'] = np.where(
+        df['trainer_course_runs'] > 0,
+        df['trainer_course_wins_cumsum'] / df['trainer_course_runs'],
+        0.0
+    )
     
+    # Clean up
+    df.drop('trainer_course_wins_cumsum', axis=1, inplace=True)
+    
+    unique_combos = df.groupby(['trainer', 'course_clean']).ngroups
     print(f"  Trainer-course features: trainer_course_win_pct")
-    print(f"  Processed {len(trainer_course_stats):,} unique trainer-course combinations")
+    print(f"  Processed {unique_combos:,} unique trainer-course combinations")
     
     return df
 
 def engineer_going_distance_interaction(df):
     """
     Calculate going × distance interaction features.
-    A horse's suitability can vary significantly by going-distance combination.
+    MEMORY OPTIMIZED - uses groupby with expanding window.
     """
     print("\nEngineering going-distance interaction features...")
     
     df = df.copy()
     df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
-    df = df.sort_values(['horse', 'date_dt']).reset_index(drop=True)
     
-    # Create going-distance key (e.g., "Good_1m", "Soft_1m4f")
-    df['going_dist_key'] = df['going_clean'].fillna('Unknown') + '_' + df['distance_clean'].fillna('Unknown')
+    # Create going-distance key (e.g., "Good_5f", "Soft_1m")
+    df['going_dist_key'] = df['going'].fillna('Unknown') + '_' + df['distance_band'].fillna('Unknown')
     
-    horse_going_dist_stats = {}  # (horse, going_dist_key) -> {runs, wins}
+    # Sort by horse, going_dist_key, and date
+    df = df.sort_values(['horse', 'going_dist_key', 'date_dt']).reset_index(drop=True)
     
-    going_dist_features = {
-        'going_distance_runs': [],
-        'going_distance_win_pct': []
-    }
+    # Create won column if not exists
+    if 'won' not in df.columns:
+        df['won'] = (df.get('pos', 999) == 1).astype(int)
     
-    for idx, row in df.iterrows():
-        horse = row.get('horse', 'Unknown')
-        gd_key = row['going_dist_key']
-        won = 1 if row.get('won', 0) == 1 else 0
-        
-        # Get historical stats for this going-distance combo
-        hgd_stats = horse_going_dist_stats.get((horse, gd_key), {'runs': 0, 'wins': 0})
-        
-        going_dist_features['going_distance_runs'].append(hgd_stats['runs'])
-        going_dist_features['going_distance_win_pct'].append(
-            hgd_stats['wins'] / hgd_stats['runs'] if hgd_stats['runs'] > 0 else 0.0
-        )
-        
-        # Update AFTER recording
-        if (horse, gd_key) not in horse_going_dist_stats:
-            horse_going_dist_stats[(horse, gd_key)] = {'runs': 0, 'wins': 0}
-        horse_going_dist_stats[(horse, gd_key)]['runs'] += 1
-        horse_going_dist_stats[(horse, gd_key)]['wins'] += won
+    # Use expanding window for each horse-going-distance combo (shifted to avoid lookahead)
+    df['going_distance_runs'] = df.groupby(['horse', 'going_dist_key']).cumcount()
+    df['going_distance_wins_cumsum'] = (
+        df.groupby(['horse', 'going_dist_key'])['won']
+        .transform(lambda x: x.shift(1).expanding().sum())
+        .fillna(0.0)
+    )
     
-    for feat_name, feat_values in going_dist_features.items():
-        df[feat_name] = feat_values
+    # Calculate win percentage
+    df['going_distance_win_pct'] = np.where(
+        df['going_distance_runs'] > 0,
+        df['going_distance_wins_cumsum'] / df['going_distance_runs'],
+        0.0
+    )
     
+    # Clean up
+    df.drop('going_distance_wins_cumsum', axis=1, inplace=True)
+    
+    unique_combos = df.groupby(['horse', 'going_dist_key']).ngroups
     print(f"  Going-distance features: going_distance_win_pct")
-    print(f"  Processed {len(horse_going_dist_stats):,} unique horse-going-distance combinations")
+    print(f"  Processed {unique_combos:,} unique horse-going-distance combinations")
     
     return df
 
