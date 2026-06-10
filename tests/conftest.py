@@ -1,8 +1,14 @@
 import json
 import pathlib
+import sys
 from types import SimpleNamespace
 
 import pytest
+
+# Add project root to sys.path so tests can import from scripts/, shared/, etc.
+ROOT = pathlib.Path(__file__).parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def _load_fixture(name: str):
