@@ -621,6 +621,14 @@ def display_race_predictions(today_str, tomorrow_str, today_predictions_file, to
         st.success(f"✅ {day_label} ({day_date}): {len(day_df)} horses from {len(day_df['course'].unique())} races")
     
     st.markdown("---")
+    
+    # Race type filters
+    predictions = display_race_filters(predictions)
+    
+    # Best bet of the day
+    display_best_bet(predictions)
+    
+    st.markdown("---")
 
     # Value bets summary (shown when odds have been scraped)
     display_value_bets_panel(predictions)
@@ -632,6 +640,95 @@ def display_race_predictions(today_str, tomorrow_str, today_predictions_file, to
     
     # Race-by-race breakdown
     display_race_by_race(predictions)
+
+
+def display_race_filters(predictions):
+    """Display race type filters and return filtered predictions"""
+    st.markdown("### 🔍 Filters")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        # Race type filter (Flat/NH)
+        race_types = ['All'] + sorted([x for x in predictions['race_type'].unique() if pd.notna(x)])
+        selected_type = st.selectbox("Race Type", race_types, key="filter_race_type")
+    
+    with col2:
+        # Class filter
+        classes = ['All'] + sorted([x for x in predictions['race_class'].unique() if pd.notna(x)])
+        selected_class = st.selectbox("Class", classes, key="filter_class")
+    
+    with col3:
+        # Distance filter
+        distance_bands = ['All', 'Sprint (< 6f)', 'Mile (6-8f)', 'Middle (8-12f)', 'Staying (> 12f)']
+        selected_distance = st.selectbox("Distance", distance_bands, key="filter_distance")
+    
+    with col4:
+        # Going filter
+        goings = ['All'] + sorted([x for x in predictions['going'].unique() if pd.notna(x)])
+        selected_going = st.selectbox("Going", goings, key="filter_going")
+    
+    # Apply filters
+    filtered = predictions.copy()
+    
+    if selected_type != 'All':
+        filtered = filtered[filtered['race_type'] == selected_type]
+    
+    if selected_class != 'All':
+        filtered = filtered[filtered['race_class'] == selected_class]
+    
+    if selected_distance != 'All':
+        if 'distance_f' in filtered.columns:
+            dist_f = pd.to_numeric(filtered['distance_f'], errors='coerce')
+            if selected_distance == 'Sprint (< 6f)':
+                filtered = filtered[dist_f < 6]
+            elif selected_distance == 'Mile (6-8f)':
+                filtered = filtered[(dist_f >= 6) & (dist_f <= 8)]
+            elif selected_distance == 'Middle (8-12f)':
+                filtered = filtered[(dist_f > 8) & (dist_f <= 12)]
+            elif selected_distance == 'Staying (> 12f)':
+                filtered = filtered[dist_f > 12]
+    
+    if selected_going != 'All':
+        filtered = filtered[filtered['going'] == selected_going]
+    
+    # Show filter results
+    if len(filtered) < len(predictions):
+        st.info(f"📊 Showing {len(filtered)} of {len(predictions)} horses after filtering")
+    
+    return filtered
+
+
+def display_best_bet(predictions):
+    """Display the single best bet of the day based on highest edge"""
+    st.markdown("### 🌟 Best Bet of the Day")
+    
+    # Check if we have value betting data
+    if 'edge' not in predictions.columns or predictions['edge'].isna().all():
+        st.info("💡 Scrape odds to identify the best value bet")
+        return
+    
+    # Find best bet (highest edge among all races)
+    best_bet = predictions.nlargest(1, 'edge').iloc[0]
+    
+    # Create prominent display
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        st.markdown(f"**🐴 {best_bet['horse']}**")
+        st.caption(f"{best_bet['course']} - {best_bet['race_time']}")
+        st.caption(f"Jockey: {best_bet['jockey']}")
+    
+    with col2:
+        st.metric("Win Probability", f"{best_bet['win_probability']:.1%}")
+        if 'market_odds' in best_bet and pd.notna(best_bet['market_odds']):
+            st.caption(f"Market Odds: {best_bet['market_odds']:.2f}")
+    
+    with col3:
+        st.metric("Edge", f"{best_bet['edge']:+.1%}", 
+                 delta=None if best_bet['edge'] <= 0 else "VALUE")
+    
+    st.markdown("---")
 
 
 def display_live_odds_controls(today_str, tomorrow_str,

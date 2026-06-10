@@ -407,6 +407,136 @@ def engineer_trainer_form(df):
     
     return df
 
+def engineer_trainer_course_features(df):
+    """
+    Calculate trainer performance at specific courses.
+    Some trainers are course specialists with exceptional records.
+    """
+    print("\nEngineering trainer-course features...")
+    
+    df = df.copy()
+    df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.sort_values('date_dt').reset_index(drop=True)
+    
+    trainer_course_stats = {}  # (trainer, course) -> {runs, wins}
+    
+    trainer_course_features = {
+        'trainer_course_runs': [],
+        'trainer_course_win_pct': []
+    }
+    
+    for idx, row in df.iterrows():
+        trainer = row.get('trainer', 'Unknown')
+        course = row.get('course_clean', 'Unknown')
+        won = 1 if row.get('won', 0) == 1 else 0
+        
+        # Get historical stats at this course
+        tc_stats = trainer_course_stats.get((trainer, course), {'runs': 0, 'wins': 0})
+        
+        trainer_course_features['trainer_course_runs'].append(tc_stats['runs'])
+        trainer_course_features['trainer_course_win_pct'].append(
+            tc_stats['wins'] / tc_stats['runs'] if tc_stats['runs'] > 0 else 0.0
+        )
+        
+        # Update AFTER recording
+        if (trainer, course) not in trainer_course_stats:
+            trainer_course_stats[(trainer, course)] = {'runs': 0, 'wins': 0}
+        trainer_course_stats[(trainer, course)]['runs'] += 1
+        trainer_course_stats[(trainer, course)]['wins'] += won
+    
+    for feat_name, feat_values in trainer_course_features.items():
+        df[feat_name] = feat_values
+    
+    print(f"  Trainer-course features: trainer_course_win_pct")
+    print(f"  Processed {len(trainer_course_stats):,} unique trainer-course combinations")
+    
+    return df
+
+def engineer_going_distance_interaction(df):
+    """
+    Calculate going × distance interaction features.
+    A horse's suitability can vary significantly by going-distance combination.
+    """
+    print("\nEngineering going-distance interaction features...")
+    
+    df = df.copy()
+    df['date_dt'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.sort_values(['horse', 'date_dt']).reset_index(drop=True)
+    
+    # Create going-distance key (e.g., "Good_1m", "Soft_1m4f")
+    df['going_dist_key'] = df['going_clean'].fillna('Unknown') + '_' + df['distance_clean'].fillna('Unknown')
+    
+    horse_going_dist_stats = {}  # (horse, going_dist_key) -> {runs, wins}
+    
+    going_dist_features = {
+        'going_distance_runs': [],
+        'going_distance_win_pct': []
+    }
+    
+    for idx, row in df.iterrows():
+        horse = row.get('horse', 'Unknown')
+        gd_key = row['going_dist_key']
+        won = 1 if row.get('won', 0) == 1 else 0
+        
+        # Get historical stats for this going-distance combo
+        hgd_stats = horse_going_dist_stats.get((horse, gd_key), {'runs': 0, 'wins': 0})
+        
+        going_dist_features['going_distance_runs'].append(hgd_stats['runs'])
+        going_dist_features['going_distance_win_pct'].append(
+            hgd_stats['wins'] / hgd_stats['runs'] if hgd_stats['runs'] > 0 else 0.0
+        )
+        
+        # Update AFTER recording
+        if (horse, gd_key) not in horse_going_dist_stats:
+            horse_going_dist_stats[(horse, gd_key)] = {'runs': 0, 'wins': 0}
+        horse_going_dist_stats[(horse, gd_key)]['runs'] += 1
+        horse_going_dist_stats[(horse, gd_key)]['wins'] += won
+    
+    for feat_name, feat_values in going_dist_features.items():
+        df[feat_name] = feat_values
+    
+    print(f"  Going-distance features: going_distance_win_pct")
+    print(f"  Processed {len(horse_going_dist_stats):,} unique horse-going-distance combinations")
+    
+    return df
+
+def engineer_pace_features(df):
+    """
+    Engineer pace-related features.
+    Early pace and pace pressure significantly affect race outcomes.
+    """
+    print("\nEngineering pace features...")
+    
+    df = df.copy()
+    
+    # Parse sectional times if available (pace_first_2f_secs)
+    # Note: This requires fractional times data which may not be in all datasets
+    if 'sectional_2f' in df.columns:
+        df['pace_first_2f_secs'] = pd.to_numeric(df['sectional_2f'], errors='coerce').fillna(0.0)
+    else:
+        # If no sectional data, estimate from running style
+        df['pace_first_2f_secs'] = 0.0
+        print("  [Note] No sectional pace data available; pace_first_2f_secs set to 0")
+    
+    # Pace pressure: count front-runners/prominent horses in each race
+    # More front-runners = higher pace pressure = potential collapse
+    if 'running_style' in df.columns:
+        # Count front-runners per race
+        df['race_front_runners'] = df.groupby(['date', 'course_clean', 'off'])['running_style'].transform(
+            lambda x: x.isin(['Front Runner', 'Prominent', 'Led']).sum()
+        )
+        
+        # Pace collapse flag: 4+ front-runners suggests unsustainable pace
+        df['exp_pace_collapse'] = (df['race_front_runners'] >= 4).astype(int)
+    else:
+        df['race_front_runners'] = 0
+        df['exp_pace_collapse'] = 0
+        print("  [Note] No running style data; pace pressure features set to 0")
+    
+    print("  Pace features: pace_first_2f_secs, exp_pace_collapse")
+    
+    return df
+
 def engineer_beaten_lengths_features(df):
     """
     Calculate beaten lengths features for form analysis.
@@ -800,6 +930,7 @@ def engineer_all_features(df):
     df = engineer_weight_features(df)
     df = engineer_age_features(df)
     df = engineer_trainer_form(df)
+    df = engineer_trainer_course_features(df)  # NEW: trainer course specialists
     df = engineer_beaten_lengths_features(df)
     df = engineer_gear_features(df)
     df = engineer_race_condition_features(df)
@@ -809,6 +940,8 @@ def engineer_all_features(df):
     df = engineer_recency(df)
     df = engineer_race_context(df)
     df = engineer_jockey_features(df)
+    df = engineer_going_distance_interaction(df)  # NEW: going × distance interaction
+    df = engineer_pace_features(df)  # NEW: pace features
     
     print("\n[OK] Feature engineering complete")
     
@@ -923,7 +1056,18 @@ def prepare_training_data(df):
         'combo_form_30d_v2', 'combo_hot_v2',
         'jockey_runs_14d_v2', 'jockey_runs_30d_v2',
         'trainer_runs_14d_v2', 'trainer_runs_30d_v2',
-        'combo_runs_30d_v2'
+        'combo_runs_30d_v2',
+        
+        # ===== MODEL ENHANCEMENTS (7 features) =====
+        
+        # Trainer course specialist features (2)
+        'trainer_course_runs', 'trainer_course_win_pct',
+        
+        # Going × Distance interaction (2)
+        'going_distance_runs', 'going_distance_win_pct',
+        
+        # Pace features (3)
+        'pace_first_2f_secs', 'race_front_runners', 'exp_pace_collapse'
     ]
     
     # Target variable
