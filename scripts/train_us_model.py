@@ -15,7 +15,8 @@ Data requirements:
                      career_us_wins, career_us_runs, days_off, etc.
 
 Output:
-    models/us_horse_model.pkl          — trained XGBoost classifier
+    models/us_horse_model.json         — deployable XGBoost classifier
+    models/us_horse_model.pkl          — ignored local compatibility copy
     models/us_feature_columns.txt      — feature column names (one per line)
     models/us_model_metadata.json      — training summary (date, AUC, n_rows)
 
@@ -214,13 +215,19 @@ def train(df: pd.DataFrame, feature_cols: list[str]) -> tuple:
 def save_model(model, feature_cols: list[str], auc: float, n_rows: int) -> None:
     import pickle
 
-    model_path   = MODELS_DIR / "us_horse_model.pkl"
+    model_path   = MODELS_DIR / "us_horse_model.json"
+    pickle_path  = MODELS_DIR / "us_horse_model.pkl"
     feat_path    = MODELS_DIR / "us_feature_columns.txt"
     meta_path    = MODELS_DIR / "us_model_metadata.json"
 
-    with open(model_path, "wb") as fh:
-        pickle.dump(model, fh)
+    # JSON is portable across supported XGBoost versions and is committed for
+    # deployments. Keep the ignored pickle as a convenience for local tools.
+    model.get_booster().save_model(str(model_path))
     logger.info("Model saved to %s", model_path)
+
+    with open(pickle_path, "wb") as fh:
+        pickle.dump(model, fh)
+    logger.info("Local pickle saved to %s", pickle_path)
 
     feat_path.write_text("\n".join(feature_cols))
     logger.info("Feature columns saved to %s", feat_path)

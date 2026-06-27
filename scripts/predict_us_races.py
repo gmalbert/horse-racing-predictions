@@ -4,10 +4,10 @@ Generate horse racing predictions for US races.
 Reads:   data/raw/us_racecards_YYYY-MM-DD.json
 Writes:  data/processed/us_predictions_YYYY-MM-DD.csv
 
-Feature-building reuses the UK XGBoost model trained on 47 core features,
+Feature-building reuses the UK XGBoost model trained on core features,
 adapting US-specific fields (class, going, distance, surface) to the same
 numeric scale the model expects.  When a US-specific model is available at
-models/us_horse_model.pkl it is used automatically instead.
+models/us_horse_model.json it is used automatically instead.
 
 Usage:
     python scripts/predict_us_races.py --date 2026-05-09
@@ -525,18 +525,28 @@ def predict_us_race(race: dict, historical_df: pd.DataFrame,
 
 def load_model() -> tuple:
     """Return (model, feature_cols, model_label, model_artifact)."""
-    us_model_path = MODELS_DIR / 'us_horse_model.pkl'
-    uk_model_path = MODELS_DIR / 'horse_win_predictor.pkl'
-    feature_path  = MODELS_DIR / 'feature_columns.txt'
+    candidates = [
+        (MODELS_DIR / 'us_horse_model.json', MODELS_DIR / 'us_feature_columns.txt', 'US'),
+        (MODELS_DIR / 'us_horse_model.pkl', MODELS_DIR / 'us_feature_columns.txt', 'US'),
+        (MODELS_DIR / 'horse_win_predictor.json', MODELS_DIR / 'feature_columns.txt', 'UK (base)'),
+        (MODELS_DIR / 'horse_win_predictor.pkl', MODELS_DIR / 'feature_columns.txt', 'UK (base)'),
+    ]
 
-    model_path = us_model_path if us_model_path.exists() else uk_model_path
-    if not model_path.exists():
-        raise FileNotFoundError(f"No model found at {model_path}")
+    selected = next((candidate for candidate in candidates if candidate[0].exists()), None)
+    if selected is None:
+        searched = ', '.join(path.name for path, _, _ in candidates)
+        raise FileNotFoundError(f"No model found in {MODELS_DIR} (searched: {searched})")
 
-    with open(model_path, 'rb') as fh:
-        model = pickle.load(fh)
+    model_path, feature_path, label = selected
+    if model_path.suffix == '.json':
+        from xgboost import XGBClassifier
 
-    label = 'US' if model_path == us_model_path else 'UK (base)'
+        model = XGBClassifier()
+        model.load_model(str(model_path))
+    else:
+        with open(model_path, 'rb') as fh:
+            model = pickle.load(fh)
+
     print(f"[OK] Loaded {label} model from {model_path.name}")
 
     # Feature columns
@@ -546,6 +556,13 @@ def load_model() -> tuple:
         feature_cols = cols if cols else UK_FEATURE_COLS
     else:
         feature_cols = UK_FEATURE_COLS
+
+    expected_features = model.get_booster().num_features()
+    if len(feature_cols) != expected_features:
+        raise ValueError(
+            f"Model/feature mismatch: {model_path.name} expects {expected_features} "
+            f"features, but {feature_path.name} contains {len(feature_cols)}"
+        )
 
     return model, feature_cols, label, model_path.name
 
@@ -588,7 +605,7 @@ def main():
     # ── Load model ──────────────────────────────────────────────────────────
     try:
         model, feature_cols, model_label, model_artifact = load_model()
-    except FileNotFoundError as exc:
+    except (FileNotFoundError, ImportError, ValueError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         sys.exit(1)
 
