@@ -392,8 +392,12 @@ def load_historical_data():
     ]
     for path in candidates:
         if os.path.exists(path):
-            df = pd.read_parquet(path)
-            return df, path
+            try:
+                df = pd.read_parquet(path)
+                return df, path
+            except Exception as exc:
+                print(f"[WARN] Failed to load {path}: {exc}, trying next candidate...")
+                continue
     raise FileNotFoundError(
         'No historical feature dataset found. Expected one of: ' + ', '.join(candidates)
     )

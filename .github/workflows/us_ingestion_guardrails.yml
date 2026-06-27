@@ -32,24 +32,31 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Determine date
+      - name: Determine dates
         id: dates
         run: |
           if [ -n "${{ github.event.inputs.date }}" ]; then
-            echo "target=${{ github.event.inputs.date }}" >> $GITHUB_OUTPUT
+            echo "today=${{ github.event.inputs.date }}" >> $GITHUB_OUTPUT
+            echo "tomorrow=$(TZ=America/New_York date -d "${{ github.event.inputs.date }} +1 day" +%F)" >> $GITHUB_OUTPUT
           else
-            echo "target=$(TZ=America/New_York date +%F)" >> $GITHUB_OUTPUT
+            echo "today=$(TZ=America/New_York date +%F)" >> $GITHUB_OUTPUT
+            echo "tomorrow=$(TZ=America/New_York date -d '+1 day' +%F)" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build US all-sources racecards
+      - name: Build US all-sources racecards — today
         run: |
-          echo "Building US racecards and source report for ${{ steps.dates.outputs.target }}"
-          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.target }}
+          echo "Building US racecards and source report for ${{ steps.dates.outputs.today }}"
+          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }}
+
+      - name: Build US all-sources racecards — tomorrow
+        run: |
+          echo "Building US racecards and source report for ${{ steps.dates.outputs.tomorrow }}"
+          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.tomorrow }}
 
       - name: Validate US ingestion guardrails
         run: |
           python scripts/validate_us_ingestion.py \
-            --date ${{ steps.dates.outputs.target }} \
+            --date ${{ steps.dates.outputs.today }} \
             --min-total-races 8 \
             --min-total-runners 50 \
             --min-ml-odds-coverage 0.50 \
@@ -60,23 +67,37 @@ jobs:
       - name: Audit US odds coverage
         if: always()
         run: |
-          python scripts/audit_us_odds_coverage.py --date ${{ steps.dates.outputs.target }}
+          python scripts/audit_us_odds_coverage.py --date ${{ steps.dates.outputs.today }}
+
+      - name: Generate US predictions — today
+        if: always()
+        run: |
+          python scripts/predict_us_races.py --date ${{ steps.dates.outputs.today }}
+
+      - name: Generate US predictions — tomorrow
+        if: always()
+        run: |
+          python scripts/predict_us_races.py --date ${{ steps.dates.outputs.tomorrow }}
 
       - name: Upload validation artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: us-ingestion-validation-${{ steps.dates.outputs.target }}
+          name: us-ingestion-validation-${{ steps.dates.outputs.today }}
           path: |
-            data/raw/us_racecards_${{ steps.dates.outputs.target }}.json
-            data/raw/us_source_report_${{ steps.dates.outputs.target }}.json
-            data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.json
-            data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.md
-            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.json
-            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.md
+            data/raw/us_racecards_${{ steps.dates.outputs.today }}.json
+            data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
+            data/raw/us_source_report_${{ steps.dates.outputs.today }}.json
+            data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.json
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.md
+            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.json
+            data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.md
+            data/processed/us_predictions_${{ steps.dates.outputs.today }}.csv
+            data/processed/us_predictions_${{ steps.dates.outputs.tomorrow }}.csv
           if-no-files-found: warn
 
-      - name: Commit US ingestion reports
+      - name: Commit US ingestion reports + predictions
         if: always()
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
@@ -85,15 +106,20 @@ jobs:
           set -e
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
-          git add data/raw/us_racecards_${{ steps.dates.outputs.target }}.json || true
-          git add data/raw/us_source_report_${{ steps.dates.outputs.target }}.json || true
-          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.json || true
-          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.target }}.md || true
-          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.json || true
-          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.target }}.md || true
+          git add data/raw/us_racecards_${{ steps.dates.outputs.today }}.json || true
+          git add data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json || true
+          git add data/raw/us_source_report_${{ steps.dates.outputs.today }}.json || true
+          git add data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json || true
+          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.json || true
+          git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.md || true
+          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.json || true
+          git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.md || true
+          git add data/processed/us_predictions_${{ steps.dates.outputs.today }}.csv || true
+          git add data/processed/us_predictions_${{ steps.dates.outputs.tomorrow }}.csv || true
           if git diff --staged --quiet; then
             echo "No US ingestion report changes to commit"
           else
-            git commit -m "chore: US ingestion validation + odds audit for ${{ steps.dates.outputs.target }} [skip ci]" || true
+            git commit -m "chore: US ingestion + predictions for ${{ steps.dates.outputs.today }} and ${{ steps.dates.outputs.tomorrow }} [skip ci]" || true
+            git pull --rebase origin main || echo "No remote changes to rebase"
             git push
           fi
