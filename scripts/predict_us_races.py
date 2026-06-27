@@ -576,15 +576,19 @@ def load_us_historical() -> pd.DataFrame:
     ]
     for path in candidates:
         if path.exists():
-            df = pd.read_parquet(path)
-            print(f"[OK] Loaded historical data from {path.name}  ({len(df):,} rows)")
-            if 'horse_clean' not in df.columns:
-                df['horse_clean'] = df['horse'].apply(
-                    lambda x: _strip_country_suffix(str(x)).lower() if pd.notna(x) else ''
-                )
-            if 'date_dt' not in df.columns:
-                df['date_dt'] = pd.to_datetime(df.get('date', pd.NaT), errors='coerce')
-            return df
+            try:
+                df = pd.read_parquet(path)
+                print(f"[OK] Loaded historical data from {path.name}  ({len(df):,} rows)")
+                if 'horse_clean' not in df.columns:
+                    df['horse_clean'] = df['horse'].apply(
+                        lambda x: _strip_country_suffix(str(x)).lower() if pd.notna(x) else ''
+                    )
+                if 'date_dt' not in df.columns:
+                    df['date_dt'] = pd.to_datetime(df.get('date', pd.NaT), errors='coerce')
+                return df
+            except Exception as exc:
+                print(f"[WARN] Failed to load {path.name}: {exc}, trying next candidate...")
+                continue
 
     print("[WARN] No US (or UK fallback) historical data found — using defaults for all horses")
     return pd.DataFrame()

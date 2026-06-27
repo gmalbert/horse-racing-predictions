@@ -50,9 +50,10 @@ jobs:
       - name: Check if engineered dataset exists
         id: check_dataset
         run: |
-          if [ ! -f "data/processed/race_scores_engineered.parquet" ] || [ ! -s "data/processed/race_scores_engineered.parquet" ]; then
+          FILE="data/processed/race_scores_engineered.parquet"
+          if [ ! -f "$FILE" ] || [ ! -s "$FILE" ] || head -c 30 "$FILE" | grep -q "git-lfs"; then
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️  Engineered dataset missing or empty - will rebuild"
+            echo "⚠️  Engineered dataset missing, empty, or LFS pointer — will rebuild"
           else
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "✅ Engineered dataset exists"
