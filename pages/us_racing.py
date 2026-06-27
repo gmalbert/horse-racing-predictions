@@ -1708,7 +1708,11 @@ def _tab_model_insights():
     st.markdown("---")
     st.markdown("### 🇺🇸 US-Specific Model Readiness")
 
-    us_model_path = BASE_DIR / "models" / "us_horse_model.pkl"
+    us_model_paths = [
+        BASE_DIR / "models" / "us_horse_model.json",
+        BASE_DIR / "models" / "us_horse_model.pkl",
+    ]
+    us_model_path = next((p for p in us_model_paths if p.exists()), None)
     us_data_paths = [
         PROC_DIR / "us_races_cleaned.parquet",
         PROC_DIR / "all_us_races_cleaned.parquet",
@@ -1717,8 +1721,8 @@ def _tab_model_insights():
 
     r1, r2 = st.columns(2)
     with r1:
-        if us_model_path.exists():
-            st.success("✅ US model (`us_horse_model.pkl`) is present")
+        if us_model_path is not None:
+            st.success(f"✅ US model (`{us_model_path.name}`) is present")
         else:
             st.warning("⚠️ No US-specific model yet — using UK base model")
             st.caption(
