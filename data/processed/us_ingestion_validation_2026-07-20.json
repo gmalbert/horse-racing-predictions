@@ -1,0 +1,51 @@
+{
+  "date": "2026-07-20",
+  "generated_at_utc": "2026-07-20T07:21:22.876689+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "racecards_file_exists",
+      "ok": true,
+      "message": "data/raw/us_racecards_2026-07-20.json"
+    },
+    {
+      "name": "source_report_exists",
+      "ok": true,
+      "message": "data/raw/us_source_report_2026-07-20.json"
+    },
+    {
+      "name": "min_total_races",
+      "ok": true,
+      "message": "0 >= 8 (empty racecards allowed)"
+    },
+    {
+      "name": "min_total_runners",
+      "ok": true,
+      "message": "0 >= 50 (empty racecards allowed)"
+    },
+    {
+      "name": "min_ml_odds_coverage",
+      "ok": true,
+      "message": "0.0% >= 50.0% (empty racecards allowed)"
+    },
+    {
+      "name": "coverage_drift_guard",
+      "ok": true,
+      "message": "Insufficient history for drift baseline; check skipped"
+    },
+    {
+      "name": "source_report_total_matches_racecards",
+      "ok": true,
+      "message": "report_total=0, racecards_total=0"
+    }
+  ],
+  "metrics": {
+    "total_races": 0,
+    "total_runners": 0,
+    "unique_tracks": 0,
+    "runners_with_ml_odds": 0,
+    "ml_odds_coverage": 0.0,
+    "historical_median_total_races": 0.0
+  },
+  "alerts": []
+}
