@@ -324,8 +324,18 @@ def extract_runners_from_next_data(page_html: bytes) -> Tuple[List[Dict[str, Any
             'raceTypeCode': race.get('raceType'),
             'courseUid': race.get('courseId'),
             'courseName': race.get('meetingName') or race.get('courseName'),
+            'raceName': race.get('raceTitle'),
             'distanceFurlongRounded': race.get('distanceFurlongs'),
             'distanceYard': race.get('distanceYards'),
+            'distance': race.get('displayDistance'),
+            'going': race.get('going'),
+            'region': race.get('countryCode'),
+            'raceClass': race.get('raceClass'),
+            'ageBand': race.get('agesAllowed'),
+            'ratingBand': race.get('officialRatingBandDesc'),
+            'prize': race.get('formattedTotalPrizeMoney'),
+            'fieldSize': race.get('numberOfRunners'),
+            'surfaceType': race.get('surfaceType') or race.get('awSurfaceType'),
         }
 
         normalized = []
@@ -345,7 +355,7 @@ def extract_runners_from_next_data(page_html: bytes) -> Tuple[List[Dict[str, Any
                 'rpTopspeed': runner.get('rpTopspeed'),
                 'weightCarriedLbs': runner.get('lhWeightCarriedLbs') or runner.get('weightCarried'),
                 'rpHorseHeadGearCode': runner.get('horseHeadGear') or runner.get('headGearCode'),
-                'figuresCalculated': runner.get('figuresCalculated') or [],
+                'figuresCalculated': runner.get('figuresCalculated') or runner.get('formFiguresData') or [],
                 'daysSinceLastRun': runner.get('daysSinceLastRun'),
                 'nonRunner': runner.get('nonRunner', False),
                 # Keep legacy field name consumed by off-time parsing.
@@ -361,143 +371,186 @@ def extract_runners_from_next_data(page_html: bytes) -> Tuple[List[Dict[str, Any
         return [], {}
 
 
+def build_racecard_from_html(
+    race_id: str,
+    href: str,
+    date: str,
+    page_html: bytes,
+    runners_list: List[Dict[str, Any]] = None,
+    race_meta: Dict[str, Any] = None,
+) -> Dict[str, Any]:
+    """Build the canonical racecard object from rendered Racing Post HTML.
+
+    ``runners_list`` and ``race_meta`` may be supplied by a browser response or
+    DOM extraction. Embedded Next.js data remains the fallback for the requests
+    scraper. Returning ``None`` means that the page did not contain usable
+    runner data and must not be persisted as a successful fetch.
+    """
+    try:
+        doc = html.fromstring(page_html)
+    except Exception:
+        return None
+
+    runners_list = list(runners_list or [])
+    race_meta = dict(race_meta or {})
+
+    embedded_runners, embedded_meta = extract_runners_from_next_data(page_html)
+    if embedded_runners and len(embedded_runners) >= len(runners_list):
+        runners_list = embedded_runners
+    for key, value in embedded_meta.items():
+        if value not in (None, ""):
+            race_meta[key] = value
+
+    if not runners_list:
+        return None
+
+    runner = runners_list[0]
+    url_racecard = href if href.startswith('http') else f'https://www.racingpost.com{href}'
+    race = {}
+
+    race['href'] = url_racecard
+    race['race_id'] = int(race_id)
+    race['date'] = date
+
+    date_str = runner.get('raceDatetime', '') or race_meta.get('raceDatetime', '')
+    if date_str:
+        try:
+            dt = datetime.datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            race['off_time'] = dt.strftime('%H:%M')
+        except Exception:
+            time_match = re.search(r'\b(\d{1,2}:\d{2})\b', str(date_str))
+            race['off_time'] = time_match.group(1) if time_match else ""
+    else:
+        race['off_time'] = ""
+
+    race['course_id'] = runner.get('courseUid') or race_meta.get('courseUid')
+    if not race['course_id']:
+        course_match = re.search(r'/racecards/(\d+)/', url_racecard)
+        race['course_id'] = int(course_match.group(1)) if course_match else None
+    race['course'] = find(doc, 'h1', 'RC-courseHeader__name') or race_meta.get('courseName', '')
+    if not race['course']:
+        course_match = re.search(r'/racecards/\d+/([^/]+)/', url_racecard)
+        if course_match:
+            race['course'] = course_match.group(1).replace('-', ' ').title()
+    race['course_detail'] = find(doc, 'span', 'RC-header__straightRoundJubilee').strip('()')
+
+    if race['course'] == 'Belmont At The Big A':
+        race['course_id'] = 255
+        race['course'] = 'Aqueduct'
+
+    race['region'] = race_meta.get('region')
+    if not race['region']:
+        try:
+            race['region'] = get_region(str(race['course_id']))
+        except (TypeError, ValueError):
+            race['region'] = 'GB'
+
+    race['race_name'] = (
+        find(doc, 'span', 'RC-header__raceInstanceTitle')
+        or race_meta.get('raceName', '')
+    )
+    race['race_type'] = RACE_TYPE.get(
+        runner.get('raceTypeCode') or race_meta.get('raceTypeCode') or 'F',
+        'Flat'
+    )
+
+    race['distance_f'] = runner.get('distanceFurlongRounded') or race_meta.get('distanceFurlongRounded')
+    race['distance_y'] = runner.get('distanceYard') or race_meta.get('distanceYard')
+    race['distance_round'] = find(doc, 'strong', 'RC-header__raceDistanceRound')
+    race['distance'] = find(doc, 'span', 'RC-header__raceDistance').strip('()')
+    race['distance'] = race['distance'] or race['distance_round'] or race_meta.get('distance', '')
+
+    race['pattern'] = get_pattern(race['race_name'].lower())
+    race_class_str = find(doc, 'span', 'RC-header__raceClass')
+    race_class_str = race_class_str.replace('Class', '').strip('()').strip()
+    race['race_class'] = int(race_class_str) if race_class_str.isdigit() else None
+    if race['race_class'] is None:
+        try:
+            race['race_class'] = int(race_meta.get('raceClass'))
+        except (TypeError, ValueError):
+            pass
+    race['race_class'] = 1 if not race['race_class'] and race['pattern'] else race['race_class']
+
+    race['age_band'], race['rating_band'] = parse_age_and_rating(doc)
+    race['age_band'] = race['age_band'] or race_meta.get('ageBand')
+    race['rating_band'] = race['rating_band'] or race_meta.get('ratingBand')
+    race['prize'] = parse_prize(doc) or race_meta.get('prize')
+    race['field_size'] = parse_field_size(doc) or race_meta.get('fieldSize') or len(runners_list)
+    race['handicap'] = race['rating_band'] is not None or 'handicap' in race['race_name'].lower()
+    race['going'] = parse_going(doc) or race_meta.get('going', '')
+    race['surface'] = race_meta.get('surfaceType') or get_surface(race['going'])
+
+    race['runners'] = []
+    for runner_json in runners_list:
+        race['runners'].append({
+            'age': runner_json.get('horseAge'),
+            'name': normalize_name(runner_json.get('horseName', '')),
+            'number': runner_json.get('startNumber'),
+            'draw': runner_json.get('draw'),
+            'jockey': normalize_name(runner_json.get('jockeyName', '')),
+            'jockey_id': runner_json.get('jockeyUid'),
+            'trainer': normalize_name(runner_json.get('trainerStylename', '')),
+            'trainer_id': runner_json.get('trainerId'),
+            'horse_id': runner_json.get('horseUid'),
+            'ofr': runner_json.get('officialRatingToday'),
+            'rpr': runner_json.get('rpPostmark'),
+            'ts': runner_json.get('rpTopspeed'),
+            'lbs': runner_json.get('weightCarriedLbs'),
+            'headgear': runner_json.get('rpHorseHeadGearCode'),
+            'form': ''.join(
+                f.get('formFigure', f.get('figure', ''))
+                for f in runner_json.get('figuresCalculated', [])
+            )[::-1] if runner_json.get('figuresCalculated') else '',
+            'last_run': runner_json.get('daysSinceLastRun'),
+            'non_runner': runner_json.get('nonRunner', False),
+        })
+
+    if not any(runner['name'] for runner in race['runners']):
+        return None
+    return race
+
+
 def scrape_racecards(race_urls: Dict[str, List[Tuple[str, str]]], date: str) -> Dict:
     """Scrape racecards for a given date."""
     races = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
-    
+
     for race_id, href in race_urls[date]:
         print(f"Scraping race {race_id}...", end=' ')
-        
+
         url_base = 'https://www.racingpost.com'
         url_racecard = f'{url_base}{href}'
         url_runners = f'{url_base}/profile/horse/data/cardrunners/{race_id}.json'
-        
+
         status_racecard, resp_racecard = get_request(url_racecard)
         status_runners, resp_runners = get_request(url_runners)
-        
+
         if status_racecard != 200 or not resp_racecard:
             print(f"FAILED (status: {status_racecard}, {status_runners})")
             continue
-        
-        try:
-            doc = html.fromstring(resp_racecard.content)
-        except Exception as e:
-            print(f"FAILED (parse error: {e})")
-            continue
-        
+
         runners_list: List[Dict[str, Any]] = []
-        runner: Dict[str, Any] = {}
-        race_meta: Dict[str, Any] = {}
-        
         if status_runners == 200 and resp_runners is not None:
             try:
                 runners_json = resp_runners.json()['runners']
                 runners_list = list(runners_json.values())
-                if runners_list:
-                    runner = runners_list[0]
             except Exception:
                 runners_list = []
-        
-        # Fallback: Racing Post now often returns 406 for cardrunners endpoint.
-        # Use embedded Next.js data from the racecard HTML when available.
-        if not runners_list:
-            runners_list, race_meta = extract_runners_from_next_data(resp_racecard.content)
-            if runners_list:
-                runner = runners_list[0]
 
-        if not runners_list:
+        race = build_racecard_from_html(
+            race_id=race_id,
+            href=href,
+            date=date,
+            page_html=resp_racecard.content,
+            runners_list=runners_list,
+        )
+        if not race:
             print(f"FAILED (status: {status_racecard}, {status_runners})")
             continue
-        
-        race = {}
-        
-        race['href'] = url_racecard
-        race['race_id'] = int(race_id)
-        race['date'] = date
-        
-        # Race time
-        date_str = runner.get('raceDatetime', '') or race_meta.get('raceDatetime', '')
-        if date_str:
-            try:
-                dt = datetime.datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-                race['off_time'] = dt.strftime('%H:%M')
-            except Exception:
-                race['off_time'] = ""
-        else:
-            race['off_time'] = ""
-        
-        # Course
-        race['course_id'] = runner.get('courseUid') or race_meta.get('courseUid')
-        race['course'] = find(doc, 'h1', 'RC-courseHeader__name') or race_meta.get('courseName', '')
-        race['course_detail'] = find(doc, 'span', 'RC-header__straightRoundJubilee').strip('()')
-        
-        # Handle special course names
-        if race['course'] == 'Belmont At The Big A':
-            race['course_id'] = 255
-            race['course'] = 'Aqueduct'
-        
-        race['region'] = get_region(str(race['course_id']))
-        
-        # Race details
-        race['race_name'] = find(doc, 'span', 'RC-header__raceInstanceTitle')
-        race['race_type'] = RACE_TYPE.get(
-            runner.get('raceTypeCode') or race_meta.get('raceTypeCode') or 'F',
-            'Flat'
-        )
-        
-        # Distance
-        race['distance_f'] = runner.get('distanceFurlongRounded') or race_meta.get('distanceFurlongRounded')
-        race['distance_y'] = runner.get('distanceYard') or race_meta.get('distanceYard')
-        race['distance_round'] = find(doc, 'strong', 'RC-header__raceDistanceRound')
-        race['distance'] = find(doc, 'span', 'RC-header__raceDistance').strip('()')
-        race['distance'] = race['distance'] or race['distance_round']
-        
-        # Class and pattern
-        race['pattern'] = get_pattern(race['race_name'].lower())
-        race_class_str = find(doc, 'span', 'RC-header__raceClass')
-        race_class_str = race_class_str.replace('Class', '').strip('()').strip()
-        race['race_class'] = int(race_class_str) if race_class_str.isdigit() else None
-        race['race_class'] = 1 if not race['race_class'] and race['pattern'] else race['race_class']
-        
-        race['age_band'], race['rating_band'] = parse_age_and_rating(doc)
-        race['prize'] = parse_prize(doc)
-        race['field_size'] = parse_field_size(doc)
-        
-        race['handicap'] = race['rating_band'] is not None or 'handicap' in race['race_name'].lower()
-        
-        race['going'] = parse_going(doc)
-        race['surface'] = get_surface(race['going'])
-        
-        # Runners (simplified - just basic info)
-        race['runners'] = []
-        for runner_json in runners_list:
-            r = {
-                'age': runner_json.get('horseAge'),
-                'name': normalize_name(runner_json.get('horseName', '')),
-                'number': runner_json.get('startNumber'),
-                'draw': runner_json.get('draw'),
-                'jockey': normalize_name(runner_json.get('jockeyName', '')),
-                'jockey_id': runner_json.get('jockeyUid'),
-                'trainer': normalize_name(runner_json.get('trainerStylename', '')),
-                'trainer_id': runner_json.get('trainerId'),
-                'horse_id': runner_json.get('horseUid'),
-                'ofr': runner_json.get('officialRatingToday'),
-                'rpr': runner_json.get('rpPostmark'),
-                'ts': runner_json.get('rpTopspeed'),
-                'lbs': runner_json.get('weightCarriedLbs'),
-                'headgear': runner_json.get('rpHorseHeadGearCode'),
-                'form': ''.join(f.get('formFigure', '') for f in runner_json.get('figuresCalculated', []))[::-1] if runner_json.get('figuresCalculated') else '',
-                'last_run': runner_json.get('daysSinceLastRun'),
-                'non_runner': runner_json.get('nonRunner', False),
-            }
-            race['runners'].append(r)
-        
-        # Store in nested structure
+
         races[race['region']][race['course']][race['off_time']] = race
         print("OK")
-        
-        time.sleep(0.5)  # Be polite to the server
-    
+        time.sleep(0.5)
+
     return races
 
 

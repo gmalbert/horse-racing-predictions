@@ -1,0 +1,82 @@
+name: Fetch Racing Post Racecards (Self-hosted Browser)
+
+on:
+  schedule:
+    # Runs after the API baseline. The labeled runner must be online and
+    # launched interactively so visible Chrome can open in its desktop session.
+    - cron: '50 11 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Optional date (YYYY-MM-DD). When omitted, fetches today and tomorrow in ET.'
+        required: false
+        type: string
+
+concurrency:
+  group: daily-racecards
+  cancel-in-progress: false
+
+jobs:
+  fetch-racing-post-browser:
+    runs-on: [self-hosted, Windows, X64, racing-post-browser]
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "playwright>=1.40.0" "lxml>=4.9.0" "requests>=2.31.0"
+          python -m playwright install chromium
+
+      - name: Collect rendered Racing Post racecards
+        shell: pwsh
+        env:
+          REQUESTED_DATE: ${{ inputs.date }}
+          RACING_POST_PROFILE_DIR: ${{ vars.RACING_POST_PROFILE_DIR }}
+        run: |
+          $browserArgs = @('--timezone', 'America/New_York')
+          if ($env:REQUESTED_DATE) {
+            $browserArgs += @('--date', $env:REQUESTED_DATE)
+          } else {
+            $browserArgs += @('--days', '2')
+          }
+          python scripts/fetch_racecards_browser.py @browserArgs
+
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: racing-post-browser-diagnostics-${{ github.run_id }}
+          path: ${{ runner.temp }}/racing-post-browser/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Commit Racing Post snapshots
+        shell: pwsh
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git config user.name $env:GIT_AUTHOR_NAME
+          git config user.email $env:GIT_AUTHOR_EMAIL
+          git add -- data/raw/racecards_*.json
+          if (git diff --staged --quiet) {
+            Write-Host 'No Racing Post snapshot changes to commit'
+          } else {
+            git commit -m 'chore: refresh Racing Post browser racecards [skip ci]'
+            git push
+          }

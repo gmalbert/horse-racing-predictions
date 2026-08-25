@@ -10,6 +10,10 @@ on:
         description: 'Date to fetch racecards for (YYYY-MM-DD). Will also fetch for the following day. If omitted, uses today and tomorrow (ET).'
         required: false
 
+concurrency:
+  group: daily-racecards
+  cancel-in-progress: false
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
