@@ -35,6 +35,18 @@ between runs. It must not be committed to the repository.
 
 ## Local verification
 
+For recurring local collection, use the PowerShell wrapper from the logged-in
+desktop session:
+
+```powershell
+.\run_racing_post_browser.ps1 -Commit -Push
+```
+
+It writes timestamped logs under `logs/racing-post-browser/`, prevents
+overlapping runs, and only stages `data/raw/racecards_*.json`. Omit `-Commit`
+and `-Push` when you want a collection-only run. Schedule it with Windows Task
+Scheduler using the same logged-in user account that can open Chrome.
+
 Run visible Chrome for one date:
 
 ```powershell
