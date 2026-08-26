@@ -12,7 +12,7 @@ modification, proxy rotation, or challenge-solving behavior.
 2. Run `gh auth login` as the same Windows user that will run the task.
 3. In Task Scheduler, create a daily task at 06:50 ET that runs only while
    that user is logged in. Chrome must be able to open in that desktop session.
-4. Set **Program/script** to `pwsh.exe`; set **Arguments** to:
+4. Set **Program/script** to `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`; set **Arguments** to:
 
    ```text
    -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\horse-racing-predictions\run_racing_post_browser.ps1" -Commit -Push -TriggerPredictions
