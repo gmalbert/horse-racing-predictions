@@ -2,28 +2,29 @@
 
 The browser collector supplements the API baseline with Racing Post racecard
 data rendered in ordinary Chrome. It is designed for an authorized,
-self-hosted Windows runner and intentionally contains no stealth, fingerprint
+self-hosted Windows PC and intentionally contains no stealth, fingerprint
 modification, proxy rotation, or challenge-solving behavior.
 
-## Runner setup
+## Local scheduled setup
 
-1. Install Google Chrome and Python 3.11 on the Windows host.
-2. Add a GitHub Actions self-hosted runner to this repository.
-3. Add the custom runner label `racing-post-browser`. The workflow also
-   requires the standard `self-hosted`, `Windows`, and `X64` labels.
-4. Start the runner interactively in the logged-in desktop session. Do not run
-   it as a Windows service: services cannot display Chrome in the user's
-   desktop session.
-5. Keep the runner online for the scheduled 11:50 UTC collection, or dispatch
-   **Fetch Racing Post Racecards (Self-hosted Browser)** manually.
+1. Install Google Chrome, Python 3.11, Git, and the GitHub CLI (`gh`) on the
+   Windows PC.
+2. Run `gh auth login` as the same Windows user that will run the task.
+3. In Task Scheduler, create a daily task at 06:50 ET that runs only while
+   that user is logged in. Chrome must be able to open in that desktop session.
+4. Set **Program/script** to `pwsh.exe`; set **Arguments** to:
 
-The workflow installs the Python requirements and bundled Chromium as a
-fallback. The collector prefers installed system Chrome.
+   ```text
+   -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\horse-racing-predictions\run_racing_post_browser.ps1" -Commit -Push -TriggerPredictions
+   ```
+
+5. Set **Start in** to the repository directory. Do not run the task as a
+   Windows service.
 
 ## Optional persistent browser profile
 
-Set the repository Actions variable `RACING_POST_PROFILE_DIR` to a dedicated
-directory on the runner, for example:
+Set the `RACING_POST_PROFILE_DIR` environment variable for the logged-in
+Windows user to a dedicated directory, for example:
 
 ```text
 C:\actions-data\racing-post-profile
@@ -35,17 +36,18 @@ between runs. It must not be committed to the repository.
 
 ## Local verification
 
-For recurring local collection, use the PowerShell wrapper from the logged-in
+For a full local morning run, use the PowerShell wrapper from the logged-in
 desktop session:
 
 ```powershell
-.\run_racing_post_browser.ps1 -Commit -Push
+.\run_racing_post_browser.ps1 -Commit -Push -TriggerPredictions
 ```
 
 It writes timestamped logs under `logs/racing-post-browser/`, prevents
-overlapping runs, and only stages `data/raw/racecards_*.json`. Omit `-Commit`
-and `-Push` when you want a collection-only run. Schedule it with Windows Task
-Scheduler using the same logged-in user account that can open Chrome.
+overlapping runs, and only stages `data/raw/racecards_*.json`. After a
+successful push, `-TriggerPredictions` dispatches **Precompute Daily
+Predictions** on the same branch. Omit all three switches when you want a
+collection-only run.
 
 Run visible Chrome for one date:
 
@@ -61,13 +63,11 @@ python scripts/fetch_racecards_browser.py --days 2 --timezone America/New_York
 ```
 
 The collector refuses to replace an existing snapshot unless every discovered
-race produces usable runner data. On workflow failure it uploads the rendered
-HTML and screenshot from the last page as a seven-day diagnostic artifact.
+race produces usable runner data. On failure it saves the rendered HTML and a
+screenshot from the last page under `tmp/racing-post-browser/` for diagnosis.
 
-The regular `fetch_racecards.yml` API workflow remains the baseline. The
-self-hosted browser workflow runs afterward and commits a Racing Post snapshot
-only after full validation. A successful browser workflow then triggers
-`Precompute Daily Predictions`; that workflow checks out the browser run's
-branch after the snapshot commit, generates predictions, and pushes its own
-output commit. The prediction workflow is no longer independently scheduled,
-which prevents it from racing the browser collection.
+The regular `fetch_racecards.yml` API workflow remains the baseline. The local
+browser task runs afterward, commits a Racing Post snapshot only after full
+validation, and then dispatches `Precompute Daily Predictions`. That workflow
+generates predictions and pushes its own output commit. It is no longer
+independently scheduled, which prevents it from racing the browser collection.

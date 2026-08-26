@@ -4,7 +4,7 @@ Run the visible-Chrome Racing Post collector locally.
 Examples:
   .\run_racing_post_browser.ps1
   .\run_racing_post_browser.ps1 -Date 2026-08-25
-  .\run_racing_post_browser.ps1 -Commit -Push
+  .\run_racing_post_browser.ps1 -Commit -Push -TriggerPredictions
 
 The script is intended to run as the logged-in Windows user (for example from
 Task Scheduler), not as a Windows service. It does not enable headless mode or
@@ -19,7 +19,8 @@ param(
     [string]$Timezone = 'America/New_York',
     [string]$ProfileDir = $env:RACING_POST_PROFILE_DIR,
     [switch]$Commit,
-    [switch]$Push
+    [switch]$Push,
+    [switch]$TriggerPredictions
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,6 +31,9 @@ if ($Date -and $PSBoundParameters.ContainsKey('Days')) {
 
 if ($Push) {
     $Commit = $true
+}
+if ($TriggerPredictions -and -not $Push) {
+    throw '-TriggerPredictions requires -Push so GitHub can read the collected racecards.'
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '.')).Path
@@ -140,6 +144,41 @@ try {
                     }
                 }
             }
+        } finally {
+            Pop-Location
+        }
+    }
+
+    if ($TriggerPredictions) {
+        Push-Location $repoRoot
+        try {
+            $branch = (& git branch --show-current).Trim()
+            if ($LASTEXITCODE -ne 0 -or -not $branch) {
+                throw 'Could not determine the current git branch for the prediction workflow.'
+            }
+
+            $gh = Get-Command gh -ErrorAction SilentlyContinue
+            if (-not $gh) {
+                throw 'GitHub CLI was not found. Install it and run "gh auth login" for this Windows user.'
+            }
+
+            $workflowArgs = @('workflow', 'run', 'Precompute Daily Predictions', '--ref', $branch)
+            if ($Date) {
+                $workflowArgs += @('--field', "date=$Date")
+            }
+            $previousNativeCommandErrorPreference = $PSNativeCommandUseErrorActionPreference
+            try {
+                $PSNativeCommandUseErrorActionPreference = $false
+                & $gh.Source @workflowArgs 2>&1 | Tee-Object -FilePath $logPath -Append
+                $ghExitCode = $LASTEXITCODE
+            } finally {
+                $PSNativeCommandUseErrorActionPreference = $previousNativeCommandErrorPreference
+            }
+            if ($ghExitCode -ne 0) {
+                throw 'Failed to trigger Precompute Daily Predictions.'
+            }
+            "[$(Get-Date -Format o)] Triggered Precompute Daily Predictions on branch $branch" |
+                Tee-Object -FilePath $logPath -Append
         } finally {
             Pop-Location
         }
