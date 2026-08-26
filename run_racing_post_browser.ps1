@@ -94,9 +94,20 @@ try {
     "Python: $pythonExe" | Tee-Object -FilePath $logPath -Append
     "Arguments: $($collectorArgs -join ' ')" | Tee-Object -FilePath $logPath -Append
 
-    & $pythonExe $collector @collectorArgs 2>&1 | Tee-Object -FilePath $logPath -Append
-    if ($LASTEXITCODE -ne 0) {
-        throw "Racecard collector failed with exit code $LASTEXITCODE. See $logPath"
+    # In PowerShell 7, a native command's stderr can become a terminating
+    # error under $ErrorActionPreference = 'Stop'. Keep it in the log so a
+    # failed collection reports the real Python error instead of only its
+    # first stderr line.
+    $previousNativeCommandErrorPreference = $PSNativeCommandUseErrorActionPreference
+    try {
+        $PSNativeCommandUseErrorActionPreference = $false
+        & $pythonExe $collector @collectorArgs 2>&1 | Tee-Object -FilePath $logPath -Append
+        $collectorExitCode = $LASTEXITCODE
+    } finally {
+        $PSNativeCommandUseErrorActionPreference = $previousNativeCommandErrorPreference
+    }
+    if ($collectorExitCode -ne 0) {
+        throw "Racecard collector failed with exit code $collectorExitCode. See $logPath"
     }
 
     if ($Commit) {
