@@ -1,9 +1,9 @@
 name: Precompute Daily Predictions
 
 on:
-  schedule:
-    # daily at 07:00 AM ET (12:00 UTC, runs after racecards pulled at 06:30 AM ET)
-    - cron: '0 12 * * *'
+  # This workflow is dispatched by the local Racing Post collector after it
+  # has pushed validated racecards. Keeping it unscheduled prevents a timing
+  # race with the visible browser session.
   workflow_dispatch:
     inputs:
       date:

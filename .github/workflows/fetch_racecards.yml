@@ -10,6 +10,10 @@ on:
         description: 'Date to fetch racecards for (YYYY-MM-DD). Will also fetch for the following day. If omitted, uses today and tomorrow (ET).'
         required: false
 
+concurrency:
+  group: daily-racecards
+  cancel-in-progress: false
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -43,15 +47,24 @@ jobs:
             echo "tomorrow=$(TZ=America/New_York date -d '+1 day' +%F)" >> $GITHUB_OUTPUT
           fi
 
+      # Racing Post returns HTTP 406 to GitHub-hosted runners.  Use the
+      # authenticated API in CI rather than attempting to scrape a source
+      # that deliberately blocks this execution environment.
       - name: Fetch racecards for today
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
         run: |
           echo "Fetching racecards for ${{ steps.dates.outputs.today }}"
-          python scripts/fetch_racecards.py --date ${{ steps.dates.outputs.today }}
+          python scripts/fetch_racecards_api.py --date ${{ steps.dates.outputs.today }}
 
       - name: Fetch racecards for tomorrow
+        env:
+          RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
+          RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
         run: |
           echo "Fetching racecards for ${{ steps.dates.outputs.tomorrow }}"
-          python scripts/fetch_racecards.py --date ${{ steps.dates.outputs.tomorrow }}
+          python scripts/fetch_racecards_api.py --date ${{ steps.dates.outputs.tomorrow }}
 
       - name: Commit fetched racecards
         env:

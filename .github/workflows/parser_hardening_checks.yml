@@ -5,8 +5,11 @@ on:
     paths:
       - 'scripts/parse_t1_*_tracksite.py'
       - 'scripts/backtest_walk_forward.py'
+      - 'scripts/fetch_racecards.py'
+      - 'scripts/fetch_racecards_browser.py'
       - 'tests/test_t1_parser_hardening.py'
       - 'tests/test_backtest_walk_forward_odds.py'
+      - 'tests/test_fetch_racecards_browser.py'
       - 'tests/fixtures/t1_*.json'
       - '.github/workflows/parser_hardening_checks.yml'
   push:
@@ -16,8 +19,11 @@ on:
     paths:
       - 'scripts/parse_t1_*_tracksite.py'
       - 'scripts/backtest_walk_forward.py'
+      - 'scripts/fetch_racecards.py'
+      - 'scripts/fetch_racecards_browser.py'
       - 'tests/test_t1_parser_hardening.py'
       - 'tests/test_backtest_walk_forward_odds.py'
+      - 'tests/test_fetch_racecards_browser.py'
       - 'tests/fixtures/t1_*.json'
       - '.github/workflows/parser_hardening_checks.yml'
   workflow_dispatch:
@@ -42,4 +48,4 @@ jobs:
 
       - name: Run parser and odds diagnostics tests
         run: |
-          python -m pytest tests/test_t1_parser_hardening.py tests/test_backtest_walk_forward_odds.py -q
+          python -m pytest tests/test_t1_parser_hardening.py tests/test_backtest_walk_forward_odds.py tests/test_fetch_racecards_browser.py -q
