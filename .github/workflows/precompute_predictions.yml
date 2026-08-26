@@ -1,9 +1,13 @@
 name: Precompute Daily Predictions
 
 on:
-  schedule:
-    # daily at 07:00 AM ET (12:00 UTC, runs after racecards pulled at 06:30 AM ET)
-    - cron: '0 12 * * *'
+  # Start only after the visible-browser collector has completed.  This keeps
+  # prediction generation behind the final Racing Post racecard snapshot
+  # rather than relying on two independent schedules finishing in time.
+  workflow_run:
+    workflows: ["Fetch Racing Post Racecards (Self-hosted Browser)"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       date:
@@ -12,11 +16,17 @@ on:
 
 jobs:
   precompute:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # workflow_run records the browser run's starting SHA.  Check out
+          # its branch instead, so the commit made by that run is included.
+          ref: ${{ github.event.workflow_run.head_branch || github.ref_name }}
           fetch-depth: 0
           lfs: false  # Disable LFS to avoid bandwidth quota
 

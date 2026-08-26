@@ -2,8 +2,10 @@ name: Fetch Racing Post Racecards (Self-hosted Browser)
 
 on:
   schedule:
-    # Runs after the API baseline. The labeled runner must be online and
-    # launched interactively so visible Chrome can open in its desktop session.
+    # Runs after the API baseline. On success, this workflow starts the
+    # prediction workflow, so the browser snapshot is available first.
+    # The labeled runner must be online and launched interactively so visible
+    # Chrome can open in its desktop session.
     - cron: '50 11 * * *'
   workflow_dispatch:
     inputs:

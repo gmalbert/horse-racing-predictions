@@ -66,4 +66,8 @@ HTML and screenshot from the last page as a seven-day diagnostic artifact.
 
 The regular `fetch_racecards.yml` API workflow remains the baseline. The
 self-hosted browser workflow runs afterward and commits a Racing Post snapshot
-only after full validation.
+only after full validation. A successful browser workflow then triggers
+`Precompute Daily Predictions`; that workflow checks out the browser run's
+branch after the snapshot commit, generates predictions, and pushes its own
+output commit. The prediction workflow is no longer independently scheduled,
+which prevents it from racing the browser collection.
