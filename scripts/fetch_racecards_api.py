@@ -17,6 +17,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
@@ -26,8 +27,8 @@ def get_credentials():
     """Load Racing API credentials from environment."""
     load_dotenv()
     
-    username = os.getenv('RACING_API_USERNAME')
-    password = os.getenv('RACING_API_PASSWORD')
+    username = os.getenv('RACING_API_USERNAME', '').strip()
+    password = os.getenv('RACING_API_PASSWORD', '').strip()
     
     if not username or not password:
         raise ValueError(
@@ -41,7 +42,7 @@ def get_credentials():
 
 def fetch_racecards_from_api(date_str, region=None):
     """
-    Fetch racecards from The Racing API for a specific date.
+    Fetch Free-plan racecards from The Racing API for a specific date.
     
     Args:
         date_str: Date in YYYY-MM-DD format
@@ -52,12 +53,22 @@ def fetch_racecards_from_api(date_str, region=None):
     """
     username, password = get_credentials()
     
-    base_url = "https://api.theracingapi.com/v1"
-    endpoint = f"{base_url}/racecards"
-    
-    params = {'date': date_str}
+    # The Racing API's Free plan exposes racecards only for today and tomorrow
+    # at /v1/racecards/free.  /v1/racecards is not a documented endpoint.
+    requested_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    today = datetime.now(ZoneInfo('America/New_York')).date()
+    day_offset = (requested_date - today).days
+    if day_offset not in (0, 1):
+        raise ValueError(
+            'The Racing API Free plan only provides racecards for today and '
+            'tomorrow. Use a Basic, Standard, or Pro plan for other dates.'
+        )
+
+    endpoint = "https://api.theracingapi.com/v1/racecards/free"
+
+    params = {'day': 'today' if day_offset == 0 else 'tomorrow'}
     if region:
-        params['region'] = region
+        params['region_codes'] = region
     
     print(f"Fetching racecards from The Racing API for {date_str}...")
     if region:
@@ -83,7 +94,7 @@ def fetch_racecards_from_api(date_str, region=None):
         
     except requests.exceptions.HTTPError as e:
         if response.status_code == 401:
-            print("❌ Authentication failed. Check your Racing API credentials in .env")
+            print("❌ Authentication failed. Check the Racing API username and password.")
         elif response.status_code == 404:
             print(f"❌ No racecards found for {date_str}")
         else:
@@ -107,8 +118,11 @@ def transform_to_standard_format(api_races, date_str):
         course = race.get('course') or race.get('track') or race.get('venue')
         region = race.get('region') or race.get('country') or 'GB'
         
-        # Parse race time
-        race_time = race.get('off_time') or race.get('start_time') or race.get('post_time')
+        # The Racing API provides ``off_time`` as a local display time (for
+        # example ``1:50``).  Only parse its ISO datetime field; parsing a
+        # display time with ``datetime.fromisoformat`` silently turns it into
+        # midnight on some Python versions.
+        race_time = race.get('off_dt') or race.get('start_time') or race.get('post_time')
         if race_time:
             try:
                 dt = datetime.fromisoformat(race_time.replace('Z', '+00:00'))
@@ -116,18 +130,19 @@ def transform_to_standard_format(api_races, date_str):
             except Exception:
                 off_time = race_time[:5] if len(race_time) >= 5 else '00:00'
         else:
-            off_time = '00:00'
+            off_time = race.get('off_time') or '00:00'
         
         # Build standardized race object
         race_obj = {
-            'race_id': int(race_id) if race_id else None,
+            # The Racing API uses stable IDs such as ``rac_11868129``.
+            'race_id': race_id,
             'date': date_str,
             'off_time': off_time,
             'course': course,
             'course_id': race.get('course_id'),
             'region': region,
             'race_name': race.get('race_name') or race.get('name') or '',
-            'race_type': race.get('race_type') or 'Flat',
+            'race_type': race.get('race_type') or race.get('type') or 'Flat',
             'distance': race.get('distance') or '',
             'distance_f': race.get('distance_furlongs'),
             'distance_y': race.get('distance_yards'),
@@ -149,7 +164,7 @@ def transform_to_standard_format(api_races, date_str):
         for runner in runners:
             runner_obj = {
                 'horse_id': runner.get('horse_id'),
-                'name': runner.get('horse_name') or runner.get('name') or '',
+                'name': runner.get('horse_name') or runner.get('horse') or runner.get('name') or '',
                 'number': runner.get('number') or runner.get('saddle_cloth'),
                 'draw': runner.get('draw'),
                 'age': runner.get('age'),
@@ -158,9 +173,9 @@ def transform_to_standard_format(api_races, date_str):
                 'trainer': runner.get('trainer_name') or runner.get('trainer') or '',
                 'trainer_id': runner.get('trainer_id'),
                 'ofr': runner.get('official_rating') or runner.get('ofr'),
-                'rpr': runner.get('rpr'),
-                'ts': runner.get('topspeed') or runner.get('ts'),
-                'lbs': runner.get('weight_lbs') or runner.get('weight'),
+                'rpr': runner.get('rpr') or runner.get('performance_rating'),
+                'ts': runner.get('topspeed') or runner.get('ts') or runner.get('speed_rating'),
+                'lbs': runner.get('weight_lbs') or runner.get('weight') or runner.get('lbs'),
                 'headgear': runner.get('headgear'),
                 'form': runner.get('form') or '',
                 'last_run': runner.get('days_since_last_run') or runner.get('last_run'),
