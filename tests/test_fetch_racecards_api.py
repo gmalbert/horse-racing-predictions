@@ -5,6 +5,8 @@ from scripts import fetch_racecards_api
 
 
 class _Response:
+    status_code = 200
+
     def raise_for_status(self):
         return None
 
@@ -30,6 +32,23 @@ def test_free_plan_uses_documented_endpoint_and_day_parameter(monkeypatch):
     assert captured["url"] == "https://api.theracingapi.com/v1/racecards/free"
     assert captured["params"] == {"day": "today", "region_codes": "GB"}
     assert captured["auth"] == ("user", "password")
+
+
+def test_rate_limit_retries_using_retry_after(monkeypatch):
+    responses = [
+        type("RateLimited", (), {"status_code": 429, "headers": {"Retry-After": "2"}})(),
+        _Response(),
+    ]
+    waits = []
+    monkeypatch.setattr(fetch_racecards_api, "get_credentials", lambda: ("user", "password"))
+    monkeypatch.setattr(fetch_racecards_api.requests, "get", lambda *args, **kwargs: responses.pop(0))
+    monkeypatch.setattr(fetch_racecards_api.time, "sleep", waits.append)
+    today = datetime.now(ZoneInfo("America/New_York")).date()
+
+    races = fetch_racecards_api.fetch_racecards_from_api(str(today))
+
+    assert races[0]["race_id"] == "rac_123"
+    assert waits == [2]
 
 
 def test_free_plan_rejects_dates_outside_today_and_tomorrow(monkeypatch):
