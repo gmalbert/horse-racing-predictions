@@ -63,6 +63,9 @@ jobs:
           RACING_API_USERNAME: ${{ secrets.RACING_API_USERNAME }}
           RACING_API_PASSWORD: ${{ secrets.RACING_API_PASSWORD }}
         run: |
+          # The Free racecards endpoint may enforce a stricter limit than the
+          # account-wide API rate. Keep the two daily requests well apart.
+          sleep 30
           echo "Fetching racecards for ${{ steps.dates.outputs.tomorrow }}"
           python scripts/fetch_racecards_api.py --date ${{ steps.dates.outputs.tomorrow }}
 

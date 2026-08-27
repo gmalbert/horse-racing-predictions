@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,10 @@ from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
+
+
+MAX_RATE_LIMIT_RETRIES = 3
+DEFAULT_RATE_LIMIT_WAIT_SECONDS = 30
 
 
 def get_credentials():
@@ -38,6 +43,14 @@ def get_credentials():
         )
     
     return username, password
+
+
+def _rate_limit_wait_seconds(response):
+    """Return the server-supplied rate-limit delay, with a safe fallback."""
+    try:
+        return max(1, int(response.headers.get("Retry-After", "")))
+    except (AttributeError, TypeError, ValueError):
+        return DEFAULT_RATE_LIMIT_WAIT_SECONDS
 
 
 def fetch_racecards_from_api(date_str, region=None):
@@ -75,12 +88,27 @@ def fetch_racecards_from_api(date_str, region=None):
         print(f"Region filter: {region}")
     
     try:
-        response = requests.get(
-            endpoint,
-            auth=(username, password),
-            params=params,
-            timeout=30
-        )
+        for attempt in range(MAX_RATE_LIMIT_RETRIES + 1):
+            response = requests.get(
+                endpoint,
+                auth=(username, password),
+                params=params,
+                timeout=30,
+            )
+            if response.status_code != 429:
+                break
+
+            if attempt == MAX_RATE_LIMIT_RETRIES:
+                print("❌ Racing API rate limit remained in effect after retries.")
+                return []
+
+            wait_seconds = _rate_limit_wait_seconds(response)
+            print(
+                f"⚠️  Racing API rate limit reached; retrying in {wait_seconds} seconds "
+                f"({attempt + 1}/{MAX_RATE_LIMIT_RETRIES})..."
+            )
+            time.sleep(wait_seconds)
+
         response.raise_for_status()
         data = response.json()
         
