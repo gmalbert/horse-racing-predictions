@@ -1,0 +1,4 @@
+# SPA fallback: all routes serve index.html (client-side routing),
+# while /data/* and static assets are served directly.
+/data/*  /data/:splat  200
+/*       /index.html   200

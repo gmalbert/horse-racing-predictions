@@ -12,6 +12,12 @@ eggs/
 .eggs/
 lib/
 lib64/
+!web/frontend/src/lib/
+!web/frontend/src/lib/**
+node_modules/
+*.tsbuildinfo
+web/test-results/
+web/.runtime/
 parts/
 sdist/
 var/
@@ -71,6 +77,9 @@ logs/
 .coverage
 htmlcov/
 tests/
+!web/tests/
+!web/tests/**
+web/tests/__pycache__/
 */old/*
 
 # Build-artifact parquet files (not needed by the Streamlit app at runtime)

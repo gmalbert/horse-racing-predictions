@@ -1,0 +1,45 @@
+name: React and FastAPI checks
+
+on:
+  pull_request:
+    paths: ["web/**", "scripts/export_web_data.py", "scripts/validate_web_data.py", "compose.yaml", ".github/workflows/web_checks.yml"]
+  push:
+    paths: ["web/**", "scripts/export_web_data.py", "scripts/validate_web_data.py", "compose.yaml", ".github/workflows/web_checks.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/frontend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: npm ci --prefix web/frontend
+      - run: npm run build --prefix web/frontend
+      - run: pip install -r web/backend/requirements-dev.txt
+      - run: python -m pytest web/tests/test_api.py -q
+      - run: python scripts/validate_web_data.py
+      - run: python -m playwright install --with-deps chromium
+      - run: python web/tests/smoke_web.py
+      - name: Build and check Compose stack
+        run: |
+          docker compose config --quiet
+          docker compose up --build --wait --wait-timeout 180
+          python web/tests/smoke_web.py --url http://localhost:8080
+      - if: always()
+        run: docker compose down
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-verification
+          path: web/test-results
