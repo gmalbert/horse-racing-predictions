@@ -20,5 +20,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: pip install pandas numpy pyarrow xgboost pytest requests
+      # The portable-model regression uses XGBoost's scikit-learn classifier API.
+      - run: pip install pandas numpy pyarrow xgboost scikit-learn==1.8.0 pytest requests
       - run: python -m pytest tests/test_freshness_repairs.py -q
