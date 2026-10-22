@@ -125,7 +125,15 @@ def main() -> int:
     ]
     dataset_candidates = [Path(p) for p in dataset_candidates]
 
-    expected = load_expected_features(feature_file)
+    if feature_file.suffix == '.json':
+        from xgboost import XGBClassifier
+        model = XGBClassifier()
+        model.load_model(str(feature_file))
+        expected = model.get_booster().feature_names
+        if not expected:
+            raise ValueError('Model has no named feature contract')
+    else:
+        expected = load_expected_features(feature_file)
     best = choose_best_dataset(expected, dataset_candidates)
     dataset_file = best["path"]
     present = best["present"]

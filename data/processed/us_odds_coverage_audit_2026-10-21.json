@@ -1,25 +1,25 @@
 {
   "date": "2026-10-21",
-  "generated_at_utc": "2026-10-21T11:42:30.329097+00:00",
+  "generated_at_utc": "2026-10-22T02:48:56.975292+00:00",
   "sources": {
     "us_racecards": {
-      "path": "data/raw/us_racecards_2026-10-21.json",
+      "path": "data\\raw\\us_racecards_2026-10-21.json",
       "available": true,
-      "races": 0,
-      "coverage": 0.0,
-      "total_runners": 0,
-      "runners_with_odds": 0
+      "races": 8,
+      "coverage": 1.0,
+      "total_runners": 62,
+      "runners_with_odds": 62
     },
     "nyra_entries": {
-      "path": "data/raw/nyra_entries_2026-10-21.json",
+      "path": "data\\raw\\nyra_entries_2026-10-21.json",
       "available": true,
-      "races": 0,
-      "coverage": 0.0,
-      "total_runners": 0,
-      "runners_with_odds": 0
+      "races": 8,
+      "coverage": 1.0,
+      "total_runners": 62,
+      "runners_with_odds": 62
     },
     "oddsportal": {
-      "path": "data/raw/oddsportal_us_2026-10-21.json",
+      "path": "data\\raw\\oddsportal_us_2026-10-21.json",
       "available": false,
       "races": 0,
       "coverage": 0.0
@@ -31,8 +31,6 @@
     "3) oddsportal_us_<date>.json (major stakes only)",
     "4) last-known odds snapshot from previous day (stale flag required)"
   ],
-  "alerts": [
-    "Primary source coverage low: 0.0% < 50.0%."
-  ],
-  "status": "WARN"
+  "alerts": [],
+  "status": "PASS"
 }

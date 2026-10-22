@@ -18,6 +18,7 @@ param(
     [int]$Days = 2,
     [string]$Timezone = 'America/New_York',
     [string]$ProfileDir = $env:RACING_POST_PROFILE_DIR,
+    [string]$PublishBranch = 'main',
     [switch]$Commit,
     [switch]$Push,
     [switch]$TriggerPredictions
@@ -114,7 +115,13 @@ try {
         throw "Racecard collector failed with exit code $collectorExitCode. See $logPath"
     }
 
-    if ($Commit) {
+    if ($Push) {
+        $publishArgs = @((Join-Path $repoRoot 'scripts\publish_browser_racecards.py'), '--source', $repoRoot, '--branch', $PublishBranch, '--timezone', $Timezone)
+        if ($Date) { $publishArgs += @('--date', $Date) }
+        else { $publishArgs += @('--days', $Days.ToString()) }
+        & $pythonExe @publishArgs 2>&1 | Tee-Object -FilePath $logPath -Append
+        if ($LASTEXITCODE -ne 0) { throw 'Isolated racecard publication failed; workflow was not dispatched.' }
+    } elseif ($Commit) {
         Push-Location $repoRoot
         try {
             & git add -- 'data/raw/racecards_*.json'
@@ -133,16 +140,11 @@ try {
                 if ($unexpectedFiles.Count -gt 0) {
                     throw "Refusing to commit unrelated staged files: $($unexpectedFiles -join ', ')"
                 }
-                & git commit -m 'chore: refresh Racing Post browser racecards [skip ci]' 2>&1 | Tee-Object -FilePath $logPath -Append
+                & git commit -m 'chore: refresh Racing Post browser racecards [skip ci]' -m "## Data refresh`n- Save validated browser-collected racecards in the current checkout." 2>&1 | Tee-Object -FilePath $logPath -Append
                 if ($LASTEXITCODE -ne 0) {
                     throw 'git commit failed.'
                 }
-                if ($Push) {
-                    & git push 2>&1 | Tee-Object -FilePath $logPath -Append
-                    if ($LASTEXITCODE -ne 0) {
-                        throw 'git push failed.'
-                    }
-                }
+
             }
         } finally {
             Pop-Location
@@ -152,10 +154,7 @@ try {
     if ($TriggerPredictions) {
         Push-Location $repoRoot
         try {
-            $branch = (& git branch --show-current).Trim()
-            if ($LASTEXITCODE -ne 0 -or -not $branch) {
-                throw 'Could not determine the current git branch for the prediction workflow.'
-            }
+            $branch = $PublishBranch
 
             $gh = Get-Command gh -ErrorAction SilentlyContinue
             if (-not $gh) {

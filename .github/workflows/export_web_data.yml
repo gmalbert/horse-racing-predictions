@@ -1,0 +1,60 @@
+name: Export Web Data (React)
+
+# Publishes the precomputed JSON artifacts consumed by the React frontend
+# (web/frontend/public/data). Runs after the daily prediction jobs so the
+# Cloudflare Pages site always serves fresh precomputed values.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily fallback; workflow_run also refreshes after prediction jobs finish.
+    - cron: "0 9 * * *"
+  workflow_run:
+    workflows: ["Precompute Daily Predictions", "US Ingestion Guardrails"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: export-web-data
+  cancel-in-progress: true
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-export-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: pip install pandas numpy pyarrow
+
+      - name: Export precomputed JSON
+        run: python scripts/export_web_data.py --history 14
+
+      - name: Validate exported data
+        run: python scripts/validate_web_data.py
+
+      - name: Commit exported data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: |
+            chore(web): refresh precomputed JSON for React frontend
+
+            ## Data refresh
+            - Export prediction cards, fixture calendars, historical statistics, and model summaries.
+            - Validate JSON integrity and coverage against the available pipeline outputs.
+            - Preserve source dates so historical data remains clearly labeled in the React app.
+          file_pattern: "web/frontend/public/data/**"

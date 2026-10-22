@@ -1,0 +1,8 @@
+# Precomputed JSON artifacts: cached at the edge but revalidated quickly
+# (the pipeline publishes new files after each daily run).
+/data/*
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Hashed build assets are immutable.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

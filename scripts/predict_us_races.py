@@ -651,8 +651,8 @@ def main():
         races = raw
 
     if not races:
-        print("[WARN] Racecard file contained no races — nothing to predict")
-        sys.exit(0)
+        print("[ERROR] Racecard file contained no races; no predictions published", file=sys.stderr)
+        sys.exit(1)
 
     print(f"[OK] Loaded {len(races)} US races\n")
 
@@ -710,8 +710,8 @@ def main():
             print(f"         {i}. {p['horse']:28s}  Win: {p['win_probability']:.1%}")
 
     if not all_predictions:
-        print("[WARN] No predictions generated")
-        sys.exit(0)
+        print("[ERROR] No predictions generated", file=sys.stderr)
+        sys.exit(1)
 
     # ── Save output ─────────────────────────────────────────────────────────
     DATA_PROC.mkdir(parents=True, exist_ok=True)

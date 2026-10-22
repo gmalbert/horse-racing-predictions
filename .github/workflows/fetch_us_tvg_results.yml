@@ -13,6 +13,8 @@ on:
 
 jobs:
   fetch-us-tvg-results:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -37,7 +39,7 @@ jobs:
           echo "Fetching last $DAYS days of US TVG historical results..."
           python scripts/fetch_tvg_results.py --days "$DAYS"
 
-      - name: Commit fetched TVG raw results
+      - name: Commit fetched TVG results and updated history
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
@@ -45,10 +47,15 @@ jobs:
           set -e
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
-          git add data/raw/tvg_results_*.json || true
+          git add -f data/raw/tvg_results_*.json
+          git add data/processed/us_races_cleaned.parquet
           if git diff --staged --quiet; then
-            echo "No new TVG raw result files to commit"
+            echo "No new TVG result files and history to commit"
           else
-            git commit -m "chore: fetch US TVG historical result data [skip ci]" || true
+            git commit -m "chore: fetch US TVG historical result data [skip ci]" -m "## Data refresh
+          - Persist validated pipeline outputs and source diagnostics.
+          - Retain updated history and predictions in the repository for subsequent checkouts.
+          - Stop publication if the commit or remote synchronization fails."
+            git pull --rebase origin "${{ github.ref_name }}"
             git push
           fi

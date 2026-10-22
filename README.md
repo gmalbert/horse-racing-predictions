@@ -6,6 +6,13 @@
 
 A comprehensive machine learning system for UK horse racing analysis and betting strategy optimization. Combines historical race data, intelligent scoring algorithms, and predictive models to identify high-value betting opportunities.
 
+The primary web app is now **React + FastAPI**. From this repository, run
+`.\start.ps1` in PowerShell to use Docker inside WSL and open **http://localhost:8080**.
+Alternatively, run `docker compose up --build -d --wait` in a Docker-enabled terminal.
+See [the web app guide](docs/REACT_MIGRATION.md)
+for setup, persistent betting records, native development, and verification.
+The bundled prediction data is historical; source dates are displayed in the app.
+
 ---
 
 ## Table of Contents
@@ -240,6 +247,19 @@ Notes:
 ---
 
 ## Quick Start
+
+### React + FastAPI (recommended)
+
+```powershell
+.\start.ps1
+```
+
+This uses Docker in the default WSL distribution and opens **http://localhost:8080**.
+From WSL itself, use `docker compose up --build -d --wait` in this repository.
+Stop from PowerShell with `wsl docker compose down` while in the repository; betting records persist.
+See [React migration and setup](docs/REACT_MIGRATION.md) for port overrides and data refreshes.
+
+### Legacy Streamlit reference
 
 ```bash
 # 1. Clone repository
