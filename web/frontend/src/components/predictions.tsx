@@ -317,7 +317,7 @@ export function PredictionsDayView({ day: sourceDay, variant }: { day: DayPayloa
   );
 }
 
-/** Date pills: Today / Tomorrow / latest-available fallback with stale banner. */
+/** Select a prediction date or the combined current cards. */
 export function DayPicker({
   dates, selected, onSelect, today, combined = false,
 }: { dates: string[]; selected: string | null; onSelect: (d: string) => void; today: string; combined?: boolean }) {
@@ -333,9 +333,6 @@ export function DayPicker({
           {dates.map((d) => <option key={d} value={d}>{labelFor(d)}</option>)}
         </select>
       </label>
-      {selected && selected < today && (
-        <p className="caption date-context">Viewing predictions from {selected}.</p>
-      )}
     </div>
   );
 }

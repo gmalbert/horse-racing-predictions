@@ -593,6 +593,7 @@ def export_us_model_insights() -> dict:
 
 def _stats_source() -> pd.DataFrame:
     import pyarrow.parquet as pq
+    candidates = []
     for name in (
         "race_scores_engineered.parquet", "race_scores_or_context.parquet",
         "race_scores_connections_v2.parquet", "race_scores.parquet",
@@ -600,7 +601,15 @@ def _stats_source() -> pd.DataFrame:
         path = PROC_DIR / name
         if path.exists():
             wanted = ["date", "trainer", "jockey", "pos_clean", "course_clean", "going"]
-            available = set(pq.read_schema(path).names)
+            try:
+                available = set(pq.read_schema(path).names)
+            except (OSError, ValueError) as exc:
+                print(f'  Skipping unreadable stats source {name}: {exc}')
+                continue
+            if not {'date', 'trainer', 'jockey'}.issubset(available):
+                continue
+            if not ({'pos_clean', 'pos'} & available) or not ({'course_clean', 'course'} & available):
+                continue
             cols = [c for c in wanted if c in available]
             if "course_clean" not in cols and "course" in available:
                 cols.append("course")
@@ -611,8 +620,14 @@ def _stats_source() -> pd.DataFrame:
                 df["course_clean"] = df["course"]
             if "pos_clean" not in df.columns and "pos" in df.columns:
                 df["pos_clean"] = df["pos"]
-            return df
-    return pd.DataFrame()
+            latest = pd.to_datetime(df['date'], errors='coerce').max()
+            if pd.notna(latest):
+                candidates.append((latest, len(df), name, df))
+    if not candidates:
+        return pd.DataFrame()
+    latest, _, name, df = max(candidates, key=lambda item: item[:2])
+    print(f'  Stats source: {name}, results through {latest:%Y-%m-%d}')
+    return df
 
 
 def _form_table(df: pd.DataFrame, key: str) -> list:
@@ -792,14 +807,16 @@ def export_explorer_overview() -> dict:
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df[df["date"] >= "2021-01-01"]
     df["pos_n"] = pd.to_numeric(df["pos"], errors="coerce")
+    df['_won'] = df['pos_n'].eq(1)
+    df['_top3'] = df['pos_n'].le(3)
 
     def leaders(key, top=20):
         g = df.dropna(subset=[key]).groupby(key)
         out = pd.DataFrame({
             "races": g.size(),
             "avg_finish": g["pos_n"].mean().round(2),
-            "wins": g.apply(lambda x: int((x["pos_n"] == 1).sum()), include_groups=False),
-            "top3": g.apply(lambda x: int((x["pos_n"] <= 3).sum()), include_groups=False),
+            "wins": g['_won'].sum(),
+            "top3": g['_top3'].sum(),
         }).reset_index()
         out["win_rate_pct"] = (out["wins"] / out["races"] * 100).round(1)
         return out.sort_values("wins", ascending=False).head(top).to_dict("records")

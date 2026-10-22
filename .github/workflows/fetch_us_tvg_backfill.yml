@@ -13,6 +13,8 @@ on:
 
 jobs:
   backfill-us-tvg-history:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -55,15 +57,13 @@ jobs:
               return date.fromisoformat(m.group(1)) if m else None
 
           existing_dates = [parse_date(p) for p in files if parse_date(p) is not None]
-          if existing_dates:
-              oldest = min(existing_dates)
-              end = oldest - timedelta(days=1)
-              start = end - timedelta(days=days - 1)
-              if start < base_start:
-                  start = base_start
-          else:
-              start = base_start
-              end = start + timedelta(days=days - 1)
+          # Walk backward from yesterday to the newest missing day. A single
+          # old cache file must not make the entire historical range look done.
+          existing = set(existing_dates)
+          end = date.today() - timedelta(days=1)
+          while end in existing and end >= base_start:
+              end -= timedelta(days=1)
+          start = max(base_start, end - timedelta(days=days - 1))
 
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a', encoding='utf-8') as fh:
@@ -92,7 +92,7 @@ jobs:
         run: |
           python scripts/fetch_tvg_results.py --start "${{ steps.compute_range.outputs.start }}" --end "${{ steps.compute_range.outputs.end }}" --delay 0.5
 
-      - name: Commit fetched TVG raw results
+      - name: Commit fetched TVG results and updated history
         if: steps.compute_range.outputs.should_run == 'true'
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
@@ -101,10 +101,15 @@ jobs:
           set -e
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
-          git add data/raw/tvg_results_*.json || true
+          git add -f data/raw/tvg_results_*.json
+          git add data/processed/us_races_cleaned.parquet
           if git diff --staged --quiet; then
-            echo "No new TVG raw results to commit"
+            echo "No new TVG results or history to commit"
           else
-            git commit -m "chore: backfill older US TVG historical results [skip ci]" || true
+            git commit -m "chore: backfill older US TVG historical results [skip ci]" -m "## Data refresh
+          - Persist validated pipeline outputs and source diagnostics.
+          - Retain updated history and predictions in the repository for subsequent checkouts.
+          - Stop publication if the commit or remote synchronization fails."
+            git pull --rebase origin "${{ github.ref_name }}"
             git push
           fi

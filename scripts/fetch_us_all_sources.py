@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import re
 import subprocess
 import sys
@@ -101,7 +102,9 @@ def _load_json(path: Path):
 
 def _run(cmd: list, timeout_seconds: int = 300) -> dict:
     try:
-        proc = subprocess.run(cmd, cwd=str(BASE_DIR), capture_output=True, text=True, timeout=timeout_seconds)
+        proc = subprocess.run(cmd, cwd=str(BASE_DIR), capture_output=True, text=True,
+                              encoding='utf-8', errors='replace',
+                              env={**os.environ, 'PYTHONUTF8': '1'}, timeout=timeout_seconds)
         return {
             "command": " ".join(cmd),
             "returncode": proc.returncode,
@@ -512,11 +515,13 @@ def main() -> None:
 
     out_racecards = RAW_DIR / f"us_racecards_{date_str}.json"
     if not args.force and out_racecards.exists():
+        cached = _load_json(out_racecards) or {}
+        if not cached.get('racecards') or cached.get('fallback_used'):
+            raise SystemExit('Cached US cards are empty or a failed-fetch fallback; rerun with --force')
         print(f"[SKIP] us_racecards_{date_str}.json already exists. Use --force to re-build.")
         return
 
     t_start = time.monotonic()
-    playwright_deadline = t_start + 90
 
     print(f"\n{'='*60}")
     print(f"  US ALL-SOURCES FETCH  -  {date_str}")
@@ -525,6 +530,9 @@ def main() -> None:
     t1_pipeline_result = _run_t1_pipeline(date_str, args.force)
     nyra_result = _run_nyra(date_str, args.force)
     print(f"  T1+NYRA elapsed: {time.monotonic()-t_start:.0f}s")
+    # Source pipelines can take several minutes; budget the browser probes
+    # from their own start rather than letting earlier work consume the budget.
+    playwright_deadline = time.monotonic() + 90
 
     t2_tb_report, t2_tb_races = [], []
     t2_h_report, t2_h_races = [], []
@@ -565,6 +573,13 @@ def main() -> None:
 
     nyra_races = _ingest_nyra(date_str)
     print(f"  NYRA races: {len(nyra_races)}")
+    # Track landing pages are diagnostics, not racecards. Only publish actual
+    # runner-bearing races so coverage checks cannot count empty placeholders.
+    nyra_races = [r for r in nyra_races if r.get('runners')]
+    t1_races = [r for r in t1_races if r.get('runners')]
+    t2_tb_races = [r for r in t2_tb_races if r.get('runners')]
+    t2_h_races = [r for r in t2_h_races if r.get('runners')]
+    t3_races = [r for r in t3_races if r.get('runners')]
 
     json_discovery = None
     if args.discover:
@@ -642,6 +657,8 @@ def main() -> None:
     print(f"  -> {out_racecards.name}")
     print(f"  -> {out_report.name}")
     print(f"{'='*60}\n")
+    if attempted_source_counts['total_races'] == 0:
+        raise SystemExit('No fresh US races collected; inspect the saved source report')
 
 
 if __name__ == "__main__":

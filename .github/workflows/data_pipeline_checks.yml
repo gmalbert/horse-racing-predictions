@@ -1,0 +1,24 @@
+name: Data Pipeline Checks
+
+on:
+  pull_request:
+    paths: ['scripts/**', 'tests/test_freshness_repairs.py', 'models/**', '.github/workflows/**', 'run_racing_post_browser.ps1']
+  push:
+    paths: ['scripts/**', 'tests/test_freshness_repairs.py', 'models/**', '.github/workflows/**', 'run_racing_post_browser.ps1']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install pandas numpy pyarrow xgboost pytest requests
+      - run: python -m pytest tests/test_freshness_repairs.py -q

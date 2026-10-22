@@ -51,12 +51,14 @@ one API replica; use a transactional database before scaling the writable servic
 
 ## Data availability
 
-The included export has 27 JSON artifacts. As of 2026-10-21, International predictions
-end at **2026-06-28**, US predictions at **2026-06-06**, and statistics at **2026-01-31**.
-These are the latest available upstream files, not current racecards. The recent US
-ingestion validation report permits an empty card (zero races/runners). Exporting JSON
-does not fetch races or train a model. Prediction date selectors and statistics retain
-their source dates; the global historical-data banner has been removed from the layout.
+The refreshed export includes British/Irish predictions for **2026-10-21 and
+2026-10-22**, US predictions for **2026-10-21** (NYRA coverage only), and statistics
+through **2026-04-11**. US historical results now extend through October 20, with an
+older gap still requiring backfill. The British results API rejected the configured
+account because that endpoint requires a Standard plan. See
+[the repair report](DATA_PIPELINE_REPAIRS_2026-10-21.md) for source and model limitations.
+Exporting JSON does not fetch races or train a model. Dates remain visible in the
+selectors; the historical-data messages have been removed from the layout.
 
 To refresh after the existing prediction pipeline has produced new files:
 
@@ -200,11 +202,11 @@ SPA routing and caching are handled by `public/_redirects` and `public/_headers`
 Because the exported JSON is committed to the repo (see
 `.github/workflows/export_web_data.yml`), every data refresh automatically triggers a Pages
 rebuild when using git integration. Files under `/data/*` are cached at the edge for 5 minutes
-(`must-revalidate`), so new exports go live almost immediately without a full redeploy.
+(`must-revalidate`), so cached responses revalidate after a successful new deployment. A new Pages build/deployment is still required to publish changed JSON.
 
 ## Oracle Cloud deployment (FastAPI)
 
-Oracle's **Always Free** tier (Ampere A1 ARM VM, up to 4 OCPU / 24 GB RAM) is more than enough.
+Run the existing Python container on a VM with sufficient RAM for pandas and the result dataset. Verify the host's current availability and pricing before provisioning. Before public use, add authentication or protect the application and API with Cloudflare Access; the current API exposes shared bankroll state without user authentication.
 
 ```bash
 # 1. Sync the repo (or at least data/processed + web/backend) to the VM
@@ -229,7 +231,7 @@ Notes:
 - Put Caddy or nginx in front for TLS (`api.yourdomain.com`), then set
   `VITE_API_BASE_URL=https://api.yourdomain.com` in Cloudflare Pages and redeploy.
 - The Data Explorer loads `race_scores.parquet` (~51 MB) into memory on first request —
-  comfortably within the free tier.
+  allow memory headroom for pandas and concurrent requests.
 - If you later skip Oracle entirely, the site still works: the Data Explorer falls back to the
   precomputed overview and only the Betting Manager is unavailable.
 

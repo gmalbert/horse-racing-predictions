@@ -359,6 +359,8 @@ def _auto_start(existing: pd.DataFrame) -> str:
 # ---------------------------------------------------------------------------
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(
         description=(
             "Fetch historical US race results from TVG GraphQL API "

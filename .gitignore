@@ -76,7 +76,8 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
-tests/
+/tests/*
+!/tests/test_freshness_repairs.py
 !web/tests/
 !web/tests/**
 web/tests/__pycache__/

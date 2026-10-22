@@ -17,7 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -38,7 +38,7 @@ def _safe_int(value: Any, default: int = 0) -> int:
 
 
 def _summarize_racecards(payload: dict) -> dict:
-    racecards = payload.get("racecards") or []
+    racecards = [race for race in (payload.get("racecards") or []) if race.get('runners')]
     total_races = len(racecards)
     total_runners = 0
     runners_with_ml = 0
@@ -67,15 +67,18 @@ def _summarize_racecards(payload: dict) -> dict:
 
 def _collect_recent_totals(current_date: str, lookback_days: int) -> list[int]:
     totals = []
-    for path in sorted(RAW_DIR.glob("us_source_report_*.json")):
-        if current_date in path.name:
+    cutoff = (datetime.fromisoformat(current_date) - timedelta(days=lookback_days)).strftime('%Y-%m-%d')
+    # Count comparable, runner-bearing cards. Old source reports included track
+    # landing-page placeholders and cannot establish an actual race baseline.
+    for path in sorted(RAW_DIR.glob("us_racecards_*.json")):
+        day = path.stem.rsplit('_', 1)[-1]
+        if not cutoff <= day < current_date:
             continue
         try:
             payload = _read_json(path)
         except Exception:
             continue
-        source_counts = payload.get("source_counts") or {}
-        total_races = _safe_int(source_counts.get("total_races"), 0)
+        total_races = _summarize_racecards(payload)['total_races']
         if total_races > 0:
             totals.append(total_races)
     return totals[-lookback_days:]

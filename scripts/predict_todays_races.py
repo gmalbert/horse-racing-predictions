@@ -1,22 +1,13 @@
-"""
-Updated prediction script that extracts ALL 120 model features from historical data.
+"""Generate British/Irish daily predictions using the versioned XGBoost model.
 
-ROOT CAUSE FIX:
-- Old version: Manually calculated ~47 features, ignoring 73 features in historical data
-- New version: Calculates the 47 features the model was trained on from historical data
-- Result: Proper feature vectors → varied predictions instead of identical 15.8%
-
-PROBABILITY CALIBRATION (v2):
-- Issue: XGBoost outputs overconfident probabilities (mean 70%, max 98%)
-- Solution: Apply shrinkage calibration to compress toward realistic range
-- Formula: calibrated = (raw + prior*k) / (1 + k) where prior = 1/field_size, k = 3.5
-- Result: Realistic probabilities (mean ~25%, max ~40%) suitable for horse racing
-- Effect: Strong favorites become 30-40%, not 90-95%
+The model artifact defines feature names and order. Historical records are limited
+to dates before the prediction date; scratched runners are excluded. Existing
+shrinkage is retained, and inference failures never become fallback predictions.
+This does not establish calibration or accuracy on current racing data.
 """
 
 import pandas as pd
 import numpy as np
-import pickle
 import json
 import os
 import re
@@ -43,15 +34,15 @@ LEGACY_FEATURE_COLUMNS = [
 
 
 # Load feature columns that model expects
-def load_feature_columns():
-    """Load feature names from model artifact, falling back to legacy defaults."""
-    feature_file = os.path.join('models', 'feature_columns.txt')
-    if os.path.exists(feature_file):
-        with open(feature_file, 'r', encoding='utf-8') as f:
-            cols = [line.strip() for line in f if line.strip()]
-        if cols:
-            return cols
-    return LEGACY_FEATURE_COLUMNS
+def load_model():
+    """Use the versioned portable model and its own feature contract."""
+    from xgboost import XGBClassifier
+    model = XGBClassifier()
+    model.load_model('models/horse_win_predictor.json')
+    cols = model.get_booster().feature_names
+    if not cols or len(cols) != model.get_booster().num_features():
+        raise ValueError('Portable model has no valid named feature contract')
+    return model, cols
 
 def strip_country_suffix(name):
     """Remove country suffix like (IRE), (GB), (FR), (USA) from horse names"""
@@ -95,7 +86,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
         
         # Course/distance stats
         course = race_info.get('course', '')
-        dist_f = float(str(race_info.get('distance_f', 8)).replace('f', ''))
+        dist_f = float(str(race_info.get('distance_f') or 8).replace('f', ''))
         cd_races = horse_history_clean[
             (horse_history_clean['course'] == course) & 
             (horse_history_clean['dist_f'] == dist_f)
@@ -110,7 +101,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
         features['avg_btn_last_3'] = last_3['btn'].mean() if 'btn' in last_3.columns and len(last_3) > 0 else 5.0
         
         # Days since last race
-        features['days_since_last'] = (pd.Timestamp.now() - horse_history_clean.iloc[0]['date_dt']).days
+        features['days_since_last'] = (pd.Timestamp(race_info['date']) - horse_history_clean.iloc[0]['date_dt']).days
         
         # OR trends
         if 'or_numeric' in horse_history_clean.columns and len(horse_history_clean) > 0:
@@ -153,7 +144,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
         features['going_numeric'] = going_map.get(going_str, 2)
         
         # Distance
-        dist_f = float(str(race_info.get('distance_f', 8)).replace('f', ''))
+        dist_f = float(str(race_info.get('distance_f') or 8).replace('f', ''))
         features['is_sprint'] = 1 if dist_f < 7 else 0
         features['is_mile'] = 1 if 7 <= dist_f < 9 else 0
         features['is_middle'] = 1 if 9 <= dist_f < 12 else 0
@@ -165,7 +156,7 @@ def build_features_from_historical_record(horse_history, runner, race_info, feat
         features['class_num'] = int(class_match.group(1)) if class_match else 4
         
         # Race type
-        race_type = race_info.get('type', '').lower()
+        race_type = str(race_info.get('race_type') or race_info.get('type') or '').lower()
         features['is_handicap'] = 1 if 'handicap' in race_type or 'hcap' in race_type else 0
         features['is_maiden'] = 1 if 'maiden' in race_type else 0
         features['is_pattern'] = 1 if race_info.get('pattern') else 0
@@ -248,7 +239,7 @@ def build_default_features(runner, race_info, feature_cols):
     features['going_numeric'] = going_map.get(going_str, 2)
     
     # Distance
-    dist_f = float(str(race_info.get('distance_f', 8)).replace('f', ''))
+    dist_f = float(str(race_info.get('distance_f') or 8).replace('f', ''))
     features['is_sprint'] = 1 if dist_f < 7 else 0
     features['is_mile'] = 1 if 7 <= dist_f < 9 else 0
     features['is_middle'] = 1 if 9 <= dist_f < 12 else 0
@@ -270,7 +261,7 @@ def build_default_features(runner, race_info, feature_cols):
         features['age'] = 4
     
     # Race type
-    race_type = race_info.get('type', '').lower()
+    race_type = str(race_info.get('race_type') or race_info.get('type') or '').lower()
     features['is_handicap'] = 1 if 'handicap' in race_type or 'hcap' in race_type else 0
     features['is_maiden'] = 1 if 'maiden' in race_type else 0
     features['is_pattern'] = 1 if race_info.get('pattern') else 0
@@ -301,7 +292,12 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
         historical_df['horse_clean'] = historical_df['horse'].apply(lambda x: strip_country_suffix(x).lower())
     
     predictions = []
-    field_size = len(racecard.get('runners', []))
+    runners = [r for r in racecard.get('runners', [])
+               if not r.get('non_runner') and str(r.get('number', '')).upper() != 'NR']
+    field_size = len(runners)
+    racecard = {**racecard, 'date': prediction_date, 'field_size': field_size, 'runners': runners}
+    ratings = pd.to_numeric(pd.Series([r.get('ofr') for r in runners]), errors='coerce')
+    weights = pd.to_numeric(pd.Series([r.get('lbs') for r in runners]), errors='coerce')
     
     for runner in racecard.get('runners', []):
         horse_name = runner.get('name') or runner.get('horse', 'Unknown')
@@ -309,27 +305,42 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
         
         # Find historical data
         horse_history = historical_df[
-            historical_df['horse_clean'] == horse_clean
+            (historical_df['horse_clean'] == horse_clean)
+            & (historical_df['date_dt'] < pd.Timestamp(prediction_date))
         ].sort_values('date_dt', ascending=False)
         
         # Build feature vector
         features = build_features_from_historical_record(
             horse_history, runner, racecard, feature_cols
         )
+        rating = pd.to_numeric(runner.get('ofr'), errors='coerce')
+        weight = pd.to_numeric(runner.get('lbs'), errors='coerce')
+        draw = pd.to_numeric(runner.get('draw'), errors='coerce')
+        features.update({
+            'weight_lbs': weight, 'weight_vs_avg': weight - weights.mean(),
+            'is_top_weight': int(weight == weights.max()), 'draw': draw,
+            'draw_pct': draw / field_size, 'race_or_max': ratings.max(),
+            'race_or_mean': ratings.mean(), 'race_or_min': ratings.min(),
+            'race_or_std': ratings.std(), 'or_vs_race_max': rating - ratings.max(),
+            'or_vs_race_avg': rating - ratings.mean(), 'or_vs_race_min': rating - ratings.min(),
+            'is_highest_rated': int(rating == ratings.max()),
+        })
         
         # DEBUG: Show first 5 horses' feature vectors
         if len(predictions) < 5:
             print(f"  DEBUG {horse_name}: career={features.get('career_win_rate', 0):.3f}, or={features.get('or_numeric', 0)}, jockey_runs={features.get('jockey_career_runs', 0)}")
         
         # Create DataFrame with correct column order
-        X = pd.DataFrame([features])[feature_cols]
+        X = pd.DataFrame([features])[feature_cols].apply(pd.to_numeric, errors='raise')
+        X = X.replace([np.inf, -np.inf], np.nan)
         
         # Predict (raw, uncalibrated)
         try:
             raw_win_prob = model.predict_proba(X)[0, 1]
         except Exception as e:
-            print(f"ERROR predicting {horse_name}: {e}")
-            raw_win_prob = 0.158  # Default
+            raise RuntimeError(f'Model inference failed for {horse_name}') from e
+        if not np.isfinite(raw_win_prob) or not 0 <= raw_win_prob <= 1:
+            raise ValueError(f'Invalid model probability for {horse_name}: {raw_win_prob}')
         
         # Store raw prediction temporarily
         predictions.append({
@@ -339,6 +350,8 @@ def predict_single_race(racecard, historical_df, model, feature_cols, prediction
             'age': runner.get('age', 0),
             'weight_lbs': runner.get('lbs', 0),
             'form': runner.get('form', ''),
+            'historical_runs_available': len(horse_history),
+            'model_artifact': 'horse_win_predictor.json',
             'raw_win_probability': raw_win_prob,  # Store raw for calibration
         })
     
@@ -415,24 +428,22 @@ def main():
     # Load model
     print("Loading model...")
     try:
-        with open('models/horse_win_predictor.pkl', 'rb') as f:
-            model = pickle.load(f)
-        print("[OK] Loaded base XGBoost model")
+        model, feature_cols = load_model()
+        print("[OK] Loaded versioned XGBoost JSON model")
     except Exception as e:
         print(f"[ERROR] Failed to load model: {e}")
-        return
+        raise SystemExit(1) from e
     
     # Load feature columns
-    feature_cols = load_feature_columns()
     print(f"[OK] Model expects {len(feature_cols)} features\n")
     
     # Load racecards
     racecard_file = f'data/raw/racecards_{args.date}.json'
     if not os.path.exists(racecard_file):
         print(f"[ERROR] No racecards found for {args.date}")
-        return
+        raise SystemExit(1)
     
-    with open(racecard_file, 'r') as f:
+    with open(racecard_file, 'r', encoding='utf-8') as f:
         racecards_raw = json.load(f)
     
     # Flatten nested dict structure: {"Region": {"Course": {"Time": {...}}}} -> [{...}]
@@ -441,7 +452,7 @@ def main():
         for region_or_course, nested_dict in racecards_raw.items():
             if isinstance(nested_dict, dict):
                 # Check if this is region level (contains courses) or course level (contains times)
-                first_value = next(iter(nested_dict.values()))
+                first_value = next(iter(nested_dict.values()), None)
                 if isinstance(first_value, dict) and 'runners' in first_value:
                     # This is course level, values are races
                     for time_key, race_data in nested_dict.items():
@@ -458,7 +469,12 @@ def main():
     elif isinstance(racecards_raw, list):
         racecards = racecards_raw
     
-    print(f"[OK] Loaded {len(racecards)} racecards\n")
+    # This model uses British/Irish history. Other regional cards remain available
+    # to their own pipelines rather than being scored with this model.
+    racecards = [r for r in racecards if r.get('region', 'GB') in {'GB', 'IRE'}]
+    print(f"[OK] Loaded {len(racecards)} British/Irish racecards\n")
+    if not racecards:
+        raise ValueError('No racecards; refusing to publish empty predictions')
     
     # Load historical data
     print("Loading historical data...")
@@ -466,7 +482,7 @@ def main():
         historical_df, historical_path = load_historical_data()
     except FileNotFoundError as exc:
         print(f"[ERROR] {exc}")
-        return
+        raise SystemExit(1) from exc
     print(f"[OK] Loaded {len(historical_df):,} historical records from {historical_path}\n")
     
     # Ensure date_dt column
@@ -507,6 +523,8 @@ def main():
     # Save predictions
     output_file = f'data/processed/predictions_{args.date}.csv'
     df_preds = pd.DataFrame(all_predictions)
+    if df_preds.empty:
+        raise ValueError('No eligible runners; refusing to publish empty predictions')
     df_preds.to_csv(output_file, index=False)
     print(f"\n[OK] Saved predictions to {output_file}")
     

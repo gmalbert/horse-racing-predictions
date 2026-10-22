@@ -1,12 +1,12 @@
 # US Odds Coverage Audit
 
 - Date: 2026-10-21
-- Generated At (UTC): 2026-10-21T11:42:30.329097+00:00
+- Generated At (UTC): 2026-10-22T02:48:56.975292+00:00
 
 ## Source Coverage
 
-- us_racecards: available=True, races=0, coverage=0.0%
-- nyra_entries: available=True, races=0, coverage=0.0%
+- us_racecards: available=True, races=8, coverage=100.0%
+- nyra_entries: available=True, races=8, coverage=100.0%
 - oddsportal: available=False, races=0, coverage=0.0%
 
 ## Fallback Hierarchy
@@ -15,7 +15,3 @@
 - 2) nyra_entries_<date>.json (NYRA ml_odds where available)
 - 3) oddsportal_us_<date>.json (major stakes only)
 - 4) last-known odds snapshot from previous day (stale flag required)
-
-## Alerts
-
-- Primary source coverage low: 0.0% < 50.0%.

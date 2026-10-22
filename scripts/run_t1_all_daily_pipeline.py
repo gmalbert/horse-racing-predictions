@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -31,6 +32,9 @@ def _run(cmd: list[str]) -> dict:
         cwd=str(PROJECT_ROOT),
         capture_output=True,
         text=True,
+        encoding='utf-8',
+        errors='replace',
+        env={**os.environ, 'PYTHONUTF8': '1'},
     )
     return {
         "command": " ".join(cmd),
@@ -130,6 +134,8 @@ def main() -> None:
         )
         overall = "OK" if r["overall_ok"] else "FAILED"
         print(f"{r['date']}: {overall} ({breeds_status})")
+    if not all(r['overall_ok'] for r in runs):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
