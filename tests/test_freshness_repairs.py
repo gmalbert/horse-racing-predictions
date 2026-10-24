@@ -1,8 +1,11 @@
 """Offline regression coverage for silent prediction and publication failures."""
 import json
+import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
+import textwrap
 
 import numpy as np
 import pandas as pd
@@ -114,6 +117,69 @@ def test_publication_does_not_push_development_work(tmp_path):
     assert git('branch', '--show-current', cwd=source) == 'development'
     assert 'unrelated.txt' not in git('--git-dir', str(remote), 'ls-tree', '-r', '--name-only', 'main', cwd=tmp_path)
     assert json.loads(git('--git-dir', str(remote), 'show', 'main:data/raw/' + cards.name, cwd=tmp_path))['GB']
+
+
+@pytest.mark.parametrize('conflict', [False, True])
+def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict):
+    """Run the actual publication shell against a remote that advanced during collection."""
+    bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
+            if sys.platform == 'win32' else shutil.which('bash'))
+    if not bash or not Path(bash).exists():
+        pytest.skip('Bash is required to exercise the Actions publication step')
+
+    def git(*args, cwd):
+        return subprocess.check_output(['git', *args], cwd=cwd, text=True).strip()
+
+    workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/us_ingestion_guardrails.yml').read_text()
+    script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
+                             .split('        run: |\n', 1)[1])
+    for expression, value in [('steps.dates.outputs.today', '2026-10-23'),
+                              ('steps.dates.outputs.tomorrow', '2026-10-24'), ('github.ref_name', 'main')]:
+        script = script.replace('${{ ' + expression + ' }}', value)
+    # The staging allowlist is also the expected published file set.
+    outputs = [line.split()[-1] for line in script.splitlines() if line.strip().startswith('git add ')]
+    assert 'data/processed/us_ingestion_validation_2026-10-24.json' in outputs
+    assert 'data/processed/us_ingestion_validation_2026-10-24.md' in outputs
+    remote, source, other = (tmp_path / name for name in ['remote.git', 'source', 'other'])
+    git('init', '--bare', str(remote), cwd=tmp_path)
+    git('init', '-b', 'main', str(source), cwd=tmp_path)
+    git('config', 'user.name', 'Test', cwd=source)
+    git('config', 'user.email', 'test@example.com', cwd=source)
+    for name in [*outputs, 'collector.csv', 'README.md']:
+        path = source / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('initial\n')
+    git('add', '.', cwd=source)
+    git('commit', '-m', 'initial', cwd=source)
+    git('remote', 'add', 'origin', str(remote), cwd=source)
+    git('push', '-u', 'origin', 'main', cwd=source)
+    git('clone', '--branch', 'main', str(remote), str(other), cwd=tmp_path)
+    git('config', 'user.name', 'Test', cwd=other)
+    git('config', 'user.email', 'test@example.com', cwd=other)
+    (other / (outputs[0] if conflict else 'README.md')).write_text('remote update\n')
+    git('commit', '-am', 'concurrent remote update', cwd=other)
+    git('push', cwd=other)
+    remote_head = git('rev-parse', 'HEAD', cwd=other)
+    for name in outputs:
+        (source / name).write_text('generated\n')
+    (source / 'collector.csv').write_text('collector side effect\n')
+    env = dict(os.environ, GIT_AUTHOR_NAME='Test', GIT_AUTHOR_EMAIL='test@example.com',
+               GIT_TERMINAL_PROMPT='0', GIT_EDITOR='true')
+    result = subprocess.run([bash, '-e', '-c', script], cwd=source, env=env, text=True, capture_output=True)
+    if conflict:
+        assert result.returncode != 0
+        assert git('--git-dir', str(remote), 'rev-parse', 'main', cwd=tmp_path) == remote_head
+        return
+    assert result.returncode == 0, result.stdout + result.stderr
+    for name in outputs:
+        assert git('--git-dir', str(remote), 'show', f'main:{name}', cwd=tmp_path) == 'generated'
+    assert git('--git-dir', str(remote), 'show', 'main:README.md', cwd=tmp_path) == 'remote update'
+    assert git('--git-dir', str(remote), 'show', 'main:collector.csv', cwd=tmp_path) == 'initial'
+    assert (source / 'collector.csv').read_text() == 'collector side effect\n'
+    # A second run with unchanged outputs must also succeed without publishing side effects.
+    result = subprocess.run([bash, '-e', '-c', script], cwd=source, env=env, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'No US ingestion report changes to commit' in result.stdout
 
 
 def test_browser_budget_starts_after_slow_sources_and_empty_tracks_fail(tmp_path, monkeypatch):
