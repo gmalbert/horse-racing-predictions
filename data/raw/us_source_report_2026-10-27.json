@@ -1,0 +1,1327 @@
+{
+  "date": "2026-10-27",
+  "generated_at_utc": "2026-10-26T15:10:22.620488+00:00",
+  "elapsed_seconds": 170.4,
+  "pipeline_runs": {
+    "t1_all": {
+      "command": "/opt/hostedtoolcache/Python/3.11.17/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-10-27 --days 1",
+      "returncode": 0,
+      "stdout_tail": "Saved pipeline report: /home/runner/work/horse-racing-predictions/horse-racing-predictions/data/raw/us_t1_all/t1_all_pipeline_report_2026-10-27.json\n2026-10-27: OK (TB=True QH=True H=True)",
+      "stderr_tail": "",
+      "timed_out": false
+    },
+    "nyra": {
+      "command": "/opt/hostedtoolcache/Python/3.11.17/x64/bin/python scripts/fetch_nyra_entries.py --date 2026-10-27 --tracks BEL AQU SAR",
+      "returncode": 0,
+      "stdout_tail": "============================================================\nFetching NYRA Entries for 2026-10-27\nTracks: ['BEL', 'AQU', 'SAR']\n============================================================\n  [BEL] Fetching: https://www.nyra.com/belmont/racing/entries/?day=2026-10-27&limit=entries\n  [BEL] Got 0 race blocks\n  [AQU] Fetching: https://www.nyra.com/aqueduct/racing/entries/?day=2026-10-27&limit=entries\n  [AQU] Got 0 race blocks\n  [SAR] Fetching: https://www.nyra.com/saratoga/racing/entries/?day=2026-10-27&limit=entries\n  [SAR] Got 0 race blocks\n  Saved -> /home/runner/work/horse-racing-predictions/horse-racing-predictions/data/raw/nyra_entries_2026-10-27.json\n\nDone \u2014 0 race blocks, 0 runners fetched",
+      "stderr_tail": "",
+      "timed_out": false
+    }
+  },
+  "groups": {
+    "T1": [
+      {
+        "group": "T1-TB",
+        "track_code": "TAM",
+        "track_name": "Tampa Bay Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/TAM102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/TAM102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/TAM102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/TAM102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.tampabaydowns.com/racing/entries/",
+            "final_url": "https://www.tampabaydowns.com/racing/entries/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.tampabaydowns.com/racing/betting/entries/",
+            "final_url": "https://www.tampabaydowns.com/racing/betting/entries/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "CT",
+        "track_name": "Charles Town",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/CT102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/CT102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/CT102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/CT102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.hollywoodcasinocharlestown.com/racing",
+            "final_url": "https://www.pennentertainment.com/hollywood-charles-town/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "MNR",
+        "track_name": "Mountaineer",
+        "status": "ok",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/MNR102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/MNR102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
+          }
+        ],
+        "race_section_count": 8
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "CBY",
+        "track_name": "Canterbury Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/CBY102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/CBY102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/CBY102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/CBY102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.canterburypark.com/racing/",
+            "final_url": "https://www.canterburypark.com/racing/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "PID",
+        "track_name": "Presque Isle Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/PID102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/PID102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/PID102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/PID102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.presqueisledowns.com/race-information/",
+            "final_url": "https://www.presqueisledowns.com/race-information/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "PRX",
+        "track_name": "Parx",
+        "status": "ok",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/PRX102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/PRX102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
+          }
+        ],
+        "race_section_count": 9
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "PEN",
+        "track_name": "Penn National",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/PEN102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/PEN102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/PEN102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/PEN102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.hollywoodpnrc.com/racing",
+            "final_url": "https://www.pennentertainment.com/hollywood-grantville/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "ELP",
+        "track_name": "Ellis Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/ELP102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/ELP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/ELP102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/ELP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.ellisparkowensborogaming.com/racing/",
+            "final_url": "https://www.ellisparkowensborogaming.com/racing/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "LS",
+        "track_name": "Lone Star Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/LS102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/LS102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/LS102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/LS102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.lonestarpark.com/entries/",
+            "final_url": "https://www.lonestarpark.com/entries/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-TB",
+        "track_code": "HOU",
+        "track_name": "Sam Houston",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/HOU102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/HOU102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/HOU102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/HOU102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.shrp.com/racing",
+            "final_url": "https://www.shrp.com/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "LA",
+        "track_name": "Los Alamitos",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/LA102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/LA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/LA102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/LA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.losalamitos.com/ECE.aspx?ver=1",
+            "final_url": "https://www.losalamitos.com/ECE.aspx?ver=1",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/09-27-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/09-27-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-chi-kmdw8640057-CHI 1793027256 2879657495\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-03-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-03-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-chi-kmdw8640086-CHI 1793027256 1736018586\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-04-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-04-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-chi-kmdw8640056-CHI 1793027256 3488721790\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-10-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-10-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-chi-kmdw8640053-CHI 1793027256 2288432247\nVarnish cache server"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "RUD",
+        "track_name": "Ruidoso Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/RUI102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/RUI102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/RUI102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/RUI102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.raceruidoso.com/",
+            "final_url": "https://www.raceruidoso.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "DLD",
+        "track_name": "Delta Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/DED102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/DED102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/DED102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/DED102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://deltadowns.boydgaming.com/racing/racing-information",
+            "final_url": "https://deltadowns.boydgaming.com/racing/racing-information",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "http://equibase.com/static/entry/index.html?SAP=TN",
+            "final_url": "http://www.equibase.com/static/entry/index.html?SAP=TN",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "EVD",
+        "track_name": "Evangeline Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/EVD102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/EVD102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/EVD102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/EVD102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://evangelinedowns.boydgaming.com/racing",
+            "final_url": "https://evangelinedowns.boydgaming.com/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "ZIA",
+        "track_name": "Zia Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/ZIA102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/ZIA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/ZIA102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/ZIA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.ziaparkcasino.com/racing",
+            "final_url": "https://www.ziaparkcasino.com/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-QH",
+        "track_code": "SUN",
+        "track_name": "Sunland Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/SUN102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/SUN102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/SUN102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/SUN102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://sunland-park.com/racing/",
+            "final_url": "https://sunland-park.com/racing/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-H",
+        "track_code": "NTH",
+        "track_name": "Northfield Park",
+        "status": "ok",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_link_found"
+          },
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93752",
+            "final_url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93752",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
+          }
+        ],
+        "race_section_count": 15
+      },
+      {
+        "group": "T1-H",
+        "track_code": "SCD",
+        "track_name": "Scioto Downs",
+        "status": "collection_error",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
+          },
+          {
+            "url": "https://www.caesars.com/scioto-downs/racing",
+            "error_kind": "timeout",
+            "error": "70 second track budget exceeded"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-H",
+        "track_code": "RSC",
+        "track_name": "Rosecroft",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
+          },
+          {
+            "url": "https://www.rosecroft.com/",
+            "final_url": "https://www.rosecroft.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-H",
+        "track_code": "RUN",
+        "track_name": "Running Aces",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "track_not_in_current_listing"
+          },
+          {
+            "url": "https://runaces.com/racing/live-racing/",
+            "final_url": "https://runaces.com/racing/live-racing/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T1-H",
+        "track_code": "PLN",
+        "track_name": "Plainridge Park",
+        "status": "ok",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_link_found"
+          },
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93764",
+            "final_url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93764",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
+          }
+        ],
+        "race_section_count": 10
+      },
+      {
+        "group": "T1-H",
+        "track_code": "CAL",
+        "track_name": "Cal Expo",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "track_not_in_current_listing"
+          },
+          {
+            "url": "https://calxharness.com/",
+            "final_url": "https://calxharness.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      }
+    ],
+    "T2-TB": [
+      {
+        "group": "T2-TB",
+        "track_code": "GP",
+        "track_name": "Gulfstream Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/GP102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/GP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/GP102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/GP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.gulfstreampark.com/",
+            "final_url": "https://www.gulfstreampark.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.gulfstreampark.com/promotion/mondays-in-october-5x-witching-hours-entries-9am-midnight/",
+            "final_url": "https://www.gulfstreampark.com/promotion/mondays-in-october-5x-witching-hours-entries-9am-midnight/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-TB",
+        "track_code": "SA",
+        "track_name": "Santa Anita",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/SA102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/SA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/SA102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/SA102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.santaanita.com/",
+            "final_url": "https://www.santaanita.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.santaanita.com/racing-information/entries/2026-10-30/",
+            "final_url": "https://www.santaanita.com/racing-information/entries/2026-10-30/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-TB",
+        "track_code": "DMR",
+        "track_name": "Del Mar",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/DMR102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/DMR102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/DMR102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/DMR102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.dmtc.com/",
+            "final_url": "https://www.dmtc.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.dmtc.com/racing/entries",
+            "final_url": "https://www.dmtc.com/racing/entries",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.dmtc.com/racing/raceday-entries",
+            "final_url": "https://www.dmtc.com/racing/entries",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.dmtc.com/racing/entries/2026-09-07",
+            "final_url": "https://www.dmtc.com/racing/entries/2026-09-07",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.dmtc.com/racing/entries/2026-11-07",
+            "final_url": "https://www.dmtc.com/racing/entries/2026-11-07",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-TB",
+        "track_code": "OP",
+        "track_name": "Oaklawn",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/OP102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/OP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/OP102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/OP102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.oaklawn.com/",
+            "final_url": "https://www.oaklawn.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-TB",
+        "track_code": "FG",
+        "track_name": "Fair Grounds",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/FG102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/FG102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/FG102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/FG102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.fairgroundsracecourse.com/",
+            "final_url": "https://www.fairgroundsracecourse.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-TB",
+        "track_code": "MTH",
+        "track_name": "Monmouth Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/MTH102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/MTH102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/MTH102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/MTH102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.monmouthpark.com/",
+            "final_url": "https://www.monmouthpark.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.monmouthpark.com/horse-racing/entries-3/",
+            "final_url": "https://www.monmouthpark.com/horse-racing/entries-3/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      }
+    ],
+    "T2-H": [
+      {
+        "group": "T2-H",
+        "track_code": "MDL",
+        "track_name": "Meadowlands",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
+          },
+          {
+            "url": "https://playmeadowlands.com/",
+            "final_url": "https://playmeadowlands.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://playmeadowlands.com/race-day-information/entries/",
+            "final_url": "https://playmeadowlands.com/race-day-information/entries/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T2-H",
+        "track_code": "YON",
+        "track_name": "Yonkers",
+        "status": "ok",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_link_found"
+          },
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93746",
+            "final_url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=93746",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
+          }
+        ],
+        "race_section_count": 10
+      },
+      {
+        "group": "T2-H",
+        "track_code": "HOO",
+        "track_name": "Hoosier Park",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
+          },
+          {
+            "url": "https://www.caesars.com/harrahs-hoosier-park/racing",
+            "final_url": "https://www.caesars.com/harrahs-hoosier-park/racing",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": ""
+          },
+          {
+            "url": "https://www.caesars.com/harrahs-hoosier-park/racing",
+            "final_url": "https://www.caesars.com/harrahs-hoosier-park/racing",
+            "transport": "browser",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      }
+    ],
+    "T3": [
+      {
+        "group": "T3",
+        "track_code": "CD",
+        "track_name": "Churchill Downs",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/CD102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/CD102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/CD102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/CD102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.churchilldowns.com/",
+            "final_url": "https://www.churchilldowns.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      },
+      {
+        "group": "T3",
+        "track_code": "KEE",
+        "track_name": "Keeneland",
+        "status": "not_listed",
+        "pages_tried": [
+          {
+            "url": "https://tvg.equibase.com/static/entry/KEE102726USA-EQB.html",
+            "final_url": "https://tvg.equibase.com/static/entry/KEE102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 404,
+            "error_kind": "not_found",
+            "error": null,
+            "response_excerpt": "404 - File or directory not found.\nServer Error\n404 - File or directory not found.\nThe resource you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+          },
+          {
+            "url": "https://www.equibase.com/static/entry/KEE102726USA-EQB.html",
+            "final_url": "https://www.equibase.com/static/entry/KEE102726USA-EQB.html",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "Pardon Our Interruption\nPardon Our Interruption\nAs you were browsing something about your browser made us think you were a bot. There are a few reasons this might happen:\nYou've disabled JavaScript in your web browser.\nYou're a power user moving through this website with super-human speed.\nYou've disabled cookies in your web browser.\nA third-party browser plugin, such as Ghostery or NoScript, is preventing JavaScript from running. Additional information is available in this\nsupport article\n.\nTo "
+          },
+          {
+            "url": "https://www.keeneland.com/",
+            "final_url": "https://www.keeneland.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          }
+        ],
+        "race_section_count": 0
+      }
+    ]
+  },
+  "source_counts": {
+    "nyra_races": 0,
+    "t1_races": 42,
+    "t2_tb_races": 0,
+    "t2_h_races": 10,
+    "t3_races": 0,
+    "total_races": 52
+  },
+  "attempted_source_counts": {
+    "nyra_races": 0,
+    "t1_races": 42,
+    "t2_tb_races": 0,
+    "t2_h_races": 10,
+    "t3_races": 0,
+    "total_races": 52
+  },
+  "fallback_used": false,
+  "json_discovery_summary": null,
+  "collection_errors": [
+    {
+      "group": "T1-H",
+      "track_code": "SCD",
+      "track_name": "Scioto Downs",
+      "status": "collection_error",
+      "pages_tried": [
+        {
+          "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
+          "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
+          "transport": "http",
+          "status_code": 200,
+          "error_kind": null,
+          "error": null,
+          "response_excerpt": "",
+          "card_status": "date_not_listed"
+        },
+        {
+          "url": "https://www.caesars.com/scioto-downs/racing",
+          "error_kind": "timeout",
+          "error": "70 second track budget exceeded"
+        }
+      ],
+      "race_section_count": 0
+    }
+  ]
+}

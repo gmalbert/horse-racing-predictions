@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-26",
+  "generated_at_utc": "2026-10-26T15:07:32.012861+00:00",
+  "status": "PASS",
+  "tracks": [
+    {
+      "track": "RSC",
+      "status": "PASS",
+      "expected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "collected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "runners": 113,
+      "attempts": [
+        {
+          "url": "https://harness.drf.com/entries/tracks/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        },
+        {
+          "url": "https://harness.drf.com/entries/entryDetails/id/RCR/country/USA/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        }
+      ]
+    },
+    {
+      "track": "PLN",
+      "status": "PASS",
+      "expected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "collected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "runners": 84,
+      "attempts": [
+        {
+          "url": "https://harness.drf.com/entries/tracks/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        },
+        {
+          "url": "https://harness.drf.com/entries/entryDetails/id/PRC/country/USA/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        }
+      ]
+    },
+    {
+      "track": "YON",
+      "status": "PASS",
+      "expected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "collected_races": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "runners": 70,
+      "attempts": [
+        {
+          "url": "https://harness.drf.com/entries/tracks/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        },
+        {
+          "url": "https://harness.drf.com/entries/entryDetails/id/YR/country/USA/date/10-26-2026",
+          "transport": "drf-harness",
+          "status_code": 200
+        }
+      ]
+    }
+  ]
+}
