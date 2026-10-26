@@ -8,6 +8,8 @@ on:
       - 'scripts/parse_t1_*_tracksite.py'
       - 'scripts/run_t1_all_daily_pipeline.py'
       - 'scripts/fetch_us_all_sources.py'
+      - 'scripts/check_us_harness_fallback.py'
+      - 'scripts/validate_us_ingestion.py'
       - '.github/workflows/us_ingestion_guardrails.yml'
   schedule:
     # Daily at 06:15 UTC
@@ -58,6 +60,10 @@ jobs:
         run: |
           echo "Building US racecards and source report for ${{ steps.dates.outputs.today }}"
           python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }} --force
+
+      - name: Verify desktop harness fallback on GitHub
+        if: github.event_name == 'pull_request'
+        run: python scripts/check_us_harness_fallback.py --date ${{ steps.dates.outputs.today }}
 
       - name: Build US all-sources racecards — tomorrow
         id: tomorrow
@@ -119,6 +125,7 @@ jobs:
             data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
             data/raw/us_source_report_${{ steps.dates.outputs.today }}.json
             data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
+            data/raw/us_harness_fallback_check_${{ steps.dates.outputs.today }}.json
             data/raw/us_t1_*/**/*report*.json
             data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.json
             data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.md
