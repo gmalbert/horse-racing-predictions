@@ -81,3 +81,41 @@ Run offline regressions with:
 ```powershell
 python -m pytest tests/test_t1_parser_hardening.py tests/test_freshness_repairs.py tests/test_predict_us_races.py -q
 ```
+
+
+## GitHub harness recovery on October 26, 2026
+
+GitHub-hosted runners timed out connecting to `m.ustrotting.com`, losing
+Rosecroft, Plainridge, and Yonkers despite collecting 17 thoroughbred races.
+The collector now falls back to USTA's independent desktop host at
+`https://racing.ustrotting.com/default.aspx`. Each track uses a separate HTTP
+session, posts the server-issued ASP.NET form state, selects the requested
+non-qualifying card date, and follows the site's full-card control.
+
+Desktop parsing verifies the track and full date in each race heading,
+uses named columns including their colspans, reads both alternating row
+classes, and excludes scratches and result tables. The primary driver is
+kept separately from alternates. Cards missing races advertised as entries
+in the desktop summary are rejected. Diagnostics retain each desktop step.
+
+The local desktop check recovered 13 Rosecroft races (113 runners),
+11 Plainridge races (84 runners), and 9 Yonkers races (70 runners) for
+October 26. GitHub-runner verification is recorded in the follow-up PR.
+The ingestion validator rejects complete harness-source loss even if
+thoroughbred volume meets its thresholds; confirmed unlisted dates remain
+valid empty coverage for that source group.
+
+
+A later GitHub runner could reach neither USTA host. Therefore USTA desktop
+is a tertiary recovery path, and the public JSON used by DRF Harness entry
+pages is now the independent provider fallback after a mobile failure.
+Its track is selected from the provider's dated track list. Each race must
+match the requested track, selected full date, and actual post timestamp
+converted to America/New_York. Completed/cancelled races and scratches are
+excluded; morning-line odds, full driver/trainer names, and runner positions
+are retained. This avoids depending on Equibase's harness mirror, which does
+not carry morning-line odds.
+
+The pull-request verification directly calls this independent provider for
+every collected harness track and compares race numbers. Zero tracks is a
+failure, so a skipped comparison cannot be reported as successful recovery.

@@ -84,6 +84,21 @@ def _collect_recent_totals(current_date: str, lookback_days: int) -> list[int]:
     return totals[-lookback_days:]
 
 
+def _harness_source_checks(report: dict, racecards: dict) -> list[dict]:
+    """A working thoroughbred feed cannot mask loss of the harness provider."""
+    groups = report.get('groups') or {}
+    rows = [row for group_rows in groups.values() for row in group_rows
+            if row.get('group') in {'T1-H', 'T2-H'}]
+    failed = sorted({r['track_code'] for r in rows if r.get('status') == 'collection_error'})
+    harness_races = [r for r in racecards.get('racecards', [])
+                     if r.get('runners') and r.get('type') == 'Harness']
+    if not rows:
+        return []
+    ok = bool(harness_races) or not failed
+    return [{'name': 'harness_source_coverage', 'ok': ok,
+             'message': f'{len(harness_races)} harness races; collection failures: {", ".join(failed) or "none"}'}]
+
+
 def _to_markdown(result: dict) -> str:
     checks = result["checks"]
     lines = [
@@ -236,6 +251,7 @@ def main() -> int:
     # Cross-check source report totals if available.
     if source_report_exists:
         report = _read_json(source_report_path)
+        checks.extend(_harness_source_checks(report, _read_json(racecards_path) if racecards_exists else {}))
         src_counts = report.get("source_counts") or {}
         report_total = _safe_int(src_counts.get("total_races"), 0)
         checks.append(

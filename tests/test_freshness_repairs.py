@@ -270,3 +270,27 @@ def test_tomorrow_fetch_defers_only_no_fresh_cards(tmp_path, collector_status):
         assert 'continue-on-error: true' not in step
     today = next(step for step in steps if step.startswith('Validate US ingestion guardrails\n'))
     assert 'continue-on-error: true' not in today
+
+
+@pytest.mark.parametrize('status,has_harness,expected', [
+    ('collection_error', False, False), ('collection_error', True, True), ('not_listed', False, True),
+])
+def test_thoroughbred_volume_cannot_mask_total_harness_source_failure(status, has_harness, expected):
+    report = {'groups': {'T1': [{'group': 'T1-H', 'track_code': 'PLN', 'status': status}]}}
+    payload = {'racecards': [{'type': 'Thoroughbred', 'runners': [{'horse': 'A'}]}] * 17}
+    if has_harness:
+        payload['racecards'].append({'type': 'Harness', 'runners': [{'horse': 'Pacer'}]})
+    checks = guardrails._harness_source_checks(report, payload)
+    assert len(checks) == 1 and checks[0]['ok'] is expected
+
+
+
+def test_independent_fallback_verification_cannot_pass_zero_tracks(tmp_path, monkeypatch):
+    import check_us_harness_fallback as checker
+    raw = tmp_path/'data/raw';raw.mkdir(parents=True)
+    (raw/'us_racecards_2026-10-26.json').write_text(json.dumps({'date': '2026-10-26', 'racecards': []}))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, 'argv', ['fallback-check', '--date', '2026-10-26'])
+    assert checker.main() == 1
+    report = json.loads((raw/'us_harness_fallback_check_2026-10-26.json').read_text())
+    assert report['status'] == 'FAIL' and report['tracks'] == []

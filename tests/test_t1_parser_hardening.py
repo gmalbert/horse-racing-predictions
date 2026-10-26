@@ -750,3 +750,172 @@ def test_one_track_exception_does_not_cancel_other_tracks(monkeypatch, failure_t
     assert records[0]['attempts'][0]['phase'] == 'provider request'
     assert records[0]['attempts'][-1]['error_kind'] == ('timeout' if failure_type is asyncio.TimeoutError else 'collector')
     assert all(c.closed for c in contexts)
+
+
+DESKTOP_CARD = """<div class="chartheaderinfo"><b>RACE 1 - Plainridge Park - MA - October 26, 2026</b>
+Post Time: 2:00 PM</div><table>
+<tr><td>PP</td><td>Horse</td><td colspan="6">2026 North America YTD</td><td>Driver</td><td>Trainer</td><td>ML</td></tr>
+<tr class="datagriditem"><td>1</td><td>First Pacer</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td><a>Primary Driver</a><br>Alternate Driver</td><td>A Trainer</td><td>9-2</td></tr>
+<tr class="datagridaltitem"><td>2</td><td>Second Pacer</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td>B Driver</td><td>B Trainer</td><td>5-1</td></tr>
+<tr class="datagriditem"><td>3</td><td>Scratched Horse</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td>C Driver</td><td>C Trainer</td><td>SCR</td></tr></table>"""
+
+
+def test_desktop_card_keeps_alternating_rows_and_primary_driver():
+    races = collector._parse_usta_desktop(DESKTOP_CARD, 'https://racing.ustrotting.com/chart.aspx',
+                                           'PLN', ALL_TRACKS['PLN'], '2026-10-26')
+    assert len(races) == 1 and len(races[0]['runners']) == 2
+    assert races[0]['runners'][0]['driver'] == 'Primary Driver'
+    assert races[0]['runners'][1]['ml_odds'] == '5-1'
+    assert races[0]['race_time'] == '2:00 PM'
+
+
+@pytest.mark.parametrize('html', [DESKTOP_CARD.replace('October 26', 'October 25'),
+                                 DESKTOP_CARD.replace('Plainridge Park', 'Yonkers'),
+                                 DESKTOP_CARD.replace('<td>ML</td>', '<td>Finish</td>')])
+def test_desktop_rejects_wrong_provenance_and_results(html):
+    assert collector._parse_usta_desktop(html, 'https://racing.ustrotting.com/chart.aspx',
+                                         'PLN', ALL_TRACKS['PLN'], '2026-10-26') == []
+
+
+def test_mobile_timeout_recovers_from_desktop_card(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_usta_desktop', lambda cfg, day: {
+        'html': DESKTOP_CARD, 'url': 'https://racing.ustrotting.com/chart.aspx', 'status': 'ok',
+        'attempts': [{'transport': 'usta-desktop', 'status_code': 200}], 'expected_races': [1]})
+    record = asyncio.run(collector.collect_track(None, 'PLN', ALL_TRACKS['PLN'], '2026-10-26'))
+    assert record['status'] == 'ok' and len(record['racecards'][0]['runners']) == 2
+    assert record['attempts'][0]['error_kind'] == 'timeout'
+    assert record['attempts'][1]['transport'] == 'usta-desktop'
+
+
+def test_desktop_partial_card_is_not_published(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_usta_desktop', lambda cfg, day: {
+        'html': DESKTOP_CARD, 'url': 'https://racing.ustrotting.com/chart.aspx', 'status': 'ok',
+        'attempts': [], 'expected_races': [1, 2]})
+    record = asyncio.run(collector.collect_track(None, 'PLN', ALL_TRACKS['PLN'], '2026-10-26'))
+    assert record['status'] == 'collection_error' and record['racecards'] == []
+    assert any(a.get('error_kind') == 'incomplete_card' for a in record['attempts'])
+
+
+def test_desktop_form_retains_server_state_and_uses_observed_target():
+    class Response:
+        url = 'https://racing.ustrotting.com/default.aspx'
+        text = '<input type="hidden" name="__VIEWSTATE" value="server-state">'
+    class Session:
+        def post(self, url, **kwargs):
+            assert url == Response.url
+            assert kwargs['data'] == {'__VIEWSTATE': 'server-state', '__EVENTTARGET': 'selectTrack',
+                                      '__EVENTARGUMENT': '', 'track': 'PRc'}
+            assert kwargs['timeout'] == (5, 10)
+            return 'response'
+    from bs4 import BeautifulSoup
+    link = BeautifulSoup("<a href=\"javascript:__doPostBack('selectTrack','')\">Go</a>", 'html.parser').a
+    assert collector._usta_postback(Session(), Response(), link, {'track': 'PRc'}) == 'response'
+
+
+
+def test_desktop_flow_selects_full_date_and_only_advertised_entry_rows(monkeypatch):
+    from bs4 import BeautifulSoup
+    class Response:
+        status_code = 200
+        encoding = 'utf-8'
+        apparent_encoding = 'utf-8'
+        def __init__(self, url, text): self.url, self.text = url, text
+        def raise_for_status(self): pass
+    def anchor(target, text, id):
+        return f"<a id=\"{id}\" href=\"javascript:__doPostBack('{target}','')\">{text}</a>"
+    home = '<input type="hidden" name="__VIEWSTATE" value="home">'
+    home += '<select name="tracks" id="ddlsearchtrack_pm"><option value="PRc">Plainridge</option></select>'
+    home += anchor('search', 'Go', 'lnkbtnsearchtrack_pm')
+    listing = '<input type="hidden" name="__VIEWSTATE" value="listing"><table><tr><td>'
+    listing += anchor('lnkbtnrace_card27', '10/27/2026', 'lnkbtnrace_card2')+'</td></tr><tr><td>'
+    listing += anchor('lnkbtnrace_card26', '10/26/2026', 'lnkbtnrace_card1')+'</td></tr></table>'
+    summary = '<input type="hidden" name="__VIEWSTATE" value="summary">'
+    summary += anchor('full', 'Here', 'lnkbtnViewCard')
+    summary += '<table><tr><td><table><tr><td>'+anchor('race1', 'Race 1', 'lnkbtnrace_chart1')
+    summary += '</td><td>RESULTS COMPLETED</td></tr><tr><td>'+anchor('race2','Race 2','lnkbtnrace_chart2')
+    summary += '</td><td>ENTRIES</td></tr></table></td></tr></table>'
+    targets = []
+    class Session:
+        headers = {}
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def get(self, url, **kwargs): return Response(url, home)
+        def post(self, url, data, **kwargs):
+            targets.append(data['__EVENTTARGET'])
+            if len(targets) == 1:
+                assert data['tracks'] == 'PRc' and data['__VIEWSTATE'] == 'home'
+                return Response('https://racing.ustrotting.com/trackcards.aspx', listing)
+            if len(targets) == 2:
+                assert data['__VIEWSTATE'] == 'listing'
+                return Response('https://racing.ustrotting.com/card.aspx', summary)
+            assert data['__VIEWSTATE'] == 'summary'
+            return Response('https://racing.ustrotting.com/chart.aspx', DESKTOP_CARD)
+    monkeypatch.setattr(collector.requests, 'Session', Session)
+    result = collector._usta_desktop(ALL_TRACKS['PLN'], '2026-10-26')
+    assert targets == ['search', 'lnkbtnrace_card26', 'full']
+    assert result['expected_races'] == [2]
+    assert result['html'] == DESKTOP_CARD and len(result['attempts']) == 4
+
+
+@pytest.fixture(autouse=True)
+def no_live_drf_requests_in_offline_tests(monkeypatch):
+    monkeypatch.setattr(collector, '_drf_harness', lambda cfg, code, date: {
+        'status': 'collection_error', 'races': [], 'attempts': [], 'url': 'https://harness.drf.com/'})
+
+
+DRF_CARD = {'isData': True, 'weather': {'trackId': 'YR'}, 'races': [{
+    'raceKey': {'trackId': 'YR', 'country': 'USA', 'raceNumber': 1},
+    'selectedDate': '10-26-2026', 'postTimeLong': 1793054700000, 'postTime': '6:45 PM',
+    'raceTypeDescription': 'ONE MILE | Purse: $15,000 | PACE', 'surfaceDescription': 'Dirt',
+    'runners': [{'horseName': 'Test Pacer', 'programNumber': '1', 'postPos': '2',
+                 'morningLineOdds': '9-5', 'scratchIndicator': '',
+                 'jockey': {'firstName': 'Colin', 'lastName': 'Kelly'},
+                 'trainer': {'firstName': 'Petter', 'lastName': 'Engblom'}},
+                {'horseName': 'Scratched', 'programNumber': '2', 'scratchIndicator': 'Y'}]}]}
+
+
+def test_drf_harness_preserves_identity_odds_and_actual_date():
+    races = collector._parse_drf_harness(DRF_CARD, 'YR', 'YON', ALL_TRACKS['YON'],
+                                          '2026-10-26', 'https://harness.drf.com/entries/entryDetails/id/YR')
+    assert len(races) == 1 and len(races[0]['runners']) == 1
+    assert races[0]['runners'][0]['driver'] == 'Colin Kelly'
+    assert races[0]['runners'][0]['trainer'] == 'Petter Engblom'
+    assert races[0]['runners'][0]['ml_odds'] == '9-5'
+    assert races[0]['purse'] == '15,000' and races[0]['type'] == 'Harness'
+
+
+@pytest.mark.parametrize('field,value', [('selectedDate', '10-27-2026'),
+    ('postTimeLong', 1793141100000), ('hasResults', True), ('isCancelled', True)])
+def test_drf_harness_rejects_wrong_dates_or_completed_cards(field, value):
+    import copy
+    payload = copy.deepcopy(DRF_CARD);payload['races'][0][field] = value
+    assert collector._parse_drf_harness(payload, 'YR', 'YON', ALL_TRACKS['YON'],
+                                         '2026-10-26', 'https://harness.drf.com/') == []
+
+
+def test_usta_timeout_uses_independent_provider_before_desktop(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    races = collector._parse_drf_harness(DRF_CARD, 'YR', 'YON', ALL_TRACKS['YON'],
+                                          '2026-10-26', 'https://harness.drf.com/')
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_drf_harness', lambda *args: {
+        'status': 'ok', 'races': races, 'url': 'https://harness.drf.com/',
+        'attempts': [{'transport': 'drf-harness', 'status_code': 200}]})
+    def unexpected(*args): raise AssertionError('No USTA desktop request after independent success')
+    monkeypatch.setattr(collector, '_usta_desktop', unexpected)
+    record = asyncio.run(collector.collect_track(None, 'YON', ALL_TRACKS['YON'], '2026-10-26'))
+    assert record['status'] == 'ok' and record['racecards'] == races
+    assert record['attempts'][-1]['transport'] == 'drf-harness'
