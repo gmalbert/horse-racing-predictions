@@ -152,7 +152,7 @@ def _usta_desktop(cfg, date_str):
             expected_races = []
             for row in soup.select('tr'):
                 link = row.select_one('a[id*="lnkbtnrace_chart"]')
-                if link is not None and re.search(r'\bENTRIES\b', row.get_text(' ', strip=True)):
+                if link is not None and link.find_parent('tr') is row and re.search(r'\bENTRIES\b', row.get_text(' ', strip=True)):
                     match = re.search(r'Race\s+(\d+)', link.get_text(' ', strip=True), re.I)
                     if match:
                         expected_races.append(int(match.group(1)))

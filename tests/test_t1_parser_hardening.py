@@ -821,3 +821,48 @@ def test_desktop_form_retains_server_state_and_uses_observed_target():
     from bs4 import BeautifulSoup
     link = BeautifulSoup("<a href=\"javascript:__doPostBack('selectTrack','')\">Go</a>", 'html.parser').a
     assert collector._usta_postback(Session(), Response(), link, {'track': 'PRc'}) == 'response'
+
+
+
+def test_desktop_flow_selects_full_date_and_only_advertised_entry_rows(monkeypatch):
+    from bs4 import BeautifulSoup
+    class Response:
+        status_code = 200
+        encoding = 'utf-8'
+        apparent_encoding = 'utf-8'
+        def __init__(self, url, text): self.url, self.text = url, text
+        def raise_for_status(self): pass
+    def anchor(target, text, id):
+        return f"<a id=\"{id}\" href=\"javascript:__doPostBack('{target}','')\">{text}</a>"
+    home = '<input type="hidden" name="__VIEWSTATE" value="home">'
+    home += '<select name="tracks" id="ddlsearchtrack_pm"><option value="PRc">Plainridge</option></select>'
+    home += anchor('search', 'Go', 'lnkbtnsearchtrack_pm')
+    listing = '<input type="hidden" name="__VIEWSTATE" value="listing"><table><tr><td>'
+    listing += anchor('lnkbtnrace_card27', '10/27/2026', 'lnkbtnrace_card2')+'</td></tr><tr><td>'
+    listing += anchor('lnkbtnrace_card26', '10/26/2026', 'lnkbtnrace_card1')+'</td></tr></table>'
+    summary = '<input type="hidden" name="__VIEWSTATE" value="summary">'
+    summary += anchor('full', 'Here', 'lnkbtnViewCard')
+    summary += '<table><tr><td><table><tr><td>'+anchor('race1', 'Race 1', 'lnkbtnrace_chart1')
+    summary += '</td><td>RESULTS COMPLETED</td></tr><tr><td>'+anchor('race2','Race 2','lnkbtnrace_chart2')
+    summary += '</td><td>ENTRIES</td></tr></table></td></tr></table>'
+    targets = []
+    class Session:
+        headers = {}
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def get(self, url, **kwargs): return Response(url, home)
+        def post(self, url, data, **kwargs):
+            targets.append(data['__EVENTTARGET'])
+            if len(targets) == 1:
+                assert data['tracks'] == 'PRc' and data['__VIEWSTATE'] == 'home'
+                return Response('https://racing.ustrotting.com/trackcards.aspx', listing)
+            if len(targets) == 2:
+                assert data['__VIEWSTATE'] == 'listing'
+                return Response('https://racing.ustrotting.com/card.aspx', summary)
+            assert data['__VIEWSTATE'] == 'summary'
+            return Response('https://racing.ustrotting.com/chart.aspx', DESKTOP_CARD)
+    monkeypatch.setattr(collector.requests, 'Session', Session)
+    result = collector._usta_desktop(ALL_TRACKS['PLN'], '2026-10-26')
+    assert targets == ['search', 'lnkbtnrace_card26', 'full']
+    assert result['expected_races'] == [2]
+    assert result['html'] == DESKTOP_CARD and len(result['attempts']) == 4
