@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'scripts/parse_t1_*_tracksite.py'
+      - 'scripts/pull_t1_*_tracks.py'
+      - 'scripts/us_track_*.py'
+      - 'scripts/fetch_us_all_sources.py'
+      - 'scripts/run_t1_all_daily_pipeline.py'
       - 'scripts/backtest_walk_forward.py'
       - 'scripts/fetch_racecards.py'
       - 'scripts/fetch_racecards_browser.py'
@@ -18,6 +22,10 @@ on:
       - fix/odds-errors
     paths:
       - 'scripts/parse_t1_*_tracksite.py'
+      - 'scripts/pull_t1_*_tracks.py'
+      - 'scripts/us_track_*.py'
+      - 'scripts/fetch_us_all_sources.py'
+      - 'scripts/run_t1_all_daily_pipeline.py'
       - 'scripts/backtest_walk_forward.py'
       - 'scripts/fetch_racecards.py'
       - 'scripts/fetch_racecards_browser.py'

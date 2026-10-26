@@ -120,7 +120,8 @@ def test_publication_does_not_push_development_work(tmp_path):
 
 
 @pytest.mark.parametrize('conflict', [False, True])
-def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict):
+@pytest.mark.parametrize('tomorrow_available', [False, True])
+def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict, tomorrow_available):
     """Run the actual publication shell against a remote that advanced during collection."""
     bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
             if sys.platform == 'win32' else shutil.which('bash'))
@@ -134,12 +135,14 @@ def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_pat
     script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
                              .split('        run: |\n', 1)[1])
     for expression, value in [('steps.dates.outputs.today', '2026-10-23'),
+                              ('steps.tomorrow.outputs.available', str(tomorrow_available).lower()),
                               ('steps.dates.outputs.tomorrow', '2026-10-24'), ('github.ref_name', 'main')]:
         script = script.replace('${{ ' + expression + ' }}', value)
     # The staging allowlist is also the expected published file set.
     outputs = [line.split()[-1] for line in script.splitlines() if line.strip().startswith('git add ')]
     assert 'data/processed/us_ingestion_validation_2026-10-24.json' in outputs
     assert 'data/processed/us_ingestion_validation_2026-10-24.md' in outputs
+    published = [name for name in outputs if tomorrow_available or '2026-10-24' not in name]
     remote, source, other = (tmp_path / name for name in ['remote.git', 'source', 'other'])
     git('init', '--bare', str(remote), cwd=tmp_path)
     git('init', '-b', 'main', str(source), cwd=tmp_path)
@@ -172,7 +175,8 @@ def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_pat
         return
     assert result.returncode == 0, result.stdout + result.stderr
     for name in outputs:
-        assert git('--git-dir', str(remote), 'show', f'main:{name}', cwd=tmp_path) == 'generated'
+        expected = 'generated' if name in published else 'initial'
+        assert git('--git-dir', str(remote), 'show', f'main:{name}', cwd=tmp_path) == expected
     assert git('--git-dir', str(remote), 'show', 'main:README.md', cwd=tmp_path) == 'remote update'
     assert git('--git-dir', str(remote), 'show', 'main:collector.csv', cwd=tmp_path) == 'initial'
     assert (source / 'collector.csv').read_text() == 'collector side effect\n'
@@ -182,27 +186,30 @@ def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_pat
     assert 'No US ingestion report changes to commit' in result.stdout
 
 
-def test_browser_budget_starts_after_slow_sources_and_empty_tracks_fail(tmp_path, monkeypatch):
+@pytest.mark.parametrize('source_returncode', [0, 1])
+def test_slow_sources_do_not_skip_other_tracks_and_errors_stay_failures(tmp_path, monkeypatch, source_returncode):
     monkeypatch.setattr(sources, 'RAW_DIR', tmp_path)
     monkeypatch.setattr(sys, 'argv', ['collector', '--date', '2026-10-21', '--force'])
     now = [0]
     monkeypatch.setattr(sources.time, 'monotonic', lambda: now[0])
     def slow_source(*args):
         now[0] += 200
-        return {'returncode': 0}
+        return {'returncode': source_returncode}
     monkeypatch.setattr(sources, '_run_t1_pipeline', slow_source)
     monkeypatch.setattr(sources, '_run_nyra', slow_source)
-    deadlines = []
-    async def probe(group, tracks, day, deadline):
-        deadlines.append(deadline)
+    groups = []
+    async def probe(group, tracks, day):
+        assert now[0] == 400
+        groups.append(group)
         return [], []
     monkeypatch.setattr(sources, '_pull_track_group_parallel', probe)
     monkeypatch.setattr(sources, '_collect_existing_t1', lambda day: ([], [{'track': 'T', 'runners': []}]))
     monkeypatch.setattr(sources, '_collect_t1_canonical_runner_races', lambda day: [])
     monkeypatch.setattr(sources, '_ingest_nyra', lambda day: [])
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc:
         sources.main()
-    assert deadlines == [490, 490, 490]
+    assert exc.value.code == (1 if source_returncode else 2)
+    assert groups == ['T2-TB', 'T2-H', 'T3']
     payload = json.loads((tmp_path / 'us_racecards_2026-10-21.json').read_text())
     assert payload['racecards'] == []
     assert payload['source_counts']['total_races'] == 0
@@ -226,3 +233,40 @@ def test_drift_baseline_counts_real_past_races_only(tmp_path, monkeypatch):
     summary = guardrails._summarize_racecards({'racecards': races})
     assert summary['total_races'] == 1
     assert summary['unique_tracks'] == 1
+
+
+WORKFLOW = Path(__file__).resolve().parents[1] / '.github/workflows/us_ingestion_guardrails.yml'
+
+
+@pytest.mark.parametrize('collector_status', [0, 1, 2, 124])
+def test_tomorrow_fetch_defers_only_no_fresh_cards(tmp_path, collector_status):
+    bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
+            if sys.platform == 'win32' else shutil.which('bash'))
+    if not bash or not Path(bash).exists():
+        pytest.skip('Bash is required to exercise the Actions step')
+    workflow = WORKFLOW.read_text(encoding='utf-8')
+    steps = workflow.split('      - name: ')[1:]
+    tomorrow = next(step for step in steps if step.startswith('Build US all-sources racecards — tomorrow\n'))
+    script = textwrap.dedent(tomorrow.split('        run: |\n', 1)[1])
+    script = script.replace('${{ steps.dates.outputs.tomorrow }}', '2026-10-26')
+    # Mock only the collector command; execute the real workflow shell logic.
+    script = f'python() {{ return {collector_status}; }}\n' + script
+    result = subprocess.run([bash, '-e', '-c', script], cwd=tmp_path,
+                            env=dict(os.environ, GITHUB_OUTPUT='outputs.txt'),
+                            text=True, capture_output=True)
+    output = tmp_path / 'outputs.txt'
+    if collector_status in (0, 2):
+        assert result.returncode == 0, result.stdout + result.stderr
+        expected = 'true' if collector_status == 0 else 'false'
+        assert output.read_text().strip() == f'available={expected}'
+        assert ('::warning::' in result.stdout) == (collector_status == 2)
+    else:
+        assert result.returncode == collector_status
+        assert not output.exists()
+
+    for name in ("Validate tomorrow's US ingestion", 'Generate US predictions — tomorrow'):
+        step = next(step for step in steps if step.startswith(name + '\n'))
+        assert "steps.tomorrow.outputs.available == 'true'" in step.split('        run:', 1)[0]
+        assert 'continue-on-error: true' not in step
+    today = next(step for step in steps if step.startswith('Validate US ingestion guardrails\n'))
+    assert 'continue-on-error: true' not in today
