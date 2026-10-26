@@ -1,16 +1,21 @@
-﻿"""
+"""
 Fetch US racecards from all implemented roadmap sources and produce one merged racecards file.
 
-DESIGN GOALS (v2 - cache-first, parallel, bounded):
-  - Cache-first: skip T1 pipeline / NYRA if output files already exist for the date.
-  - Parallel: T2/T3 Playwright probes run concurrently (one page per track).
-  - Bounded: 8s per page.goto(), max 2 URL paths per track, 90s global budget.
-  - JSON discovery: parallel HTTP via thread pool (opt-in via --discover).
+Collection behavior:
+  - T1 breeds run concurrently with bounded per-track collection.
+  - Verified Equibase/USTA cards provide actual dated runners.
+  - Fresh browser tabs isolate navigation failures; diagnostics retain full errors.
+  - Generic track landing pages never count as racecards.
 
 Outputs:
 - data/raw/us_racecards_YYYY-MM-DD.json
 - data/raw/us_source_report_YYYY-MM-DD.json
 - data/raw/us_json_discovery_YYYY-MM-DD.json  (only with --discover)
+
+Exit code 2 means no fresh runner-bearing races were collected and no source
+collection errors were reported. Exit code 1 indicates a collection failure.
+Callers may defer an optional unlisted future date, but must not publish its
+empty or fallback cards.
 
 Usage:
     python scripts/fetch_us_all_sources.py --date 2026-05-10
@@ -35,6 +40,9 @@ from pathlib import Path
 
 import requests
 
+from us_track_sources import EXTRA_TRACKS
+from us_track_collector import pull_tracks
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE_DIR / "data" / "raw"
 PROC_DIR = BASE_DIR / "data" / "processed"
@@ -45,36 +53,24 @@ USER_AGENT = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
-T2_TB_TRACKS = {
-    "T2-TB-01": {"code": "GP",  "name": "Gulfstream Park",  "base": "https://www.gulfstreampark.com"},
-    "T2-TB-02": {"code": "SA",  "name": "Santa Anita",      "base": "https://www.santaanita.com"},
-    "T2-TB-03": {"code": "DMR", "name": "Del Mar",           "base": "https://www.dmtc.com"},
-    "T2-TB-04": {"code": "OP",  "name": "Oaklawn",           "base": "https://www.oaklawn.com"},
-    "T2-TB-05": {"code": "FG",  "name": "Fair Grounds",      "base": "https://www.fairgroundsracecourse.com"},
-    "T2-TB-06": {"code": "MTH", "name": "Monmouth Park",     "base": "https://www.monmouthpark.com"},
-}
-
-T2_H_TRACKS = {
-    "T2-H-01": {"code": "MDL", "name": "Meadowlands",  "base": "https://playmeadowlands.com"},
-    "T2-H-02": {"code": "YON", "name": "Yonkers",       "base": "https://www.empirecitycasino.com"},
-    "T2-H-03": {"code": "HOO", "name": "Hoosier Park",  "base": "https://www.caesars.com/harrahs-hoosier-park"},
-}
-
-T3_TRACKS = {
-    "T3-02": {"code": "CD",  "name": "Churchill Downs", "base": "https://www.churchilldowns.com"},
-    "T3-03": {"code": "KEE", "name": "Keeneland",        "base": "https://www.keeneland.com"},
-}
+# Preserve roadmap task identifiers while sharing the verified source registry.
+T2_TB_TRACKS = {f"T2-TB-{i:02d}": {"code": code, **EXTRA_TRACKS[code]}
+                for i, code in enumerate(("GP", "SA", "DMR", "OP", "FG", "MTH"), 1)}
+T2_H_TRACKS = {f"T2-H-{i:02d}": {"code": code, **EXTRA_TRACKS[code]}
+               for i, code in enumerate(("MDL", "YON", "HOO"), 1)}
+T3_TRACKS = {f"T3-{i:02d}": {"code": code, **EXTRA_TRACKS[code]}
+             for i, code in enumerate(("CD", "KEE"), 2)}
 
 JSON_DISCOVERY_TARGETS = {
     "J-01": {"name": "Meadowlands",     "base": "https://playmeadowlands.com"},
-    "J-02": {"name": "Yonkers",          "base": "https://www.empirecitycasino.com"},
+    "J-02": {"name": "Yonkers",          "base": "https://empirecitycasino.mgmresorts.com"},
     "J-03": {"name": "Hoosier Park",    "base": "https://www.caesars.com/harrahs-hoosier-park"},
-    "J-04": {"name": "Scioto Downs",    "base": "https://www.sciotodowns.com"},
+    "J-04": {"name": "Scioto Downs",    "base": "https://www.caesars.com/scioto-downs"},
     "J-05": {"name": "Northfield Park", "base": "https://www.northfieldpark.com"},
     "J-06": {"name": "Pocono Downs",    "base": "https://www.caesars.com/mohegan-pennsylvania"},
     "J-07": {"name": "Harrah Philly",   "base": "https://www.caesars.com/harrahs-philadelphia"},
     "J-08": {"name": "Rosecroft",       "base": "https://www.rosecroft.com"},
-    "J-09": {"name": "Running Aces",    "base": "https://www.runningaces.com"},
+    "J-09": {"name": "Running Aces",    "base": "https://runaces.com"},
     "J-10": {"name": "Tioga Downs",     "base": "https://www.tiogadowns.com"},
     "J-11": {"name": "Vernon Downs",    "base": "https://www.vernondowns.com"},
     "J-12": {"name": "Plainridge Park", "base": "https://www.plainridgeparkcasino.com"},
@@ -82,8 +78,6 @@ JSON_DISCOVERY_TARGETS = {
     "J-14": {"name": "CDI family",      "base": "https://www.churchilldowns.com"},
     "J-15": {"name": "TVG/TwinSpires",  "base": "https://www.tvg.com"},
 }
-
-PROBE_PATHS = ["/racing/entries", "/"]
 
 COMMON_JSON_PATHS = [
     "/api/races", "/api/racecards", "/api/entries",
@@ -113,11 +107,15 @@ def _run(cmd: list, timeout_seconds: int = 300) -> dict:
             "timed_out": False,
         }
     except subprocess.TimeoutExpired as exc:
+        def tail(value):
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='replace')
+            return '\n'.join((value or '').splitlines()[-20:])
         return {
             "command": " ".join(cmd),
             "returncode": 124,
-            "stdout_tail": "\n".join((exc.stdout or "").splitlines()[-20:]) if exc.stdout else "",
-            "stderr_tail": "\n".join((exc.stderr or "").splitlines()[-20:]) if exc.stderr else "",
+            "stdout_tail": tail(exc.stdout),
+            "stderr_tail": tail(exc.stderr),
             "timed_out": True,
         }
 
@@ -215,80 +213,16 @@ def _run_nyra(date_str: str, force: bool) -> dict:
     return _run([sys.executable, "scripts/fetch_nyra_entries.py", "--date", date_str, "--tracks", "BEL", "AQU", "SAR"], timeout_seconds=180)
 
 
-async def _probe_one_track(page, task_id: str, item: dict, group: str, date_str: str, deadline: float):
-    code = item["code"]
-    name = item["name"]
-    base = item["base"].rstrip("/")
-    best = {"score": -999, "url": None, "sections": []}
-    tries = []
-
-    for path in PROBE_PATHS:
-        if time.monotonic() > deadline:
-            tries.append({"url": base + path, "error": "global_deadline_exceeded"})
-            break
-        url = base + path
-        try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=8000)
-            await page.wait_for_timeout(400)
-            text = await page.inner_text("body")
-            score = _quality_score(text)
-            tries.append({"url": url, "score": score, "char_count": len(text)})
-            if score > best["score"]:
-                best = {"score": score, "url": url, "sections": _extract_race_sections(text)}
-        except Exception as exc:
-            tries.append({"url": url, "error": str(exc)[:100]})
-
-    report_row = {
-        "task_id": task_id,
-        "group": group,
-        "track_code": code,
-        "track_name": name,
-        "best_score": best["score"],
-        "selected_url": best["url"],
-        "race_section_count": len(best["sections"]),
-        "pages_tried": tries,
-    }
-    races = _summary_to_races(code, name, date_str, best["url"] or base, best["sections"], f"{group.lower()}_tracksite")
-    return report_row, races
-
-
-async def _pull_track_group_parallel(group_name: str, tracks: dict, date_str: str, deadline: float):
-    from playwright.async_api import async_playwright
-
-    report_rows = []
-    merged_races = []
-
-    if time.monotonic() > deadline:
-        print(f"[SKIP] {group_name} - global deadline exceeded")
-        return report_rows, merged_races
-
-    print(f"[PROBE] {group_name} - {len(tracks)} tracks in parallel ...")
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        try:
-            pages = []
-            for _ in tracks:
-                ctx = await browser.new_context(user_agent=USER_AGENT, ignore_https_errors=True)
-                page = await ctx.new_page()
-                pages.append(page)
-
-            tasks = [
-                _probe_one_track(page, task_id, item, group_name, date_str, deadline)
-                for page, (task_id, item) in zip(pages, tracks.items())
-            ]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-
-            for result in results:
-                if isinstance(result, Exception):
-                    continue
-                row, races = result
-                report_rows.append(row)
-                merged_races.extend(races)
-        finally:
-            await browser.close()
-
-    return report_rows, merged_races
+async def _pull_track_group_parallel(group_name: str, tracks: dict, date_str: str):
+    """Collect actual dated provider cards, rather than parsing generic snippets."""
+    configs = {item["code"]: EXTRA_TRACKS[item["code"]] for item in tracks.values()}
+    records = await pull_tracks(configs, date_str)
+    report = [{"group": group_name, "track_code": r["track_code"],
+               "track_name": r["track_name"], "status": r["status"],
+               "pages_tried": r["attempts"], "race_section_count": len(r["racecards"])}
+              for r in records]
+    races = [race for record in records for race in record["racecards"]]
+    return report, races
 
 
 def _collect_existing_t1(date_str: str):
@@ -307,6 +241,17 @@ def _collect_existing_t1(date_str: str):
             continue
 
         tracks_obj = data.get("tracks", {})
+        if isinstance(tracks_obj, list) and all('status' in row for row in tracks_obj):
+            for row in tracks_obj:
+                source_rows.append({
+                    'group': group, 'track_code': row['track_code'],
+                    'track_name': row['track_name'], 'status': row['status'],
+                    'pages_tried': row.get('attempts', []),
+                    'race_section_count': len(row.get('racecards', [])),
+                })
+                if row['status'] == 'ok':
+                    races.extend(row.get('racecards', []))
+            continue
         if isinstance(tracks_obj, dict):
             items = [
                 (code, {
@@ -367,6 +312,10 @@ def _collect_t1_canonical_runner_races(date_str: str) -> list:
 
         grouped = {}
         for row in rows:
+            # Historical result rows and generic landing-page summaries are
+            # not entries for the requested race day.
+            if row.get('date') != date_str or row.get('event_type') != 'entries':
+                continue
             runner_name = (row.get("runner_name") or "").strip()
             if not runner_name:
                 continue
@@ -411,6 +360,9 @@ def _collect_t1_canonical_runner_races(date_str: str) -> list:
                 "jockey": (row.get("jockey") or "").strip(),
                 "trainer": (row.get("trainer") or "").strip(),
                 "weight": (row.get("weight") or row.get("weight_lbs") or ""),
+                "ml_odds": row.get("ml_odds") or "",
+                "driver": row.get("driver") or "",
+                "draw": row.get("draw") or "",
             })
 
         out.extend(grouped.values())
@@ -530,9 +482,6 @@ def main() -> None:
     t1_pipeline_result = _run_t1_pipeline(date_str, args.force)
     nyra_result = _run_nyra(date_str, args.force)
     print(f"  T1+NYRA elapsed: {time.monotonic()-t_start:.0f}s")
-    # Source pipelines can take several minutes; budget the browser probes
-    # from their own start rather than letting earlier work consume the budget.
-    playwright_deadline = time.monotonic() + 90
 
     t2_tb_report, t2_tb_races = [], []
     t2_h_report, t2_h_races = [], []
@@ -541,27 +490,30 @@ def main() -> None:
     if not args.no_playwright:
         try:
             t2_tb_report, t2_tb_races = asyncio.run(
-                _pull_track_group_parallel("T2-TB", T2_TB_TRACKS, date_str, playwright_deadline)
+                _pull_track_group_parallel("T2-TB", T2_TB_TRACKS, date_str)
             )
             print(f"  T2-TB: {len(t2_tb_races)} races  ({time.monotonic()-t_start:.0f}s)")
 
             t2_h_report, t2_h_races = asyncio.run(
-                _pull_track_group_parallel("T2-H", T2_H_TRACKS, date_str, playwright_deadline)
+                _pull_track_group_parallel("T2-H", T2_H_TRACKS, date_str)
             )
             print(f"  T2-H:  {len(t2_h_races)} races  ({time.monotonic()-t_start:.0f}s)")
 
             t3_report, t3_races = asyncio.run(
-                _pull_track_group_parallel("T3", T3_TRACKS, date_str, playwright_deadline)
+                _pull_track_group_parallel("T3", T3_TRACKS, date_str)
             )
             print(f"  T3:    {len(t3_races)} races  ({time.monotonic()-t_start:.0f}s)")
         except Exception as exc:
-            print(f"[WARN] Playwright probes failed: {exc}")
+            t3_report.append({'status': 'collection_error', 'error': str(exc)})
+            print(f"[WARN] Source collection failed: {exc}")
     else:
         print("[SKIP] Playwright probes (--no-playwright)")
 
     t1_rows, t1_races = _collect_existing_t1(date_str)
     t1_runner_races = _collect_t1_canonical_runner_races(date_str)
     if t1_runner_races:
+        direct_tracks = {r.get('track') for r in t1_races if r.get('runners')}
+        t1_runner_races = [r for r in t1_runner_races if r.get('track') not in direct_tracks]
         runner_tracks = {(r.get("track") or "").strip() for r in t1_runner_races}
         # Replace placeholder entries for tracks where we have canonical runner-level races.
         t1_races = [
@@ -575,11 +527,11 @@ def main() -> None:
     print(f"  NYRA races: {len(nyra_races)}")
     # Track landing pages are diagnostics, not racecards. Only publish actual
     # runner-bearing races so coverage checks cannot count empty placeholders.
-    nyra_races = [r for r in nyra_races if r.get('runners')]
-    t1_races = [r for r in t1_races if r.get('runners')]
-    t2_tb_races = [r for r in t2_tb_races if r.get('runners')]
-    t2_h_races = [r for r in t2_h_races if r.get('runners')]
-    t3_races = [r for r in t3_races if r.get('runners')]
+    nyra_races = [r for r in nyra_races if r.get('runners') and r.get('date') == date_str]
+    t1_races = [r for r in t1_races if r.get('runners') and r.get('date') == date_str]
+    t2_tb_races = [r for r in t2_tb_races if r.get('runners') and r.get('date') == date_str]
+    t2_h_races = [r for r in t2_h_races if r.get('runners') and r.get('date') == date_str]
+    t3_races = [r for r in t3_races if r.get('runners') and r.get('date') == date_str]
 
     json_discovery = None
     if args.discover:
@@ -591,9 +543,6 @@ def main() -> None:
     merged_races.extend(t2_tb_races)
     merged_races.extend(t2_h_races)
     merged_races.extend(t3_races)
-    for race in merged_races:
-        race["date"] = date_str
-
     source_counts = {
         "nyra_races": len(nyra_races),
         "t1_races": len(t1_races),
@@ -643,6 +592,8 @@ def main() -> None:
         "attempted_source_counts": attempted_source_counts,
         "fallback_used": fallback_used,
         "json_discovery_summary": json_discovery.get("summary") if json_discovery else None,
+        "collection_errors": [row for row in t1_rows + t2_tb_report + t2_h_report + t3_report
+                              if row.get('status') == 'collection_error'],
     }
     out_report = RAW_DIR / f"us_source_report_{date_str}.json"
     out_report.write_text(json.dumps(source_report, indent=2), encoding="utf-8")
@@ -658,7 +609,13 @@ def main() -> None:
     print(f"  -> {out_report.name}")
     print(f"{'='*60}\n")
     if attempted_source_counts['total_races'] == 0:
-        raise SystemExit('No fresh US races collected; inspect the saved source report')
+        collection_failed = any(result.get('returncode', 0) not in (0, 2)
+                                for result in (t1_pipeline_result, nyra_result))
+        collection_failed = collection_failed or any(
+            row.get('status') == 'collection_error'
+            for row in t1_rows + t2_tb_report + t2_h_report + t3_report)
+        print('No fresh US races collected; inspect the saved source report', file=sys.stderr)
+        raise SystemExit(1 if collection_failed else 2)
 
 
 if __name__ == "__main__":

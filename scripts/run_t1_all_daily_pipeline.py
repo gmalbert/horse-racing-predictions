@@ -20,6 +20,7 @@ import json
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -55,22 +56,23 @@ def _dates_from_args(date_arg: str | None, days: int) -> list[str]:
 def run_for_date(date_str: str) -> dict:
     py = sys.executable
 
-    # Thoroughbred
-    tb_step1 = _run([py, "scripts/pull_t1_tb_tracks.py", "--date", date_str])
-    tb_step2 = _run([py, "scripts/extract_t1_tb_pdf_artifacts.py", "--date", date_str])
-    tb_step3 = _run([py, "scripts/parse_t1_tb_tracksite.py", "--date", date_str, "--append"])
+    def breed_steps(group):
+        pull = _run([py, f"scripts/pull_t1_{group}_tracks.py", "--date", date_str])
+        extract = _run([py, f"scripts/extract_t1_{group}_pdf_artifacts.py", "--date", date_str])
+        parse = _run([py, f"scripts/parse_t1_{group}_tracksite.py", "--date", date_str, "--append"])
+        return pull, extract, parse
+
+    # Breeds write distinct paths. Run them concurrently so one site's timeout
+    # does not exhaust the all-sources parent's 420 second budget.
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        tb_future = pool.submit(breed_steps, "tb")
+        qh_future = pool.submit(breed_steps, "qh")
+        h_future = pool.submit(breed_steps, "h")
+        tb_step1, tb_step2, tb_step3 = tb_future.result()
+        qh_step1, qh_step2, qh_step3 = qh_future.result()
+        h_step1, h_step2, h_step3 = h_future.result()
     tb_ok = all(step["returncode"] == 0 for step in [tb_step1, tb_step2, tb_step3])
-
-    # Quarter Horse
-    qh_step1 = _run([py, "scripts/pull_t1_qh_tracks.py", "--date", date_str])
-    qh_step2 = _run([py, "scripts/extract_t1_qh_pdf_artifacts.py", "--date", date_str])
-    qh_step3 = _run([py, "scripts/parse_t1_qh_tracksite.py", "--date", date_str, "--append"])
     qh_ok = all(step["returncode"] == 0 for step in [qh_step1, qh_step2, qh_step3])
-
-    # Harness
-    h_step1 = _run([py, "scripts/pull_t1_h_tracks.py", "--date", date_str])
-    h_step2 = _run([py, "scripts/extract_t1_h_pdf_artifacts.py", "--date", date_str])
-    h_step3 = _run([py, "scripts/parse_t1_h_tracksite.py", "--date", date_str, "--append"])
     h_ok = all(step["returncode"] == 0 for step in [h_step1, h_step2, h_step3])
 
     return {
