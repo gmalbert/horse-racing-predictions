@@ -22,11 +22,16 @@ concurrency:
 
 jobs:
   export:
+    # PR validation has no published outputs on main. Export only successful
+    # production prediction runs, or an explicit scheduled/manual refresh.
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -48,13 +53,19 @@ jobs:
         run: python scripts/validate_web_data.py
 
       - name: Commit exported data
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: |
-            chore(web): refresh precomputed JSON for React frontend
-
-            ## Data refresh
-            - Export prediction cards, fixture calendars, historical statistics, and model summaries.
-            - Validate JSON integrity and coverage against the available pipeline outputs.
-            - Preserve source dates so historical data remains clearly labeled in the React app.
-          file_pattern: "web/frontend/public/data/**"
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/frontend/public/data
+          if git diff --staged --quiet; then
+            echo "No exported data changes"
+          else
+            git commit -m "chore(web): refresh precomputed JSON for React frontend" -m "## Data refresh
+          - Export prediction cards, fixture calendars, historical statistics, and model summaries.
+          - Validate JSON integrity and coverage against the available pipeline outputs.
+          - Preserve source dates so historical data remains clearly labeled in the React app.
+          - Rebase on main before pushing; keep synchronization failures fatal."
+            git pull --rebase --autostash origin main
+            git push origin HEAD:main
+          fi

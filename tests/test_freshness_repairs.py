@@ -120,8 +120,8 @@ def test_publication_does_not_push_development_work(tmp_path):
 
 
 @pytest.mark.parametrize('conflict', [False, True])
-@pytest.mark.parametrize('tomorrow_available', [False, True])
-def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict, tomorrow_available):
+@pytest.mark.parametrize('tomorrow_available,workflow_kind', [(False, 'us'), (True, 'us'), (False, 'export')])
+def test_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict, tomorrow_available, workflow_kind):
     """Run the actual publication shell against a remote that advanced during collection."""
     bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
             if sys.platform == 'win32' else shutil.which('bash'))
@@ -131,17 +131,23 @@ def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_pat
     def git(*args, cwd):
         return subprocess.check_output(['git', *args], cwd=cwd, text=True).strip()
 
-    workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/us_ingestion_guardrails.yml').read_text()
-    script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
-                             .split('        run: |\n', 1)[1])
-    for expression, value in [('steps.dates.outputs.today', '2026-10-23'),
-                              ('steps.tomorrow.outputs.available', str(tomorrow_available).lower()),
-                              ('steps.dates.outputs.tomorrow', '2026-10-24'), ('github.ref_name', 'main')]:
-        script = script.replace('${{ ' + expression + ' }}', value)
-    # The staging allowlist is also the expected published file set.
-    outputs = [line.split()[-1] for line in script.splitlines() if line.strip().startswith('git add ')]
-    assert 'data/processed/us_ingestion_validation_2026-10-24.json' in outputs
-    assert 'data/processed/us_ingestion_validation_2026-10-24.md' in outputs
+    if workflow_kind == 'export':
+        workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/export_web_data.yml').read_text()
+        script = textwrap.dedent(workflow.split('      - name: Commit exported data\n', 1)[1]\
+                                 .split('        run: |\n', 1)[1])
+        outputs = ['web/frontend/public/data/verified.json']
+    else:
+        workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/us_ingestion_guardrails.yml').read_text()
+        script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
+                                 .split('        run: |\n', 1)[1])
+        for expression, value in [('steps.dates.outputs.today', '2026-10-23'),
+                                  ('steps.tomorrow.outputs.available', str(tomorrow_available).lower()),
+                                  ('steps.dates.outputs.tomorrow', '2026-10-24'), ('github.ref_name', 'main')]:
+            script = script.replace('${{ ' + expression + ' }}', value)
+        # The staging allowlist is also the expected published file set.
+        outputs = [line.split()[-1] for line in script.splitlines() if line.strip().startswith('git add ')]
+        assert 'data/processed/us_ingestion_validation_2026-10-24.json' in outputs
+        assert 'data/processed/us_ingestion_validation_2026-10-24.md' in outputs
     published = [name for name in outputs if tomorrow_available or '2026-10-24' not in name]
     remote, source, other = (tmp_path / name for name in ['remote.git', 'source', 'other'])
     git('init', '--bare', str(remote), cwd=tmp_path)
@@ -183,7 +189,7 @@ def test_us_workflow_publication_with_dirty_collectors_and_remote_update(tmp_pat
     # A second run with unchanged outputs must also succeed without publishing side effects.
     result = subprocess.run([bash, '-e', '-c', script], cwd=source, env=env, text=True, capture_output=True)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert 'No US ingestion report changes to commit' in result.stdout
+    assert ('No exported data changes' if workflow_kind == 'export' else 'No US ingestion report changes to commit') in result.stdout
 
 
 @pytest.mark.parametrize('source_returncode', [0, 1])
