@@ -98,6 +98,133 @@ def _http_get(url):
     return response.status_code, response.url, response.text
 
 
+def _usta_postback(session, response, link, values=None):
+    """Submit the public ASP.NET form using its current server-issued state."""
+    soup = BeautifulSoup(response.text, 'html.parser')
+    target = re.search(r"__doPostBack\('([^']+)'", link.get('href', ''))
+    if target is None:
+        raise ValueError('USTA desktop navigation control is missing its form target')
+    data = {i['name']: i.get('value', '') for i in soup.select('input[type="hidden"][name]')}
+    data.update(values or {})
+    data.update(__EVENTTARGET=target.group(1), __EVENTARGUMENT='')
+    return session.post(response.url, data=data, timeout=(5, 10))
+
+
+def _usta_desktop(cfg, date_str):
+    """Independent desktop host fallback when the mobile host is unreachable."""
+    attempts = []
+    with requests.Session() as session:
+        session.headers['User-Agent'] = USER_AGENT
+        response = None
+
+        def inspect(phase):
+            response.encoding = response.apparent_encoding or response.encoding
+            kind = error_kind('', response.status_code, soup_text(response.text)) if response.status_code >= 400 else None
+            attempts.append({'url': response.url, 'final_url': response.url, 'transport': 'usta-desktop',
+                             'phase': phase, 'status_code': response.status_code, 'error_kind': kind,
+                             'error': None})
+            response.raise_for_status()
+            if any(marker in soup_text(response.text).lower() for marker in BLOCK_MARKERS):
+                raise ValueError('USTA desktop returned an access-denied page')
+            return BeautifulSoup(response.text, 'html.parser')
+
+        try:
+            response = session.get('https://racing.ustrotting.com/default.aspx', timeout=(5, 10))
+            soup = inspect('track search')
+            select = soup.select_one('select[id$="ddlsearchtrack_pm"]')
+            link = soup.select_one('a[id$="lnkbtnsearchtrack_pm"]')
+            if select is None or link is None:
+                raise ValueError('USTA desktop track search markup is unrecognized')
+            if not any(o.get('value') == cfg['usta'] for o in select.select('option')):
+                # An absent track is not proof that the requested date has no card.
+                raise ValueError('Track absent from USTA desktop search')
+            response = _usta_postback(session, response, link, {select['name']: cfg['usta']})
+            soup = inspect('dated card selection')
+            candidates = [a for a in soup.select('a[href]') if 'lnkbtnrace_card' in a.get('href', '')
+                          and contains_date(a.get_text(' ', strip=True), date_str)
+                          and '(Qua)' not in a.find_parent('tr').get_text(' ', strip=True)]
+            if not candidates:
+                if soup.select('a[id*="lnkbtnrace_card"]'):
+                    return {'html': '', 'url': response.url, 'status': 'not_listed', 'attempts': attempts}
+                raise ValueError('USTA desktop card list markup is unrecognized')
+            response = _usta_postback(session, response, candidates[0])
+            soup = inspect('card summary')
+            expected_races = []
+            for row in soup.select('tr'):
+                link = row.select_one('a[id*="lnkbtnrace_chart"]')
+                if link is not None and re.search(r'\bENTRIES\b', row.get_text(' ', strip=True)):
+                    match = re.search(r'Race\s+(\d+)', link.get_text(' ', strip=True), re.I)
+                    if match:
+                        expected_races.append(int(match.group(1)))
+            link = soup.select_one('a[id$="lnkbtnViewCard"]')
+            if link is None:
+                raise ValueError('USTA desktop full-card link is missing')
+            response = _usta_postback(session, response, link)
+            inspect('full card')
+            return {'html': response.text, 'url': response.url, 'status': 'ok', 'attempts': attempts,
+                    'expected_races': expected_races}
+        except Exception as exc:
+            final_url = response.url if response is not None else 'https://racing.ustrotting.com/default.aspx'
+            attempts.append({'url': final_url, 'transport': 'usta-desktop', 'status_code': None,
+                             'error_kind': error_kind(str(exc)), 'error': str(exc)})
+            return {'html': '', 'url': final_url, 'status': 'collection_error', 'attempts': attempts}
+
+
+def _parse_usta_desktop(html, url, code, cfg, date_str):
+    """Read desktop entries by named columns; completed charts lack ML headers."""
+    soup = BeautifulSoup(html, 'html.parser')
+    races, current, columns = [], None, {}
+    for tag in soup.find_all(['b', 'tr']):
+        if tag.name == 'b':
+            heading = clean(tag.get_text(' ', strip=True))
+            match = re.match(r'RACE\s+(\d+)\s+-\s+', heading, re.I)
+            if match:
+                current, columns = None, {}
+                if not contains_date(heading, date_str):
+                    continue
+                words = re.sub(r'[^a-z0-9]+', ' ', cfg['name'].lower()).split()
+                if not all(w in heading.lower() for w in words if w not in {'raceway', 'racing'}):
+                    continue
+                info = tag.find_parent(class_='chartheaderinfo')
+                metadata = clean(info.get_text(' ', strip=True)) if info else ''
+                post = re.search(r'Post\s*(?:&nbsp)?Time:\s*(?:&nbsp)?(\d{1,2}:\d{2}\s*[AP]M)', metadata, re.I)
+                current = {'race': f'Race {match.group(1)}', 'race_number': int(match.group(1)),
+                           'race_name': f'Race {match.group(1)}', 'race_time': post.group(1) if post else '',
+                           'distance': '1 mile', 'surface': '', 'type': 'Harness', 'date': date_str,
+                           'track': code, 'course': cfg['name'], 'source': 'USTA-entries',
+                           'source_url': url, 'runners': []}
+                races.append(current)
+            continue
+        if current is None:
+            continue
+        cells = tag.find_all(['td', 'th'], recursive=False)
+        labels = [clean(c.get_text(' ', strip=True)).lower() for c in cells]
+        if {'pp', 'horse', 'driver', 'trainer', 'ml'}.issubset(labels):
+            columns, index = {}, 0
+            for cell, label in zip(cells, labels):
+                columns[label] = index
+                index += int(cell.get('colspan', 1))
+            continue
+        if not {'datagriditem', 'datagridaltitem'}.intersection(tag.get('class', [])) or not columns:
+            continue
+        def value(name):
+            index = columns[name]
+            if index >= len(cells):
+                return ''
+            # Alternate drivers appear below the named primary driver.
+            link = cells[index].find('a')
+            return clean((link or cells[index]).get_text(' ', strip=True))
+        number, horse = value('pp'), value('horse')
+        if not re.fullmatch(r'\d+[A-Z]?', number, re.I) or not horse:
+            continue
+        if re.search(r'\b(?:scratched|scr)\b', tag.get_text(' ', strip=True), re.I):
+            continue
+        current['runners'].append({'number': number, 'horse': horse, 'draw': number,
+                                   'jockey': value('driver'), 'driver': value('driver'),
+                                   'trainer': value('trainer'), 'ml_odds': value('ml'), 'weight': ''})
+    return [r for r in races if r['runners']]
+
+
 async def fetch_page(context, url):
     """HTTP/1.1 first; fresh browser tab per retry, always closed after failure."""
     attempts = []
@@ -235,6 +362,22 @@ async def collect_track(context, code, cfg, date_str, *, attempts=None):
         attempts.extend(page["attempts"])
         documents.append(page)
         if page["error_kind"]:
+            if cfg.get('usta') and 'm.ustrotting.com/entriesandresults/tracklist.cfm' in url:
+                desktop = await asyncio.to_thread(_usta_desktop, cfg, date_str)
+                attempts.extend(desktop['attempts'])
+                parsed = _parse_usta_desktop(desktop['html'], desktop['url'], code, cfg, date_str)
+                missing = set(desktop.get('expected_races', [])) - {r['race_number'] for r in parsed}
+                if missing:
+                    attempts.append({'url': desktop['url'], 'transport': 'usta-desktop',
+                                     'error_kind': 'incomplete_card', 'error': f'Missing published races: {sorted(missing)}'})
+                    parsed = []
+                if parsed:
+                    races = parsed
+                    documents.append({'url': desktop['url'], 'html': desktop['html'],
+                                      'text': soup_text(desktop['html']), 'status_code': 200, 'error_kind': None})
+                    break
+                if desktop['status'] == 'not_listed':
+                    provider_not_listed = True
             if page["error_kind"] == "not_found" and "/static/entry/" in url:
                 provider_not_listed = True
             continue

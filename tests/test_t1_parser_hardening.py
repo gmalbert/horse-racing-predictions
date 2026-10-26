@@ -750,3 +750,74 @@ def test_one_track_exception_does_not_cancel_other_tracks(monkeypatch, failure_t
     assert records[0]['attempts'][0]['phase'] == 'provider request'
     assert records[0]['attempts'][-1]['error_kind'] == ('timeout' if failure_type is asyncio.TimeoutError else 'collector')
     assert all(c.closed for c in contexts)
+
+
+DESKTOP_CARD = """<div class="chartheaderinfo"><b>RACE 1 - Plainridge Park - MA - October 26, 2026</b>
+Post Time: 2:00 PM</div><table>
+<tr><td>PP</td><td>Horse</td><td colspan="6">2026 North America YTD</td><td>Driver</td><td>Trainer</td><td>ML</td></tr>
+<tr class="datagriditem"><td>1</td><td>First Pacer</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td><a>Primary Driver</a><br>Alternate Driver</td><td>A Trainer</td><td>9-2</td></tr>
+<tr class="datagridaltitem"><td>2</td><td>Second Pacer</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td>B Driver</td><td>B Trainer</td><td>5-1</td></tr>
+<tr class="datagriditem"><td>3</td><td>Scratched Horse</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+<td>C Driver</td><td>C Trainer</td><td>SCR</td></tr></table>"""
+
+
+def test_desktop_card_keeps_alternating_rows_and_primary_driver():
+    races = collector._parse_usta_desktop(DESKTOP_CARD, 'https://racing.ustrotting.com/chart.aspx',
+                                           'PLN', ALL_TRACKS['PLN'], '2026-10-26')
+    assert len(races) == 1 and len(races[0]['runners']) == 2
+    assert races[0]['runners'][0]['driver'] == 'Primary Driver'
+    assert races[0]['runners'][1]['ml_odds'] == '5-1'
+    assert races[0]['race_time'] == '2:00 PM'
+
+
+@pytest.mark.parametrize('html', [DESKTOP_CARD.replace('October 26', 'October 25'),
+                                 DESKTOP_CARD.replace('Plainridge Park', 'Yonkers'),
+                                 DESKTOP_CARD.replace('<td>ML</td>', '<td>Finish</td>')])
+def test_desktop_rejects_wrong_provenance_and_results(html):
+    assert collector._parse_usta_desktop(html, 'https://racing.ustrotting.com/chart.aspx',
+                                         'PLN', ALL_TRACKS['PLN'], '2026-10-26') == []
+
+
+def test_mobile_timeout_recovers_from_desktop_card(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_usta_desktop', lambda cfg, day: {
+        'html': DESKTOP_CARD, 'url': 'https://racing.ustrotting.com/chart.aspx', 'status': 'ok',
+        'attempts': [{'transport': 'usta-desktop', 'status_code': 200}], 'expected_races': [1]})
+    record = asyncio.run(collector.collect_track(None, 'PLN', ALL_TRACKS['PLN'], '2026-10-26'))
+    assert record['status'] == 'ok' and len(record['racecards'][0]['runners']) == 2
+    assert record['attempts'][0]['error_kind'] == 'timeout'
+    assert record['attempts'][1]['transport'] == 'usta-desktop'
+
+
+def test_desktop_partial_card_is_not_published(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_usta_desktop', lambda cfg, day: {
+        'html': DESKTOP_CARD, 'url': 'https://racing.ustrotting.com/chart.aspx', 'status': 'ok',
+        'attempts': [], 'expected_races': [1, 2]})
+    record = asyncio.run(collector.collect_track(None, 'PLN', ALL_TRACKS['PLN'], '2026-10-26'))
+    assert record['status'] == 'collection_error' and record['racecards'] == []
+    assert any(a.get('error_kind') == 'incomplete_card' for a in record['attempts'])
+
+
+def test_desktop_form_retains_server_state_and_uses_observed_target():
+    class Response:
+        url = 'https://racing.ustrotting.com/default.aspx'
+        text = '<input type="hidden" name="__VIEWSTATE" value="server-state">'
+    class Session:
+        def post(self, url, **kwargs):
+            assert url == Response.url
+            assert kwargs['data'] == {'__VIEWSTATE': 'server-state', '__EVENTTARGET': 'selectTrack',
+                                      '__EVENTARGUMENT': '', 'track': 'PRc'}
+            assert kwargs['timeout'] == (5, 10)
+            return 'response'
+    from bs4 import BeautifulSoup
+    link = BeautifulSoup("<a href=\"javascript:__doPostBack('selectTrack','')\">Go</a>", 'html.parser').a
+    assert collector._usta_postback(Session(), Response(), link, {'track': 'PRc'}) == 'response'

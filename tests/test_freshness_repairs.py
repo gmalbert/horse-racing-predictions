@@ -270,3 +270,15 @@ def test_tomorrow_fetch_defers_only_no_fresh_cards(tmp_path, collector_status):
         assert 'continue-on-error: true' not in step
     today = next(step for step in steps if step.startswith('Validate US ingestion guardrails\n'))
     assert 'continue-on-error: true' not in today
+
+
+@pytest.mark.parametrize('status,has_harness,expected', [
+    ('collection_error', False, False), ('collection_error', True, True), ('not_listed', False, True),
+])
+def test_thoroughbred_volume_cannot_mask_total_harness_source_failure(status, has_harness, expected):
+    report = {'groups': {'T1': [{'group': 'T1-H', 'track_code': 'PLN', 'status': status}]}}
+    payload = {'racecards': [{'type': 'Thoroughbred', 'runners': [{'horse': 'A'}]}] * 17}
+    if has_harness:
+        payload['racecards'].append({'type': 'Harness', 'runners': [{'horse': 'Pacer'}]})
+    checks = guardrails._harness_source_checks(report, payload)
+    assert len(checks) == 1 and checks[0]['ok'] is expected
