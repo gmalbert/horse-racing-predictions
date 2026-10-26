@@ -866,3 +866,56 @@ def test_desktop_flow_selects_full_date_and_only_advertised_entry_rows(monkeypat
     assert targets == ['search', 'lnkbtnrace_card26', 'full']
     assert result['expected_races'] == [2]
     assert result['html'] == DESKTOP_CARD and len(result['attempts']) == 4
+
+
+@pytest.fixture(autouse=True)
+def no_live_drf_requests_in_offline_tests(monkeypatch):
+    monkeypatch.setattr(collector, '_drf_harness', lambda cfg, code, date: {
+        'status': 'collection_error', 'races': [], 'attempts': [], 'url': 'https://harness.drf.com/'})
+
+
+DRF_CARD = {'isData': True, 'weather': {'trackId': 'YR'}, 'races': [{
+    'raceKey': {'trackId': 'YR', 'country': 'USA', 'raceNumber': 1},
+    'selectedDate': '10-26-2026', 'postTimeLong': 1793054700000, 'postTime': '6:45 PM',
+    'raceTypeDescription': 'ONE MILE | Purse: $15,000 | PACE', 'surfaceDescription': 'Dirt',
+    'runners': [{'horseName': 'Test Pacer', 'programNumber': '1', 'postPos': '2',
+                 'morningLineOdds': '9-5', 'scratchIndicator': '',
+                 'jockey': {'firstName': 'Colin', 'lastName': 'Kelly'},
+                 'trainer': {'firstName': 'Petter', 'lastName': 'Engblom'}},
+                {'horseName': 'Scratched', 'programNumber': '2', 'scratchIndicator': 'Y'}]}]}
+
+
+def test_drf_harness_preserves_identity_odds_and_actual_date():
+    races = collector._parse_drf_harness(DRF_CARD, 'YR', 'YON', ALL_TRACKS['YON'],
+                                          '2026-10-26', 'https://harness.drf.com/entries/entryDetails/id/YR')
+    assert len(races) == 1 and len(races[0]['runners']) == 1
+    assert races[0]['runners'][0]['driver'] == 'Colin Kelly'
+    assert races[0]['runners'][0]['trainer'] == 'Petter Engblom'
+    assert races[0]['runners'][0]['ml_odds'] == '9-5'
+    assert races[0]['purse'] == '15,000' and races[0]['type'] == 'Harness'
+
+
+@pytest.mark.parametrize('field,value', [('selectedDate', '10-27-2026'),
+    ('postTimeLong', 1793141100000), ('hasResults', True), ('isCancelled', True)])
+def test_drf_harness_rejects_wrong_dates_or_completed_cards(field, value):
+    import copy
+    payload = copy.deepcopy(DRF_CARD);payload['races'][0][field] = value
+    assert collector._parse_drf_harness(payload, 'YR', 'YON', ALL_TRACKS['YON'],
+                                         '2026-10-26', 'https://harness.drf.com/') == []
+
+
+def test_usta_timeout_uses_independent_provider_before_desktop(monkeypatch):
+    async def timeout(context, url):
+        return {'url': url, 'status_code': None, 'html': '', 'text': '', 'error_kind': 'timeout',
+                'attempts': [{'url': url, 'error_kind': 'timeout'}]}
+    races = collector._parse_drf_harness(DRF_CARD, 'YR', 'YON', ALL_TRACKS['YON'],
+                                          '2026-10-26', 'https://harness.drf.com/')
+    monkeypatch.setattr(collector, 'fetch_page', timeout)
+    monkeypatch.setattr(collector, '_drf_harness', lambda *args: {
+        'status': 'ok', 'races': races, 'url': 'https://harness.drf.com/',
+        'attempts': [{'transport': 'drf-harness', 'status_code': 200}]})
+    def unexpected(*args): raise AssertionError('No USTA desktop request after independent success')
+    monkeypatch.setattr(collector, '_usta_desktop', unexpected)
+    record = asyncio.run(collector.collect_track(None, 'YON', ALL_TRACKS['YON'], '2026-10-26'))
+    assert record['status'] == 'ok' and record['racecards'] == races
+    assert record['attempts'][-1]['transport'] == 'drf-harness'

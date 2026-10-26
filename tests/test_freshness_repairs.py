@@ -282,3 +282,15 @@ def test_thoroughbred_volume_cannot_mask_total_harness_source_failure(status, ha
         payload['racecards'].append({'type': 'Harness', 'runners': [{'horse': 'Pacer'}]})
     checks = guardrails._harness_source_checks(report, payload)
     assert len(checks) == 1 and checks[0]['ok'] is expected
+
+
+
+def test_independent_fallback_verification_cannot_pass_zero_tracks(tmp_path, monkeypatch):
+    import check_us_harness_fallback as checker
+    raw = tmp_path/'data/raw';raw.mkdir(parents=True)
+    (raw/'us_racecards_2026-10-26.json').write_text(json.dumps({'date': '2026-10-26', 'racecards': []}))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, 'argv', ['fallback-check', '--date', '2026-10-26'])
+    assert checker.main() == 1
+    report = json.loads((raw/'us_harness_fallback_check_2026-10-26.json').read_text())
+    assert report['status'] == 'FAIL' and report['tracks'] == []

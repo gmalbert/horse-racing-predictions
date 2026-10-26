@@ -61,7 +61,7 @@ jobs:
           echo "Building US racecards and source report for ${{ steps.dates.outputs.today }}"
           python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }} --force
 
-      - name: Verify desktop harness fallback on GitHub
+      - name: Verify independent harness fallback on GitHub
         if: github.event_name == 'pull_request'
         run: python scripts/check_us_harness_fallback.py --date ${{ steps.dates.outputs.today }}
 

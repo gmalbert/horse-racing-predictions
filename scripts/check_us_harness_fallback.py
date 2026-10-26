@@ -1,4 +1,4 @@
-"""Verify desktop USTA coverage independently of a working mobile feed in CI."""
+"""Verify an independent harness provider even when USTA works in CI."""
 from __future__ import annotations
 
 import argparse
@@ -7,17 +7,17 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 
-from us_track_collector import _usta_desktop, _parse_usta_desktop
+from us_track_collector import _drf_harness
 from us_track_sources import ALL_TRACKS
 
 
 def check_track(item, date_str):
     code, expected = item
     cfg = ALL_TRACKS[code]
-    response = _usta_desktop(cfg, date_str)
-    races = _parse_usta_desktop(response['html'], response['url'], code, cfg, date_str)
+    response = _drf_harness(cfg, code, date_str)
+    races = response['races']
     actual = {r['race_number'] for r in races}
-    required = expected | set(response.get('expected_races', []))
+    required = expected
     return {'track': code, 'status': 'PASS' if response['status'] == 'ok' and required <= actual else 'FAIL',
             'expected_races': sorted(required), 'collected_races': sorted(actual),
             'runners': sum(len(r['runners']) for r in races), 'attempts': response['attempts']}
@@ -31,7 +31,7 @@ def main():
     raw = Path('data/raw')
     cards = json.loads((raw / f'us_racecards_{args.date}.json').read_text(encoding='utf-8'))
     if cards.get('date') != args.date or cards.get('fallback_used'):
-        raise SystemExit('Desktop verification requires fresh cards for the requested date')
+        raise SystemExit('Fallback verification requires fresh cards for the requested date')
     expected = {}
     for race in cards.get('racecards', []):
         if race.get('type') == 'Harness' and race.get('runners'):
@@ -39,12 +39,12 @@ def main():
     with ThreadPoolExecutor(max_workers=3) as pool:
         tracks = list(pool.map(lambda item: check_track(item, args.date), expected.items()))
     report = {'date': args.date, 'generated_at_utc': datetime.now(timezone.utc).isoformat(),
-              'status': 'PASS' if all(t['status'] == 'PASS' for t in tracks) else 'FAIL', 'tracks': tracks}
+              'status': 'PASS' if tracks and all(t['status'] == 'PASS' for t in tracks) else 'FAIL', 'tracks': tracks}
     path = raw / f'us_harness_fallback_check_{args.date}.json'
     path.write_text(json.dumps(report, indent=2), encoding='utf-8')
     for track in tracks:
-        print(f"{track['track']}: desktop {track['status']}, {len(track['collected_races'])} races, {track['runners']} runners")
-    print(f"Desktop fallback verification: {report['status']} ({len(tracks)} tracks); {path}")
+        print(f"{track['track']}: independent provider {track['status']}, {len(track['collected_races'])} races, {track['runners']} runners")
+    print(f"Independent fallback verification: {report['status']} ({len(tracks)} tracks); {path}")
     return 0 if report['status'] == 'PASS' else 1
 
 

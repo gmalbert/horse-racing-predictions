@@ -104,3 +104,18 @@ October 26. GitHub-runner verification is recorded in the follow-up PR.
 The ingestion validator rejects complete harness-source loss even if
 thoroughbred volume meets its thresholds; confirmed unlisted dates remain
 valid empty coverage for that source group.
+
+
+A later GitHub runner could reach neither USTA host. Therefore USTA desktop
+is a tertiary recovery path, and the public JSON used by DRF Harness entry
+pages is now the independent provider fallback after a mobile failure.
+Its track is selected from the provider's dated track list. Each race must
+match the requested track, selected full date, and actual post timestamp
+converted to America/New_York. Completed/cancelled races and scratches are
+excluded; morning-line odds, full driver/trainer names, and runner positions
+are retained. This avoids depending on Equibase's harness mirror, which does
+not carry morning-line odds.
+
+The pull-request verification directly calls this independent provider for
+every collected harness track and compares race numbers. Zero tracks is a
+failure, so a skipped comparison cannot be reported as successful recovery.

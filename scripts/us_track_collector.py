@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import urljoin, urlparse
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 import requests
@@ -96,6 +97,89 @@ def _http_get(url):
     response = requests.get(url, timeout=(8, 15), headers={"User-Agent": USER_AGENT})
     response.encoding = response.apparent_encoding or response.encoding
     return response.status_code, response.url, response.text
+
+
+def _parse_drf_harness(payload, track_id, code, cfg, date_str, url):
+    """Validate DRF's public entry-page data against track and actual post date."""
+    stamp = datetime.strptime(date_str, '%Y-%m-%d').strftime('%m-%d-%Y')
+    if payload.get('weather', {}).get('trackId') != track_id or not payload.get('isData'):
+        return []
+    races = []
+    for race in payload.get('races', []):
+        key = race.get('raceKey') or {}
+        if race.get('isCancelled') or race.get('hasResults') or race.get('hasFinished'):
+            continue
+        # selectedDate alone can echo a request. The actual post timestamp must
+        # also agree; DRF's legacy raceKey.raceDate serialization is unreliable.
+        post_ms = race.get('postTimeLong')
+        if (key.get('trackId') != track_id or key.get('country') != 'USA'
+                or race.get('selectedDate') != stamp or not isinstance(post_ms, (int, float))):
+            return []
+        actual_day = datetime.fromtimestamp(post_ms / 1000, timezone.utc).astimezone(ZoneInfo('America/New_York')).date()
+        if actual_day.isoformat() != date_str:
+            return []
+        runners = []
+        for runner in race.get('runners') or []:
+            if runner.get('scratchIndicator'):
+                continue
+            horse = clean(runner.get('horseName') or '')
+            number = str(runner.get('programNumber') or '').strip()
+            if not horse or not re.fullmatch(r'\d+[A-Z]?', number, re.I):
+                continue
+            def person(field):
+                name = runner.get(field) or {}
+                return clean(' '.join(str(name.get(part) or '') for part in ('firstName', 'middleName', 'lastName')))
+            driver = person('jockey')
+            runners.append({'horse': horse, 'number': number, 'draw': str(runner.get('postPos') or ''),
+                            'jockey': driver, 'driver': driver, 'trainer': person('trainer'),
+                            'ml_odds': str(runner.get('morningLineOdds') or ''), 'weight': ''})
+        if not runners:
+            return []
+        description = race.get('raceTypeDescription') or ''
+        purse = re.search(r'Purse:\s*\$([\d,]+)', description, re.I)
+        distance = clean(description.split('|', 1)[0])
+        if distance.upper() == 'ONE MILE':
+            distance = '1 mile'
+        races.append({'race': f"Race {key['raceNumber']}", 'race_number': key['raceNumber'],
+                      'race_name': race.get('raceName') or f"Race {key['raceNumber']}",
+                      'race_time': race.get('postTime') or '', 'date': date_str, 'track': code,
+                      'course': cfg['name'], 'type': 'Harness', 'distance': distance,
+                      'surface': race.get('surfaceDescription') or '', 'race_class': race.get('raceClass') or '',
+                      'purse': purse.group(1) if purse else '', 'source': 'DRF-Harness-entries',
+                      'source_url': url, 'runners': runners})
+    return races
+
+
+def _drf_harness(cfg, code, date_str):
+    """Independent provider: the public JSON used by DRF's harness entry page."""
+    stamp = datetime.strptime(date_str, '%Y-%m-%d').strftime('%m-%d-%Y')
+    url = f'https://harness.drf.com/entries/tracks/date/{stamp}'
+    attempts = []
+    try:
+        response = requests.get(url, timeout=(5, 12), headers={'User-Agent': USER_AGENT})
+        attempts.append({'url': url, 'transport': 'drf-harness', 'status_code': response.status_code})
+        response.raise_for_status()
+        listing = response.json()
+        ignored = {'park', 'raceway', 'racecourse', 'racing', 'harrahs', 'harrah', 's'}
+        words = set(re.sub(r'[^a-z0-9]+', ' ', cfg['name'].lower()).split()) - ignored
+        tracks = [t for t in listing.get('trackList', []) if t.get('country') == 'USA'
+                  and words <= set(re.sub(r'[^a-z0-9]+', ' ', t.get('trackName', '').lower()).split())]
+        if len(tracks) != 1:
+            if not tracks and stamp in listing.get('dates', []):
+                return {'status': 'not_listed', 'races': [], 'url': url, 'attempts': attempts}
+            raise ValueError('DRF harness listing has no unique matching track')
+        track_id = tracks[0]['trackId']
+        url = f'https://harness.drf.com/entries/entryDetails/id/{track_id}/country/USA/date/{stamp}'
+        response = requests.get(url, timeout=(5, 12), headers={'User-Agent': USER_AGENT})
+        attempts.append({'url': url, 'transport': 'drf-harness', 'status_code': response.status_code})
+        response.raise_for_status()
+        races = _parse_drf_harness(response.json(), track_id, code, cfg, date_str, url)
+        if not races:
+            raise ValueError('DRF card failed dated runner validation')
+        return {'status': 'ok', 'races': races, 'url': url, 'attempts': attempts}
+    except Exception as exc:
+        attempts.append({'url': url, 'transport': 'drf-harness', 'error_kind': error_kind(str(exc)), 'error': str(exc)})
+        return {'status': 'collection_error', 'races': [], 'url': url, 'attempts': attempts}
 
 
 def _usta_postback(session, response, link, values=None):
@@ -363,6 +447,15 @@ async def collect_track(context, code, cfg, date_str, *, attempts=None):
         documents.append(page)
         if page["error_kind"]:
             if cfg.get('usta') and 'm.ustrotting.com/entriesandresults/tracklist.cfm' in url:
+                independent = await asyncio.to_thread(_drf_harness, cfg, code, date_str)
+                attempts.extend(independent['attempts'])
+                if independent['races']:
+                    races = independent['races']
+                    documents.append({'url': independent['url'], 'html': '',
+                                      'text': json.dumps(races), 'status_code': 200, 'error_kind': None})
+                    break
+                if independent['status'] == 'not_listed':
+                    provider_not_listed = True
                 desktop = await asyncio.to_thread(_usta_desktop, cfg, date_str)
                 attempts.extend(desktop['attempts'])
                 parsed = _parse_usta_desktop(desktop['html'], desktop['url'], code, cfg, date_str)
