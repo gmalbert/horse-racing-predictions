@@ -49,6 +49,9 @@ jobs:
       - name: Export precomputed JSON
         run: python scripts/export_web_data.py --history 14
 
+      - name: Export current GB and US grid picks
+        run: python scripts/export_best_bets.py
+
       - name: Validate exported data
         run: python scripts/validate_web_data.py
 
@@ -57,7 +60,7 @@ jobs:
           set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/frontend/public/data
+          git add web/frontend/public/data data_files/best_bets_today.json
           if git diff --staged --quiet; then
             echo "No exported data changes"
           else
