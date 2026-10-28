@@ -135,7 +135,7 @@ def test_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, 
         workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/export_web_data.yml').read_text()
         script = textwrap.dedent(workflow.split('      - name: Commit exported data\n', 1)[1]\
                                  .split('        run: |\n', 1)[1])
-        outputs = ['web/frontend/public/data/verified.json']
+        outputs = ['web/frontend/public/data/verified.json', 'data_files/best_bets_today.json']
     else:
         workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/us_ingestion_guardrails.yml').read_text()
         script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
