@@ -1,6 +1,6 @@
 {
   "date": "2026-10-28",
-  "generated_at_utc": "2026-10-27T12:12:40.314099+00:00",
+  "generated_at_utc": "2026-10-28T12:51:52.405299+00:00",
   "status": "PASS",
   "checks": [
     {
@@ -21,12 +21,12 @@
     {
       "name": "min_total_runners",
       "ok": true,
-      "message": "812 >= 50"
+      "message": "814 >= 50"
     },
     {
       "name": "min_ml_odds_coverage",
       "ok": true,
-      "message": "100.0% >= 50.0%"
+      "message": "97.1% >= 50.0%"
     },
     {
       "name": "coverage_drift_guard",
@@ -46,10 +46,10 @@
   ],
   "metrics": {
     "total_races": 95,
-    "total_runners": 812,
+    "total_runners": 814,
     "unique_tracks": 10,
-    "runners_with_ml_odds": 812,
-    "ml_odds_coverage": 1.0,
+    "runners_with_ml_odds": 790,
+    "ml_odds_coverage": 0.9705159705159705,
     "historical_median_total_races": 51.0
   },
   "alerts": []

@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-28",
+  "generated_at_utc": "2026-10-28T12:51:52.537391+00:00",
+  "sources": {
+    "us_racecards": {
+      "path": "data/raw/us_racecards_2026-10-28.json",
+      "available": true,
+      "races": 95,
+      "coverage": 0.9705159705159705,
+      "total_runners": 814,
+      "runners_with_odds": 790
+    },
+    "nyra_entries": {
+      "path": "data/raw/nyra_entries_2026-10-28.json",
+      "available": true,
+      "races": 8,
+      "coverage": 1.0,
+      "total_runners": 72,
+      "runners_with_odds": 72
+    },
+    "oddsportal": {
+      "path": "data/raw/oddsportal_us_2026-10-28.json",
+      "available": false,
+      "races": 0,
+      "coverage": 0.0
+    }
+  },
+  "fallback_hierarchy": [
+    "1) us_racecards_<date>.json (TVG/graphql ml_odds)",
+    "2) nyra_entries_<date>.json (NYRA ml_odds where available)",
+    "3) oddsportal_us_<date>.json (major stakes only)",
+    "4) last-known odds snapshot from previous day (stale flag required)"
+  ],
+  "alerts": [],
+  "status": "PASS"
+}
