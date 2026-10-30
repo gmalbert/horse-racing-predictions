@@ -195,8 +195,9 @@ def enrich_race(grp: pd.DataFrame) -> dict:
 def race_key(df: pd.DataFrame) -> pd.Series:
     race_name = df["race_name"] if "race_name" in df.columns else pd.Series([""] * len(df), index=df.index)
     return (
-        df["course"].astype(str) + "|" + df["race_time"].astype(str) + "|"
-        + race_name.astype(str)
+        df["course"].astype("string").fillna("") + "|"
+        + df["race_time"].astype("string").fillna("") + "|"
+        + race_name.astype("string").fillna("")
     )
 
 

@@ -1,0 +1,46 @@
+# Local collector VPNs; independent of the web application's compose.yaml.
+name: horse-racing-vpn
+
+x-vpn: &vpn
+  image: qmcgaw/gluetun:v3.41.0
+  cap_add: [NET_ADMIN]
+  devices: [/dev/net/tun:/dev/net/tun]
+  restart: unless-stopped
+  environment:
+    VPN_SERVICE_PROVIDER: custom
+    VPN_TYPE: wireguard
+    HTTPPROXY: "on"
+    HTTPPROXY_LOG: "off"
+    FIREWALL: "on"
+
+services:
+  racecards:
+    <<: *vpn
+    ports: ["127.0.0.1:18881:8888"]
+    volumes:
+      - type: bind
+        source: ./local/vpn/racecards.conf
+        target: /gluetun/wireguard/wg0.conf
+        read_only: true
+        bind:
+          create_host_path: false
+  odds:
+    <<: *vpn
+    ports: ["127.0.0.1:18882:8888"]
+    volumes:
+      - type: bind
+        source: ./local/vpn/odds.conf
+        target: /gluetun/wireguard/wg0.conf
+        read_only: true
+        bind:
+          create_host_path: false
+  auxiliary:
+    <<: *vpn
+    ports: ["127.0.0.1:18883:8888"]
+    volumes:
+      - type: bind
+        source: ./local/vpn/auxiliary.conf
+        target: /gluetun/wireguard/wg0.conf
+        read_only: true
+        bind:
+          create_host_path: false

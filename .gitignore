@@ -38,6 +38,9 @@ env/
 .env
 .env.local
 
+# Proton WireGuard private keys and other local-only configuration
+/local/vpn/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb_checkpoints
@@ -78,6 +81,7 @@ logs/
 htmlcov/
 /tests/*
 !/tests/test_freshness_repairs.py
+!/tests/test_vpn_egress.py
 !web/tests/
 !web/tests/**
 web/tests/__pycache__/
