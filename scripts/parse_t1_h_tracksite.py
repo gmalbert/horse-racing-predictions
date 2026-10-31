@@ -22,6 +22,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from us_track_collector import canonical_entry_rows, append_canonical
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TRACKSITE_DIR = PROJECT_ROOT / "data" / "raw" / "us_t1_h" / "tracksite"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
@@ -65,7 +67,7 @@ def _parse_summary_event(track_json: dict, pdf_info: dict | None) -> list[dict]:
     date_str = track_json.get("date")
     code = track_json.get("track_code")
     name = track_json.get("track_name")
-    best_page = track_json.get("best_page", {})
+    best_page = track_json.get("best_page") or {}
     src = best_page.get("url")
     summary = best_page.get("summary_fields", {})
 
@@ -143,9 +145,13 @@ def parse_date(date_str: str, append: bool = False) -> tuple[Path, Path, int]:
             continue
 
         track_json = _load_json(file_path)
+        if "status" in track_json:
+            all_rows.extend(canonical_entry_rows(track_json, _base_row))
+            continue
         all_rows.extend(_parse_summary_event(track_json, pdf_by_track.get(code)))
 
-    df = pd.DataFrame(all_rows)
+    columns = list(_base_row("", "", "", ""))
+    df = pd.DataFrame(all_rows) if all_rows else pd.DataFrame(columns=columns)
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
     csv_out = PROCESSED_DIR / f"us_t1_h_canonical_{date_str}.csv"
@@ -156,16 +162,7 @@ def parse_date(date_str: str, append: bool = False) -> tuple[Path, Path, int]:
 
     if append:
         all_csv = PROCESSED_DIR / "us_t1_h_canonical_all.csv"
-        if all_csv.exists():
-            prev = pd.read_csv(all_csv)
-            merged = pd.concat([prev, df], ignore_index=True)
-            merged = merged.drop_duplicates(
-                subset=["date", "track_code", "event_type", "race_number"],
-                keep="last",
-            )
-        else:
-            merged = df
-        merged.to_csv(all_csv, index=False)
+        append_canonical(all_csv, df, columns)
 
     return csv_out, json_out, len(df)
 

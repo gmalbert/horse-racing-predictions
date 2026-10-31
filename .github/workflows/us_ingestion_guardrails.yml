@@ -1,6 +1,16 @@
 name: US Ingestion Guardrails
 
 on:
+  pull_request:
+    paths:
+      - 'scripts/us_track_*.py'
+      - 'scripts/pull_t1_*_tracks.py'
+      - 'scripts/parse_t1_*_tracksite.py'
+      - 'scripts/run_t1_all_daily_pipeline.py'
+      - 'scripts/fetch_us_all_sources.py'
+      - 'scripts/check_us_harness_fallback.py'
+      - 'scripts/validate_us_ingestion.py'
+      - '.github/workflows/us_ingestion_guardrails.yml'
   schedule:
     # Daily at 06:15 UTC
     - cron: '15 6 * * *'
@@ -49,12 +59,26 @@ jobs:
       - name: Build US all-sources racecards — today
         run: |
           echo "Building US racecards and source report for ${{ steps.dates.outputs.today }}"
-          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }}
+          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }} --force
+
+      - name: Verify independent harness fallback on GitHub
+        if: github.event_name == 'pull_request'
+        run: python scripts/check_us_harness_fallback.py --date ${{ steps.dates.outputs.today }}
 
       - name: Build US all-sources racecards — tomorrow
+        id: tomorrow
         run: |
           echo "Building US racecards and source report for ${{ steps.dates.outputs.tomorrow }}"
-          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.tomorrow }}
+          status=0
+          python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.tomorrow }} --force || status=$?
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::No fresh US racecards available for ${{ steps.dates.outputs.tomorrow }}; deferring tomorrow's publication. See source report artifact."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Validate US ingestion guardrails
         run: |
@@ -67,6 +91,7 @@ jobs:
             --min-drift-ratio 0.50
 
       - name: Validate tomorrow's US ingestion
+        if: steps.tomorrow.outputs.available == 'true'
         run: |
           python scripts/validate_us_ingestion.py \
             --date ${{ steps.dates.outputs.tomorrow }} \
@@ -86,6 +111,7 @@ jobs:
           python scripts/predict_us_races.py --date ${{ steps.dates.outputs.today }}
 
       - name: Generate US predictions — tomorrow
+        if: success() && steps.tomorrow.outputs.available == 'true'
         run: |
           python scripts/predict_us_races.py --date ${{ steps.dates.outputs.tomorrow }}
 
@@ -99,9 +125,12 @@ jobs:
             data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
             data/raw/us_source_report_${{ steps.dates.outputs.today }}.json
             data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
+            data/raw/us_harness_fallback_check_${{ steps.dates.outputs.today }}.json
             data/raw/us_t1_*/**/*report*.json
             data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.json
             data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.md
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.tomorrow }}.json
+            data/processed/us_ingestion_validation_${{ steps.dates.outputs.tomorrow }}.md
             data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.json
             data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.md
             data/processed/us_predictions_${{ steps.dates.outputs.today }}.csv
@@ -109,6 +138,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Commit US ingestion reports + predictions
+        if: github.event_name != 'pull_request'
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
@@ -117,22 +147,29 @@ jobs:
           git config user.name "$GIT_AUTHOR_NAME"
           git config user.email "$GIT_AUTHOR_EMAIL"
           git add -f data/raw/us_racecards_${{ steps.dates.outputs.today }}.json
-          git add -f data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
           git add -f data/raw/us_source_report_${{ steps.dates.outputs.today }}.json
-          git add -f data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
           git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.json
           git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.today }}.md
           git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.json
           git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.md
           git add data/processed/us_predictions_${{ steps.dates.outputs.today }}.csv
-          git add data/processed/us_predictions_${{ steps.dates.outputs.tomorrow }}.csv
+          if [ "${{ steps.tomorrow.outputs.available }}" = "true" ]; then
+            git add -f data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
+            git add -f data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
+            git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.tomorrow }}.json
+            git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.tomorrow }}.md
+            git add data/processed/us_predictions_${{ steps.dates.outputs.tomorrow }}.csv
+          fi
           if git diff --staged --quiet; then
             echo "No US ingestion report changes to commit"
           else
-            git commit -m "chore: US ingestion + predictions for ${{ steps.dates.outputs.today }} and ${{ steps.dates.outputs.tomorrow }} [skip ci]" -m "## Data refresh
+            git commit -m "chore: validated US ingestion + predictions for ${{ steps.dates.outputs.today }} [skip ci]" -m "## Data refresh
           - Persist validated pipeline outputs and source diagnostics.
           - Retain updated history and predictions in the repository for subsequent checkouts.
+          - Include tomorrow's outputs only when fresh cards are available and validation passes.
           - Stop publication if the commit or remote synchronization fails."
-            git pull --rebase origin "${{ github.ref_name }}"
+            # Collectors can also modify tracked files outside the publication list.
+            # Preserve those changes while rebasing only the selected outputs.
+            git pull --rebase --autostash origin "${{ github.ref_name }}"
             git push
           fi
