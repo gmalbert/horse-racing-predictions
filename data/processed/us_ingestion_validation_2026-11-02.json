@@ -1,6 +1,6 @@
 {
   "date": "2026-11-02",
-  "generated_at_utc": "2026-11-01T13:23:33.703070+00:00",
+  "generated_at_utc": "2026-11-02T15:48:09.084250+00:00",
   "status": "PASS",
   "checks": [
     {
@@ -21,7 +21,7 @@
     {
       "name": "min_total_runners",
       "ok": true,
-      "message": "642 >= 50"
+      "message": "637 >= 50"
     },
     {
       "name": "min_ml_odds_coverage",
@@ -36,7 +36,7 @@
     {
       "name": "harness_source_coverage",
       "ok": true,
-      "message": "49 harness races; collection failures: SCD"
+      "message": "49 harness races; collection failures: none"
     },
     {
       "name": "source_report_total_matches_racecards",
@@ -46,9 +46,9 @@
   ],
   "metrics": {
     "total_races": 76,
-    "total_runners": 642,
+    "total_runners": 637,
     "unique_tracks": 7,
-    "runners_with_ml_odds": 642,
+    "runners_with_ml_odds": 637,
     "ml_odds_coverage": 1.0,
     "historical_median_total_races": 95.0
   },
