@@ -1,17 +1,17 @@
 {
   "date": "2026-11-04",
-  "generated_at_utc": "2026-11-03T14:11:39.609172+00:00",
-  "elapsed_seconds": 188.2,
+  "generated_at_utc": "2026-11-04T14:29:44.766318+00:00",
+  "elapsed_seconds": 199.8,
   "pipeline_runs": {
     "t1_all": {
-      "command": "/opt/hostedtoolcache/Python/3.11.17/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-04 --days 1",
+      "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-04 --days 1",
       "returncode": 0,
       "stdout_tail": "Saved pipeline report: /home/runner/work/horse-racing-predictions/horse-racing-predictions/data/raw/us_t1_all/t1_all_pipeline_report_2026-11-04.json\n2026-11-04: OK (TB=True QH=True H=True)",
       "stderr_tail": "",
       "timed_out": false
     },
     "nyra": {
-      "command": "/opt/hostedtoolcache/Python/3.11.17/x64/bin/python scripts/fetch_nyra_entries.py --date 2026-11-04 --tracks BEL AQU SAR",
+      "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/fetch_nyra_entries.py --date 2026-11-04 --tracks BEL AQU SAR",
       "returncode": 0,
       "stdout_tail": "============================================================\nFetching NYRA Entries for 2026-11-04\nTracks: ['BEL', 'AQU', 'SAR']\n============================================================\n  [BEL] Fetching: https://www.nyra.com/belmont/racing/entries/?day=2026-11-04&limit=entries\n  [BEL] Got 0 race blocks\n  [AQU] Fetching: https://www.nyra.com/aqueduct/racing/entries/?day=2026-11-04&limit=entries\n  [AQU] Got 0 race blocks\n  [SAR] Fetching: https://www.nyra.com/saratoga/racing/entries/?day=2026-11-04&limit=entries\n  [SAR] Got 0 race blocks\n  Saved -> /home/runner/work/horse-racing-predictions/horse-racing-predictions/data/raw/nyra_entries_2026-11-04.json\n\nDone \u2014 0 race blocks, 0 runners fetched",
       "stderr_tail": "",
@@ -319,11 +319,10 @@
             "url": "https://www.shrp.com/racing",
             "final_url": "https://www.shrp.com/racing",
             "transport": "http",
-            "status_code": 200,
-            "error_kind": null,
+            "status_code": 403,
+            "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "",
-            "card_status": "unsupported_source"
+            "response_excerpt": "Just a moment...\nEnable JavaScript and cookies to continue"
           }
         ],
         "race_section_count": 0
@@ -354,17 +353,49 @@
           },
           {
             "url": "https://www.losalamitos.com/ECE.aspx?ver=1",
+            "final_url": "https://www.losalamitos.com/ECE.aspx?ver=1",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='www.losalamitos.com', port=443): Max retries exceeded with url: /ECE.aspx?ver=1 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.losalamitos.com', port=443) at 0x76fc587efdd0>, 'Connection to www.losalamitos.com timed out. (connect timeout=8)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
           },
           {
-            "url": "https://www.losalamitos.com/ECE.aspx?ver=1",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://www.losalamitos.com/ECE.aspx?ver=1\", waiting until \"domcontentloaded\"\n"
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-25-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-25-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000060-IAD 1793802390 1407260477\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000094-IAD 1793802390 1448746906\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000142-IAD 1793802390 3978151945\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000213-IAD 1793802390 1165350492\nVarnish cache server"
           }
         ],
         "race_section_count": 0
@@ -472,11 +503,10 @@
             "url": "https://www.ziaparkcasino.com/racing",
             "final_url": "https://www.ziaparkcasino.com/racing",
             "transport": "http",
-            "status_code": 200,
-            "error_kind": null,
+            "status_code": 403,
+            "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "",
-            "card_status": "unsupported_source"
+            "response_excerpt": "Just a moment...\nEnable JavaScript and cookies to continue"
           }
         ],
         "race_section_count": 0
@@ -529,7 +559,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Nfld (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590edaaa450>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Nfld (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bee01327fd0>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
@@ -562,7 +592,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=ScD (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590edab4450>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=ScD (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bedff7ae350>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
@@ -581,7 +611,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7590eda9dad0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7bedfc6137d0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://www.caesars.com/scioto-downs/racing",
@@ -616,7 +646,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=RcR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590edab7b90>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=RcR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bedff7c1d90>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
@@ -635,7 +665,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7590ec936010>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7bedfc627dd0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://www.rosecroft.com/",
@@ -661,7 +691,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Aces (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590ec9398d0>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Aces (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bedff7c1050>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
@@ -680,7 +710,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7590ec73e550>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7bedfc5e9810>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://runaces.com/racing/live-racing/",
@@ -706,7 +736,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=PRc (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590ec73ed50>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=PRc (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bedfc5eb510>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
@@ -725,17 +755,16 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7590ec75bb90>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7bedefa976d0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://www.plainridgeparkcasino.com/racing",
             "final_url": "https://www.plainridgeparkcasino.com/racing",
             "transport": "http",
-            "status_code": 200,
-            "error_kind": null,
+            "status_code": 403,
+            "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "",
-            "card_status": "unsupported_source"
+            "response_excerpt": "Just a moment...\nEnable JavaScript and cookies to continue"
           }
         ],
         "race_section_count": 0
@@ -751,7 +780,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=CalX (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7590ec74e190>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=CalX (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7bedefa84b10>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
@@ -770,7 +799,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7590ec76e9d0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7bedeef43b90>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://calxharness.com/",
@@ -1113,7 +1142,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=M (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7236488515d0>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=M (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x77764f88dc90>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
@@ -1132,7 +1161,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x723648d97b50>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x77764f6fb650>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://playmeadowlands.com/",
@@ -1168,7 +1197,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=YR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7236488b1ed0>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=YR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x77764f6e4c10>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
@@ -1201,7 +1230,7 @@
             "transport": "http",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=HoP (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7236488df150>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=HoP (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x77764f8b0990>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
           },
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
@@ -1220,7 +1249,7 @@
             "transport": "usta-desktop",
             "status_code": null,
             "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x723648d6bd10>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x77764f6fa610>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
           },
           {
             "url": "https://www.caesars.com/harrahs-hoosier-park/racing",
