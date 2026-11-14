@@ -22,7 +22,7 @@ on:
 
 jobs:
   validate-us-ingestion:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
@@ -43,7 +43,17 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Install Chromium for source collectors
-        run: python -m playwright install --with-deps chromium
+        run: |
+          for attempt in 1 2; do
+            if python -m playwright install --with-deps chromium; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              exit 1
+            fi
+            echo "::warning::Chromium installation failed; retrying after 30 seconds."
+            sleep 30
+          done
 
       - name: Determine dates
         id: dates
@@ -57,6 +67,7 @@ jobs:
           fi
 
       - name: Build US all-sources racecards — today
+        id: today
         run: |
           echo "Building US racecards and source report for ${{ steps.dates.outputs.today }}"
           python scripts/fetch_us_all_sources.py --date ${{ steps.dates.outputs.today }} --force
@@ -102,7 +113,7 @@ jobs:
             --min-drift-ratio 0.50
 
       - name: Audit US odds coverage
-        if: always()
+        if: always() && steps.today.outcome == 'success'
         run: |
           python scripts/audit_us_odds_coverage.py --date ${{ steps.dates.outputs.today }}
 
@@ -116,7 +127,7 @@ jobs:
           python scripts/predict_us_races.py --date ${{ steps.dates.outputs.tomorrow }}
 
       - name: Upload validation artifacts
-        if: always()
+        if: always() && steps.dates.outputs.today != ''
         uses: actions/upload-artifact@v4
         with:
           name: us-ingestion-validation-${{ steps.dates.outputs.today }}
