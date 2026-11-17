@@ -1,7 +1,7 @@
 {
   "date": "2026-11-17",
-  "generated_at_utc": "2026-11-16T15:40:23.631960+00:00",
-  "elapsed_seconds": 87.3,
+  "generated_at_utc": "2026-11-17T15:58:09.801464+00:00",
+  "elapsed_seconds": 95.3,
   "pipeline_runs": {
     "t1_all": {
       "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-17 --days 1",
@@ -402,7 +402,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600080-IAD 1794843540 2973806674\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-kbfi7400109-BFI 1794931002 1791723952\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
@@ -411,7 +411,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600059-IAD 1794843540 2945615122\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-kbfi7400062-BFI 1794931002 2611070951\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
@@ -420,7 +420,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600061-IAD 1794843540 1477108910\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-kbfi7400026-BFI 1794931002 870939651\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
@@ -429,7 +429,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600037-IAD 1794843541 863176594\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-kbfi7400113-BFI 1794931002 1746171393\nVarnish cache server"
           }
         ],
         "race_section_count": 0
@@ -747,15 +747,6 @@
             "status_code": 200,
             "error_kind": null,
             "error": null,
-            "response_excerpt": ""
-          },
-          {
-            "url": "https://runaces.com/racing/live-racing/",
-            "final_url": "https://runaces.com/racing/live-racing/",
-            "transport": "browser",
-            "status_code": 200,
-            "error_kind": null,
-            "error": null,
             "response_excerpt": "",
             "card_status": "unsupported_source"
           }
@@ -1045,15 +1036,6 @@
             "status_code": 200,
             "error_kind": null,
             "error": null,
-            "response_excerpt": ""
-          },
-          {
-            "url": "https://www.oaklawn.com/",
-            "final_url": "https://www.oaklawn.com/",
-            "transport": "browser",
-            "status_code": 200,
-            "error_kind": null,
-            "error": null,
             "response_excerpt": "",
             "card_status": "unsupported_source"
           }
@@ -1318,6 +1300,16 @@
           {
             "url": "https://www.keeneland.com/",
             "final_url": "https://www.keeneland.com/",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
+          },
+          {
+            "url": "https://www.keeneland.com/media/news/keeneland-library-accepting-applications-new-researcher-residence-program",
+            "final_url": "https://www.keeneland.com/media/news/keeneland-library-accepting-applications-new-researcher-residence-program",
             "transport": "http",
             "status_code": 200,
             "error_kind": null,
