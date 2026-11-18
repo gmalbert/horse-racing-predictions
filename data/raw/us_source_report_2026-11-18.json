@@ -1,7 +1,7 @@
 {
   "date": "2026-11-18",
-  "generated_at_utc": "2026-11-17T15:59:45.684279+00:00",
-  "elapsed_seconds": 95.7,
+  "generated_at_utc": "2026-11-18T15:36:24.840969+00:00",
+  "elapsed_seconds": 110.9,
   "pipeline_runs": {
     "t1_all": {
       "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-18 --days 1",
@@ -340,7 +340,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300037-BFI 1794931093 1839943129\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-hhr-khhr2060023-HHR 1795016078 1467944912\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
@@ -349,7 +349,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300025-BFI 1794931093 1605224981\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-hhr-khhr2060047-HHR 1795016079 2320662210\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
@@ -358,7 +358,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300076-BFI 1794931093 689292899\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-hhr-khhr2060053-HHR 1795016079 4269486467\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
@@ -367,7 +367,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300117-BFI 1794931093 2817547299\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-hhr-khhr2060050-HHR 1795016079 2816924083\nVarnish cache server"
           }
         ],
         "race_section_count": 0
