@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-20",
+  "generated_at_utc": "2026-11-19T15:46:28.809748+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "racecards_file_exists",
+      "ok": true,
+      "message": "data/raw/us_racecards_2026-11-20.json"
+    },
+    {
+      "name": "source_report_exists",
+      "ok": true,
+      "message": "data/raw/us_source_report_2026-11-20.json"
+    },
+    {
+      "name": "min_total_races",
+      "ok": true,
+      "message": "129 >= 8"
+    },
+    {
+      "name": "min_total_runners",
+      "ok": true,
+      "message": "1133 >= 50"
+    },
+    {
+      "name": "min_ml_odds_coverage",
+      "ok": true,
+      "message": "99.3% >= 50.0%"
+    },
+    {
+      "name": "coverage_drift_guard",
+      "ok": true,
+      "message": "today=129 vs median=92.5, min_allowed=46.2"
+    },
+    {
+      "name": "harness_source_coverage",
+      "ok": true,
+      "message": "37 harness races; collection failures: none"
+    },
+    {
+      "name": "source_report_total_matches_racecards",
+      "ok": true,
+      "message": "report_total=129, racecards_total=129"
+    }
+  ],
+  "metrics": {
+    "total_races": 129,
+    "total_runners": 1133,
+    "unique_tracks": 14,
+    "runners_with_ml_odds": 1125,
+    "ml_odds_coverage": 0.9929390997352162,
+    "historical_median_total_races": 92.5
+  },
+  "alerts": []
+}
