@@ -80,7 +80,11 @@ def exercise(url, writable):
             text = page.locator("main").inner_text()
             assert "\u00f0\u0178" not in text and "\ufffd" not in text, f"Broken encoding at {route}"
             assert "Historical data: latest" not in text
-            expect(page.locator(".sidebar > .brand")).to_have_count(0)
+            desktop_brand = page.get_by_role("navigation", name="Main navigation").get_by_role(
+                "link", name="Furlong Odds", exact=True
+            )
+            expect(desktop_brand).to_be_visible()
+            expect(desktop_brand).to_have_attribute("href", "/")
             if route == "/betting-manager":
                 assert "£" not in text and "$" in text, "Betting Manager must display USD"
             expect(page.get_by_role("link", name="Betting Oracle")).to_be_visible()
@@ -170,6 +174,13 @@ def exercise(url, writable):
         expect(page.get_by_role("button", name="Menu", exact=True)).to_have_attribute("aria-expanded", "false")
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Mobile page overflows"
         page.screenshot(path=str(OUTPUT / "mobile.png"), full_page=True)
+        page.get_by_role("button", name="Menu", exact=True).click()
+        mobile_brand = page.get_by_role("link", name="Furlong Odds", exact=True)
+        expect(mobile_brand).to_be_visible()
+        mobile_brand.click()
+        expect(page).to_have_url(url + "/")
+        settle_page(page)
+        expect(page.get_by_role("button", name="Menu", exact=True)).to_have_attribute("aria-expanded", "false")
 
         # Expected outage responses are checked in a separate context.
         assert not errors, errors
