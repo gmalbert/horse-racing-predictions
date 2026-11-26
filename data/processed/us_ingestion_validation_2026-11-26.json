@@ -1,17 +1,17 @@
 {
   "date": "2026-11-26",
-  "generated_at_utc": "2026-11-25T19:16:57.767282+00:00",
+  "generated_at_utc": "2026-11-26T03:24:41.641894+00:00",
   "status": "PARTIAL",
   "checks": [
     {
       "name": "racecards_file_exists",
       "ok": true,
-      "message": "data\\raw\\us_racecards_2026-11-26.json"
+      "message": "data/raw/us_racecards_2026-11-26.json"
     },
     {
       "name": "source_report_exists",
       "ok": true,
-      "message": "data\\raw\\us_source_report_2026-11-26.json"
+      "message": "data/raw/us_source_report_2026-11-26.json"
     },
     {
       "name": "min_total_races",
@@ -31,7 +31,7 @@
     {
       "name": "coverage_drift_guard",
       "ok": false,
-      "message": "today=39 vs median=87.0, min_allowed=43.5"
+      "message": "today=39 vs median=86.5, min_allowed=43.2"
     },
     {
       "name": "harness_source_coverage",
@@ -50,7 +50,7 @@
     "unique_tracks": 4,
     "runners_with_ml_odds": 343,
     "ml_odds_coverage": 1.0,
-    "historical_median_total_races": 87.0
+    "historical_median_total_races": 86.5
   },
   "alerts": [
     "Coverage drift detected: race volume significantly below recent baseline."

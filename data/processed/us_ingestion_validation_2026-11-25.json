@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "generated_at_utc": "2026-11-24T17:40:37.813099+00:00",
+  "generated_at_utc": "2026-11-26T03:24:41.574067+00:00",
   "status": "PASS",
   "checks": [
     {
@@ -16,40 +16,40 @@
     {
       "name": "min_total_races",
       "ok": true,
-      "message": "83 >= 8"
+      "message": "74 >= 8"
     },
     {
       "name": "min_total_runners",
       "ok": true,
-      "message": "709 >= 50"
+      "message": "544 >= 50"
     },
     {
       "name": "min_ml_odds_coverage",
       "ok": true,
-      "message": "97.7% >= 50.0%"
+      "message": "98.7% >= 50.0%"
     },
     {
       "name": "coverage_drift_guard",
       "ok": true,
-      "message": "today=83 vs median=86.5, min_allowed=43.2"
+      "message": "today=74 vs median=86.5, min_allowed=43.2"
     },
     {
       "name": "harness_source_coverage",
       "ok": true,
-      "message": "16 harness races; collection failures: none"
+      "message": "7 harness races; collection failures: none"
     },
     {
       "name": "source_report_total_matches_racecards",
       "ok": true,
-      "message": "report_total=83, racecards_total=83"
+      "message": "report_total=74, racecards_total=74"
     }
   ],
   "metrics": {
-    "total_races": 83,
-    "total_runners": 709,
+    "total_races": 74,
+    "total_runners": 544,
     "unique_tracks": 9,
-    "runners_with_ml_odds": 693,
-    "ml_odds_coverage": 0.9774330042313117,
+    "runners_with_ml_odds": 537,
+    "ml_odds_coverage": 0.9871323529411765,
     "historical_median_total_races": 86.5
   },
   "alerts": []

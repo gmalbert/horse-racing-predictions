@@ -1,7 +1,7 @@
 {
   "date": "2026-11-25",
-  "generated_at_utc": "2026-11-24T17:40:37.572273+00:00",
-  "elapsed_seconds": 124.5,
+  "generated_at_utc": "2026-11-26T03:22:17.264016+00:00",
+  "elapsed_seconds": 117.0,
   "pipeline_runs": {
     "t1_all": {
       "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-25 --days 1",
@@ -334,22 +334,13 @@
             "card_status": "unsupported_source"
           },
           {
-            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-25-2026?header=Y",
-            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-25-2026?header=Y",
-            "transport": "http",
-            "status_code": 403,
-            "error_kind": "blocked",
-            "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-pdk-kpdk2140042-PDK 1795541916 3168845959\nVarnish cache server"
-          },
-          {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
             "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/10-31-2026?header=Y",
             "transport": "http",
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-pdk-kpdk2140034-PDK 1795541917 1453613150\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000185-IAD 1795663224 2116393624\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
@@ -358,7 +349,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-pdk-kpdk2140038-PDK 1795541917 2096174621\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000153-IAD 1795663224 1632023739\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
@@ -367,7 +358,16 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-pdk-kpdk2140071-PDK 1795541917 129653106\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000141-IAD 1795663224 1428595048\nVarnish cache server"
+          },
+          {
+            "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-08-2026?header=Y",
+            "final_url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-08-2026?header=Y",
+            "transport": "http",
+            "status_code": 403,
+            "error_kind": "blocked",
+            "error": null,
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-kiad7000050-IAD 1795663224 909637470\nVarnish cache server"
           }
         ],
         "race_section_count": 0
@@ -547,7 +547,7 @@
             "card_status": "ok"
           }
         ],
-        "race_section_count": 16
+        "race_section_count": 7
       },
       {
         "group": "T1-H",
@@ -576,10 +576,13 @@
           },
           {
             "url": "https://www.caesars.com/scioto-downs/racing",
+            "final_url": "https://www.caesars.com/scioto-downs/racing",
             "transport": "browser",
-            "status_code": null,
-            "error_kind": "transport",
-            "error": "Page.content: Unable to retrieve content because the page is navigating and changing the content."
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "unsupported_source"
           }
         ],
         "race_section_count": 0
@@ -1188,19 +1191,19 @@
   },
   "source_counts": {
     "nyra_races": 0,
-    "t1_races": 73,
+    "t1_races": 64,
     "t2_tb_races": 0,
     "t2_h_races": 0,
     "t3_races": 10,
-    "total_races": 83
+    "total_races": 74
   },
   "attempted_source_counts": {
     "nyra_races": 0,
-    "t1_races": 73,
+    "t1_races": 64,
     "t2_tb_races": 0,
     "t2_h_races": 0,
     "t3_races": 10,
-    "total_races": 83
+    "total_races": 74
   },
   "fallback_used": false,
   "json_discovery_summary": null,
