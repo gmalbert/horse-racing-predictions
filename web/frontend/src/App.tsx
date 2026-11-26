@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes } from "react-router-dom";
 import InternationalPage from "./pages/InternationalPage";
 import UsRacingPage from "./pages/UsRacingPage";
 import DataExplorerPage from "./pages/DataExplorerPage";
@@ -38,17 +38,23 @@ function Footer() {
 
 export default function App() {
   const [navOpen, setNavOpen] = useState(false);
+  const brand = (
+    <Link className="brand" to="/" onClick={() => setNavOpen(false)}>
+      <img src={`${import.meta.env.BASE_URL}furlong-odds-wordmark.webp`} alt="Furlong Odds" width={640} height={184} />
+    </Link>
+  );
 
   return (
     <>
-      <div className="mobile-topbar">
+      <header className="mobile-topbar">
         <button className="btn secondary" onClick={() => setNavOpen((o) => !o)} aria-label="Menu" aria-expanded={navOpen} aria-controls="main-navigation">
           ☰
         </button>
-        <span className="brand">🏇 Equine Edge</span>
-      </div>
+        {brand}
+      </header>
       <div className="layout">
         <nav id="main-navigation" aria-label="Main navigation" className={`sidebar ${navOpen ? "open" : ""}`}>
+          {brand}
           {NAV.map((item) => (
             <NavLink
               key={item.to}
@@ -61,10 +67,6 @@ export default function App() {
               {item.label}
             </NavLink>
           ))}
-          <div className="spacer" />
-          <div className="side-logo">
-            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" />
-          </div>
         </nav>
         <main className="main">
           <Routes>

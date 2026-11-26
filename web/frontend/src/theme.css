@@ -1,12 +1,12 @@
-/* ── Denim Blue theme (ported from the Streamlit app) ─────────────────────── */
+/* ── Furlong Odds theme ───────────────────────────────────────────────────── */
 :root {
-  --primary: #3c5a99;
+  --primary: #075b92;
   --bg: #eef3fb;
   --card: #dfe8f5;
   --card-hover: #d4e0f2;
   --text: #152a50;
   --button-text: #ffffff;
-  --accent: #6c8dd8;
+  --accent: #246498;
   --muted: #526581;
   --border: #a7b7d6;
   --success: #1e7d43;
@@ -15,6 +15,7 @@
   --radius: 8px;
   --shadow: 0 1px 3px rgba(21, 42, 80, 0.12);
   --sidebar-w: 232px;
+  --mobile-topbar-height: 62px;
 }
 
 * { box-sizing: border-box; }
@@ -51,17 +52,14 @@ a:hover { color: var(--accent); }
   gap: 4px;
 }
 
+.brand { display: block; }
+.brand img { display: block; width: 100%; height: auto; }
+
 .sidebar .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 8px 14px;
-  font-weight: 800;
-  font-size: 17px;
+  padding: 4px 6px 16px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 10px;
 }
-.sidebar .brand img { width: 36px; height: 36px; border-radius: 6px; }
 
 .nav-link {
   display: flex;
@@ -77,10 +75,6 @@ a:hover { color: var(--accent); }
 .nav-link.active { background: var(--primary); color: #fff; }
 .nav-link .icon { width: 20px; text-align: center; }
 
-.sidebar .spacer { flex: 1; }
-.sidebar .side-logo { text-align: center; padding: 12px 0; }
-.sidebar .side-logo img { max-width: 150px; height: auto; }
-
 .main { flex: 1; min-width: 0; padding: 20px 28px 40px; }
 .page-header { margin-bottom: 16px; }
 .page-header h1 { margin: 0 0 4px; font-size: 26px; }
@@ -90,14 +84,15 @@ a:hover { color: var(--accent); }
   display: none;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  height: var(--mobile-topbar-height);
+  padding: 0 14px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 40;
 }
-.mobile-topbar .brand { font-weight: 800; }
+.mobile-topbar .brand { width: 148px; }
 
 /* ── Cards, metrics, panels ───────────────────────────────────────────────── */
 .card {
@@ -312,9 +307,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .sidebar.open {
     display: flex;
     position: fixed;
-    z-index: 50;
+    top: var(--mobile-topbar-height);
+    bottom: 0;
+    height: auto;
+    z-index: 30;
     box-shadow: 0 0 24px rgba(0,0,0,0.25);
   }
+  .sidebar .brand { display: none; }
   .mobile-topbar { display: flex; }
   .main { padding: 14px 14px 40px; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
