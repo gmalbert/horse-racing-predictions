@@ -47,6 +47,11 @@ def wait_url(url, process):
 def settle_page(page):
     expect(page.locator("main h1")).to_be_visible()
     expect(page.locator(".loading")).to_have_count(0, timeout=120_000)
+    if page.get_by_role("heading", name="Data Explorer", exact=True).is_visible():
+        # The initial result and the filter button also cover queries that start
+        # after mount or run while the previous result is still displayed.
+        expect(page.get_by_text("Filtered Rows", exact=True)).to_be_visible(timeout=120_000)
+        expect(page.get_by_role("button", name="Apply Filters", exact=True)).to_be_enabled(timeout=120_000)
     expect(page.locator(".error-box")).to_have_count(0)
 
 
@@ -59,7 +64,7 @@ def exercise(url, writable):
         page.set_default_timeout(30_000)
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
-        page.on("requestfailed", lambda request: failures.append(request.url))
+        page.on("requestfailed", lambda request: failures.append(f"{request.method} {request.url}: {request.failure}"))
         page.on("response", lambda response: failures.append(f"{response.status} {response.url}") if response.status >= 400 else None)
         for route, tabs in [("/", 5), ("/us-racing", 5), ("/data-explorer", 4),
                             ("/trainer-stats", 4), ("/jockey-stats", 4),
@@ -80,7 +85,11 @@ def exercise(url, writable):
             text = page.locator("main").inner_text()
             assert "\u00f0\u0178" not in text and "\ufffd" not in text, f"Broken encoding at {route}"
             assert "Historical data: latest" not in text
-            expect(page.locator(".sidebar > .brand")).to_have_count(0)
+            desktop_brand = page.get_by_role("navigation", name="Main navigation").get_by_role(
+                "link", name="Furlong Odds", exact=True
+            )
+            expect(desktop_brand).to_be_visible()
+            expect(desktop_brand).to_have_attribute("href", "/")
             if route == "/betting-manager":
                 assert "£" not in text and "$" in text, "Betting Manager must display USD"
             expect(page.get_by_role("link", name="Betting Oracle")).to_be_visible()
@@ -99,14 +108,15 @@ def exercise(url, writable):
         assert filtered.value.request.post_data_json["courses"] == ["Ascot"]
         assert filtered.value.json()["total_rows"] > 0
         page.get_by_role("button", name="Reset", exact=True).click()
+        settle_page(page)
         expect(page.get_by_role("button", name="Course", exact=True)).to_contain_text("All course")
         page.get_by_label("Horse name", exact=True).fill("[")
         page.get_by_role("button", name="Apply Filters", exact=True).click()
-        expect(page.get_by_role("button", name="Apply Filters", exact=True)).to_be_enabled(timeout=120_000)
         settle_page(page)
         page.get_by_role("button", name="Reset", exact=True).click()
         settle_page(page)
         page.locator(".tabs button").filter(has_text="Raw Data").click()
+        settle_page(page)
         expect(page.get_by_role("button", name="Next", exact=False)).to_be_enabled(timeout=120_000)
         page.get_by_role("button", name="Next", exact=False).click()
         expect(page.get_by_text("Page 2 of", exact=False)).to_be_visible()
@@ -170,6 +180,13 @@ def exercise(url, writable):
         expect(page.get_by_role("button", name="Menu", exact=True)).to_have_attribute("aria-expanded", "false")
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Mobile page overflows"
         page.screenshot(path=str(OUTPUT / "mobile.png"), full_page=True)
+        page.get_by_role("button", name="Menu", exact=True).click()
+        mobile_brand = page.get_by_role("link", name="Furlong Odds", exact=True)
+        expect(mobile_brand).to_be_visible()
+        mobile_brand.click()
+        expect(page).to_have_url(url + "/")
+        settle_page(page)
+        expect(page.get_by_role("button", name="Menu", exact=True)).to_have_attribute("aria-expanded", "false")
 
         # Expected outage responses are checked in a separate context.
         assert not errors, errors
