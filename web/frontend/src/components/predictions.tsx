@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { DayPayload, HorseRow, RaceDetail } from "../lib/types";
+import type { DayPayload, HorseRow, PartialUsCard, RaceDetail } from "../lib/types";
 import { addDays, fmtDate, num, pct, signedPct } from "../lib/format";
 import { Alert, DataTable, Expander, Metric, MetricGrid, useData, Loading, ErrorBox } from "./ui";
 import { todayLocal } from "../lib/format";
@@ -218,6 +218,15 @@ export function ValueBetCalculator({ race }: { race: RaceDetail }) {
   );
 }
 
+export function PartialUsCardNotice({ cards }: { cards?: PartialUsCard[] }) {
+  return cards?.map(({ date, harness_unverified }) => (
+    <Alert kind="warning" key={date}>
+      <strong>Partial US card · {date}{harness_unverified ? " · Harness coverage unverified" : ""}</strong>
+      <div>Predictions and rankings cover the races collected so far.</div>
+    </Alert>
+  ));
+}
+
 /* ── Whole "Today & Tomorrow" tab ──────────────────────────────────────────── */
 export function PredictionsDayView({ day: sourceDay, variant }: { day: DayPayload; variant: "gb" | "us" }) {
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -264,6 +273,7 @@ export function PredictionsDayView({ day: sourceDay, variant }: { day: DayPayloa
 
   return (
     <>
+      <PartialUsCardNotice cards={sourceDay.partial_cards} />
       <div className="filter-bar">
         {fields.map(({ key, label }) => {
           const options = [...new Set(sourceDay.races.map((r) => raceValue(r, key)).filter(Boolean))].sort();

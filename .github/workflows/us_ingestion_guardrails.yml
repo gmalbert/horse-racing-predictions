@@ -93,24 +93,42 @@ jobs:
 
       - name: Validate US ingestion guardrails
         run: |
+          status=0
           python scripts/validate_us_ingestion.py \
             --date ${{ steps.dates.outputs.today }} \
             --min-total-races 8 \
             --min-total-runners 50 \
             --min-ml-odds-coverage 0.50 \
             --lookback-days 14 \
-            --min-drift-ratio 0.50
+            --min-drift-ratio 0.50 \
+            --require-source-report \
+            --allow-partial-card || status=$?
+          if [ "$status" -eq 3 ]; then
+            echo "::warning::Publishing a partial US card for ${{ steps.dates.outputs.today }}. See validation report for coverage gaps."
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
 
       - name: Validate tomorrow's US ingestion
+        id: tomorrow_validation
         if: steps.tomorrow.outputs.available == 'true'
         run: |
+          status=0
           python scripts/validate_us_ingestion.py \
             --date ${{ steps.dates.outputs.tomorrow }} \
             --min-total-races 8 \
             --min-total-runners 50 \
             --min-ml-odds-coverage 0.50 \
             --lookback-days 14 \
-            --min-drift-ratio 0.50
+            --min-drift-ratio 0.50 \
+            --require-source-report \
+            --allow-partial-card || status=$?
+          if [ "$status" -eq 3 ]; then
+            echo "::warning::Publishing a partial US card for ${{ steps.dates.outputs.tomorrow }}. See validation report for coverage gaps."
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+          echo "publishable=true" >> "$GITHUB_OUTPUT"
 
       - name: Audit US odds coverage
         if: always() && steps.today.outcome == 'success'
@@ -122,7 +140,7 @@ jobs:
           python scripts/predict_us_races.py --date ${{ steps.dates.outputs.today }}
 
       - name: Generate US predictions — tomorrow
-        if: success() && steps.tomorrow.outputs.available == 'true'
+        if: steps.tomorrow_validation.outputs.publishable == 'true'
         run: |
           python scripts/predict_us_races.py --date ${{ steps.dates.outputs.tomorrow }}
 
@@ -164,7 +182,7 @@ jobs:
           git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.json
           git add data/processed/us_odds_coverage_audit_${{ steps.dates.outputs.today }}.md
           git add data/processed/us_predictions_${{ steps.dates.outputs.today }}.csv
-          if [ "${{ steps.tomorrow.outputs.available }}" = "true" ]; then
+          if [ "${{ steps.tomorrow_validation.outputs.publishable }}" = "true" ]; then
             git add -f data/raw/us_racecards_${{ steps.dates.outputs.tomorrow }}.json
             git add -f data/raw/us_source_report_${{ steps.dates.outputs.tomorrow }}.json
             git add data/processed/us_ingestion_validation_${{ steps.dates.outputs.tomorrow }}.json
@@ -177,7 +195,7 @@ jobs:
             git commit -m "chore: validated US ingestion + predictions for ${{ steps.dates.outputs.today }} [skip ci]" -m "## Data refresh
           - Persist validated pipeline outputs and source diagnostics.
           - Retain updated history and predictions in the repository for subsequent checkouts.
-          - Include tomorrow's outputs only when fresh cards are available and validation passes.
+          - Include tomorrow's outputs when fresh cards pass validation or are marked partial.
           - Stop publication if the commit or remote synchronization fails."
             # Collectors can also modify tracked files outside the publication list.
             # Preserve those changes while rebasing only the selected outputs.

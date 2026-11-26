@@ -74,8 +74,14 @@ export interface RaceDetail {
   predicted_123: string[];
 }
 
+export interface PartialUsCard {
+  date: string;
+  harness_unverified: boolean;
+}
+
 export interface DayPayload {
   date: string;
+  partial_cards?: PartialUsCard[];
   summary: { horses: number; races: number; courses: number; has_odds: boolean };
   best_bet: (HorseRow & { course?: string; race_time?: string }) | null;
   value_bets: Array<Record<string, unknown>>;
@@ -141,6 +147,7 @@ export interface EntityStatsPayload {
 }
 
 export interface UsTopRaces {
+  partial_cards?: PartialUsCard[];
   summary?: {
     races_ranked: number; graded: number; tracks: number;
     avg_top_win_pct: number; avg_margin_pct: number;

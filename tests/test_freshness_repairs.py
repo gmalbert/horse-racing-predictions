@@ -120,8 +120,8 @@ def test_publication_does_not_push_development_work(tmp_path):
 
 
 @pytest.mark.parametrize('conflict', [False, True])
-@pytest.mark.parametrize('tomorrow_available,workflow_kind', [(False, 'us'), (True, 'us'), (False, 'export')])
-def test_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict, tomorrow_available, workflow_kind):
+@pytest.mark.parametrize('tomorrow_publishable,workflow_kind', [(False, 'us'), (True, 'us'), (False, 'export')])
+def test_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, conflict, tomorrow_publishable, workflow_kind):
     """Run the actual publication shell against a remote that advanced during collection."""
     bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
             if sys.platform == 'win32' else shutil.which('bash'))
@@ -141,14 +141,14 @@ def test_workflow_publication_with_dirty_collectors_and_remote_update(tmp_path, 
         script = textwrap.dedent(workflow.split('      - name: Commit US ingestion reports + predictions\n', 1)[1]
                                  .split('        run: |\n', 1)[1])
         for expression, value in [('steps.dates.outputs.today', '2026-10-23'),
-                                  ('steps.tomorrow.outputs.available', str(tomorrow_available).lower()),
+                                  ('steps.tomorrow_validation.outputs.publishable', 'true' if tomorrow_publishable else ''),
                                   ('steps.dates.outputs.tomorrow', '2026-10-24'), ('github.ref_name', 'main')]:
             script = script.replace('${{ ' + expression + ' }}', value)
         # The staging allowlist is also the expected published file set.
         outputs = [line.split()[-1] for line in script.splitlines() if line.strip().startswith('git add ')]
         assert 'data/processed/us_ingestion_validation_2026-10-24.json' in outputs
         assert 'data/processed/us_ingestion_validation_2026-10-24.md' in outputs
-    published = [name for name in outputs if tomorrow_available or '2026-10-24' not in name]
+    published = [name for name in outputs if tomorrow_publishable or '2026-10-24' not in name]
     remote, source, other = (tmp_path / name for name in ['remote.git', 'source', 'other'])
     git('init', '--bare', str(remote), cwd=tmp_path)
     git('init', '-b', 'main', str(source), cwd=tmp_path)
@@ -270,12 +270,87 @@ def test_tomorrow_fetch_defers_only_no_fresh_cards(tmp_path, collector_status):
         assert result.returncode == collector_status
         assert not output.exists()
 
-    for name in ("Validate tomorrow's US ingestion", 'Generate US predictions — tomorrow'):
-        step = next(step for step in steps if step.startswith(name + '\n'))
-        assert "steps.tomorrow.outputs.available == 'true'" in step.split('        run:', 1)[0]
-        assert 'continue-on-error: true' not in step
-    today = next(step for step in steps if step.startswith('Validate US ingestion guardrails\n'))
-    assert 'continue-on-error: true' not in today
+    validation = next(step for step in steps if step.startswith("Validate tomorrow's US ingestion\n"))
+    assert "steps.tomorrow.outputs.available == 'true'" in validation.split('        run:', 1)[0]
+
+
+@pytest.mark.parametrize('timing', ['today', 'tomorrow'])
+@pytest.mark.parametrize('case,expected_code', [
+    ('pass', 0), ('coverage', 0), ('mismatch', 1), ('missing', 1), ('empty', 1), ('missing_odds', 1),
+])
+def test_partial_us_card_publication(tmp_path, timing, case, expected_code):
+    bash = (str(Path(os.environ.get('PROGRAMFILES', 'C:/Program Files')) / 'Git/bin/bash.exe')
+            if sys.platform == 'win32' else shutil.which('bash'))
+    if not bash or not Path(bash).exists():
+        pytest.skip('Bash is required to exercise the Actions step')
+    day = '2026-11-26'
+    raw = tmp_path / 'data/raw'
+    raw.mkdir(parents=True)
+    race = {'type': 'Thoroughbred', 'runners': [{'ml_odds': '' if case == 'missing_odds' else '2/1'}] * 8}
+    racecards = {'racecards': [] if case == 'empty' else [race] * 39}
+    (raw / f'us_racecards_{day}.json').write_text(json.dumps(racecards))
+    if case != 'pass':
+        (raw / 'us_racecards_2026-11-25.json').write_text(json.dumps({'racecards': [race] * 87}))
+    if case != 'missing':
+        report = {'source_counts': {'total_races': 38 if case == 'mismatch' else len(racecards['racecards'])}}
+        if case == 'coverage':
+            report['groups'] = {'T1': [{'group': 'T1-H', 'track_code': 'SCD', 'status': 'collection_error'}]}
+        (raw / f'us_source_report_{day}.json').write_text(json.dumps(report))
+
+    steps = WORKFLOW.read_text(encoding='utf-8').split('      - name: ')[1:]
+    step_name = 'Validate US ingestion guardrails' if timing == 'today' else "Validate tomorrow's US ingestion"
+    validation = next(step for step in steps if step.startswith(step_name + '\n'))
+    script = textwrap.dedent(validation.split('        run: |\n', 1)[1])
+    script = script.replace('${{ steps.dates.outputs.' + timing + ' }}', day)
+    script = 'python() { shift; "$VALIDATOR_PYTHON" "$VALIDATOR_SCRIPT" "$@"; }\n' + script
+    env = dict(os.environ, GITHUB_OUTPUT='outputs.txt', VALIDATOR_PYTHON=Path(sys.executable).as_posix(),
+               VALIDATOR_SCRIPT=Path(guardrails.__file__).resolve().as_posix())
+    result = subprocess.run([bash, '-e', '-c', script], cwd=tmp_path, env=env, text=True, capture_output=True)
+    assert result.returncode == expected_code, result.stdout + result.stderr
+    assert ('::warning::' in result.stdout) == (case == 'coverage')
+    output = tmp_path / 'outputs.txt'
+    expected_output = 'publishable=true' if timing == 'tomorrow' and expected_code == 0 else ''
+    assert (output.read_text().strip() if output.exists() else '') == expected_output
+    report = json.loads((tmp_path / f'data/processed/us_ingestion_validation_{day}.json').read_text())
+    assert report['status'] == {'pass': 'PASS', 'coverage': 'PARTIAL'}.get(case, 'FAIL')
+    if case == 'coverage':
+        assert '[FAIL] coverage_drift_guard' in result.stdout
+        assert '[FAIL] harness_source_coverage' in result.stdout
+        strict = subprocess.run([sys.executable, guardrails.__file__, '--date', day], cwd=tmp_path,
+                                text=True, capture_output=True)
+        assert strict.returncode == 1, strict.stdout + strict.stderr
+
+    prediction = next(step for step in steps if step.startswith('Generate US predictions — tomorrow\n'))
+    assert "steps.tomorrow_validation.outputs.publishable == 'true'" in prediction.split('        run:', 1)[0]
+
+
+def test_export_keeps_partial_coverage_with_us_predictions_and_rankings(tmp_path, monkeypatch):
+    monkeypatch.setattr(exporter, 'PROC_DIR', tmp_path)
+    monkeypatch.setattr(exporter, 'OUT_DIR', tmp_path / 'web')
+    day = '2026-11-26'
+    pd.DataFrame([{
+        'date': day, 'course': 'Churchill Downs', 'race_time': '12:00', 'race_name': 'Race 1',
+        'race_class': 'Allowance', 'surface': 'Dirt', 'distance_str': '6f',
+        'horse': 'Runner', 'win_probability': 0.5, 'win_odds_fractional': '1/1',
+        'place_probability': 0.7, 'show_probability': 0.9,
+    }]).to_csv(tmp_path / f'us_predictions_{day}.csv', index=False)
+    report = tmp_path / f'us_ingestion_validation_{day}.json'
+    report.write_text(json.dumps({'status': 'PARTIAL', 'checks': [
+        {'name': 'harness_source_coverage', 'ok': False},
+    ]}))
+    today = pd.Timestamp(day)
+    _, us_dates = exporter.export_predictions(14, today)
+    assert us_dates == [day]
+    payload_path = exporter.OUT_DIR / f'us_predictions/{day}.json'
+    payload = json.loads(payload_path.read_text())
+    assert payload['summary']['races'] == 1
+    expected = [{'date': day, 'harness_unverified': True}]
+    assert payload['partial_cards'] == expected
+    assert exporter.export_us_top_races(us_dates, today)['partial_cards'] == expected
+
+    report.write_text(json.dumps({'status': 'PASS'}))
+    exporter.export_predictions(14, today)
+    assert 'partial_cards' not in json.loads(payload_path.read_text())
 
 
 @pytest.mark.parametrize('status,has_harness,expected', [

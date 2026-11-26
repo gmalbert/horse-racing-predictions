@@ -6,6 +6,7 @@ export function combineDays(days: DayPayload[]): DayPayload {
   const best = days.flatMap((d) => d.best_bet ? [d.best_bet] : []).sort((a, b) => (b.edge ?? 0) - (a.edge ?? 0));
   return {
     date: days.map((d) => d.date).join(" / "),
+    partial_cards: days.flatMap((d) => d.partial_cards ?? []),
     races,
     summary: {
       horses: days.reduce((total, d) => total + d.summary.horses, 0),

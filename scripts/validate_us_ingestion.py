@@ -24,6 +24,13 @@ from typing import Any
 
 RAW_DIR = Path("data/raw")
 PROC_DIR = Path("data/processed")
+INCOMPLETE_CARD_CHECKS = {
+    "min_total_races",
+    "min_total_runners",
+    "coverage_drift_guard",
+    "harness_source_coverage",
+}
+PARTIAL_EXIT_CODE = 3
 
 
 def _read_json(path: Path) -> Any:
@@ -139,6 +146,11 @@ def main() -> int:
     parser.add_argument("--min-ml-odds-coverage", type=float, default=0.50)
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--min-drift-ratio", type=float, default=0.50)
+    parser.add_argument(
+        "--allow-partial-card",
+        action="store_true",
+        help="Exit 3 for a nonempty card whose only failures are race or harness coverage checks",
+    )
     parser.add_argument(
         "--allow-empty-racecards",
         action="store_true",
@@ -262,7 +274,15 @@ def main() -> int:
             }
         )
 
-    status = "PASS" if all(c["ok"] for c in checks) else "FAIL"
+    failed_checks = [check for check in checks if not check["ok"]]
+    partial = (
+        args.allow_partial_card
+        and bool(failed_checks)
+        and source_report_exists
+        and metrics["total_races"] > 0
+        and all(check["name"] in INCOMPLETE_CARD_CHECKS for check in failed_checks)
+    )
+    status = "PARTIAL" if partial else "FAIL" if failed_checks else "PASS"
 
     result = {
         "date": date_str,
@@ -280,10 +300,16 @@ def main() -> int:
     out_md.write_text(_to_markdown(result), encoding="utf-8")
 
     print(f"Validation status: {status}")
+    for check in failed_checks:
+        print(f"[FAIL] {check['name']}: {check['message']}")
     print(f"Saved JSON report: {out_json}")
     print(f"Saved Markdown report: {out_md}")
 
-    return 0 if status == "PASS" else 1
+    if not failed_checks:
+        return 0
+    if partial:
+        return PARTIAL_EXIT_CODE
+    return 1
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useData, Tabs, Loading, ErrorBox, Metric, MetricGrid, DataTable, Expander, Alert } from "../components/ui";
-import { PredictionDatesView } from "../components/predictions";
+import { PartialUsCardNotice, PredictionDatesView } from "../components/predictions";
 import type { DayPayload, Manifest, UsTopRaces } from "../lib/types";
 import { addDays, fmtDate, money, num, pctRaw, todayLocal } from "../lib/format";
 
@@ -176,6 +176,7 @@ function TopRacesTab() {
 
   return (
     <>
+      <PartialUsCardNotice cards={data.partial_cards} />
       <p className="caption">
         Races ranked by a precomputed predictability score: model confidence in the winner, separation from
         the field, field size, track prestige, grade and purse.

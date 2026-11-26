@@ -356,6 +356,22 @@ def _dates_in_window(pattern: str, start: pd.Timestamp, end: pd.Timestamp, fallb
     return all_dates[-fallback_latest:]
 
 
+def read_partial_us_card(date_str: str) -> dict | None:
+    path = PROC_DIR / f"us_ingestion_validation_{date_str}.json"
+    if not path.exists():
+        return None
+    report = json.loads(path.read_text(encoding="utf-8"))
+    if report.get("status") != "PARTIAL":
+        return None
+    return {
+        "date": date_str,
+        "harness_unverified": any(
+            check["name"] == "harness_source_coverage" and not check["ok"]
+            for check in report["checks"]
+        ),
+    }
+
+
 def export_predictions(history_days: int, today: pd.Timestamp):
     """Export GB + US per-date prediction payloads. Returns (gb_dates, us_dates)."""
     gb_dates, us_dates = [], []
@@ -368,6 +384,9 @@ def export_predictions(history_days: int, today: pd.Timestamp):
             if not df.empty and "win_probability" in df.columns:
                 payload = build_day_payload(df, date_str)
                 if kind == "us":
+                    partial_card = read_partial_us_card(date_str)
+                    if partial_card:
+                        payload["partial_cards"] = [partial_card]
                     payload["model_provenance"] = {
                         "source_model": df["source_model"].iloc[0] if "source_model" in df.columns else None,
                         "model_artifact": df["model_artifact"].iloc[0] if "model_artifact" in df.columns else None,
@@ -516,6 +535,9 @@ def export_us_top_races(us_dates: list, today: pd.Timestamp) -> dict:
     result = pd.DataFrame(rows).sort_values("score", ascending=False).reset_index(drop=True)
     result.insert(0, "rank", range(1, len(result) + 1))
     return {
+        "partial_cards": [
+            card for day in sorted(result["date"].unique()) if (card := read_partial_us_card(day))
+        ],
         "summary": {
             "races_ranked": int(len(result)),
             "graded": int((result["grade"] != "-").sum()),
