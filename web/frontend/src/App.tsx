@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes } from "react-router-dom";
 import InternationalPage from "./pages/InternationalPage";
 import UsRacingPage from "./pages/UsRacingPage";
 import DataExplorerPage from "./pages/DataExplorerPage";
 import TrainerStatsPage from "./pages/TrainerStatsPage";
 import JockeyStatsPage from "./pages/JockeyStatsPage";
-import BettingManagerPage from "./pages/BettingManagerPage";
 import BacktestResultsPage from "./pages/BacktestResultsPage";
 const NAV = [
   { to: "/", label: "International", icon: "🏇", end: true },
@@ -13,7 +12,6 @@ const NAV = [
   { to: "/data-explorer", label: "Data Explorer", icon: "📊" },
   { to: "/trainer-stats", label: "Trainer Stats", icon: "🏋️" },
   { to: "/jockey-stats", label: "Jockey Stats", icon: "👤" },
-  { to: "/betting-manager", label: "Betting Manager", icon: "💰" },
   { to: "/backtest", label: "Backtest Results", icon: "📈" },
 ];
 
@@ -75,7 +73,7 @@ export default function App() {
             <Route path="/data-explorer" element={<DataExplorerPage />} />
             <Route path="/trainer-stats" element={<TrainerStatsPage />} />
             <Route path="/jockey-stats" element={<JockeyStatsPage />} />
-            <Route path="/betting-manager" element={<BettingManagerPage />} />
+            <Route path="/betting-manager" element={<Navigate to="/" replace />} />
             <Route path="/backtest" element={<BacktestResultsPage />} />
             <Route path="*" element={<div className="page-header"><h1>Page not found</h1><NavLink to="/">Return to International Racing</NavLink></div>} />
           </Routes>

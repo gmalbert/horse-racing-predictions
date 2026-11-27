@@ -1,4 +1,4 @@
-"""Exercise the built React app against FastAPI with isolated betting state.
+"""Exercise the built React app against FastAPI.
 
 Run from the repository root after `npm run build --prefix web/frontend`:
     python web/tests/smoke_web.py
@@ -15,7 +15,6 @@ from pathlib import Path
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 import urllib.request
 
@@ -55,7 +54,7 @@ def settle_page(page):
     expect(page.locator(".error-box")).to_have_count(0)
 
 
-def exercise(url, writable):
+def exercise(url):
     errors, failures, timings = [], [], []
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
@@ -68,7 +67,7 @@ def exercise(url, writable):
         page.on("response", lambda response: failures.append(f"{response.status} {response.url}") if response.status >= 400 else None)
         for route, tabs in [("/", 5), ("/us-racing", 5), ("/data-explorer", 4),
                             ("/trainer-stats", 4), ("/jockey-stats", 4),
-                            ("/betting-manager", 4), ("/backtest", 4)]:
+                            ("/backtest", 4)]:
             start = time.perf_counter()
             page.goto(url + route)
             settle_page(page)
@@ -90,8 +89,6 @@ def exercise(url, writable):
             )
             expect(desktop_brand).to_be_visible()
             expect(desktop_brand).to_have_attribute("href", "/")
-            if route == "/betting-manager":
-                assert "£" not in text and "$" in text, "Betting Manager must display USD"
             expect(page.get_by_role("link", name="Betting Oracle")).to_be_visible()
             page.screenshot(path=str(OUTPUT / f"{route.strip('/') or 'international'}.png"), full_page=True)
             print(f"PASS {route}: {tabs} tabs", flush=True)
@@ -137,36 +134,14 @@ def exercise(url, writable):
             page.get_by_role("button", name="Reset leaderboard", exact=True).click()
             expect(page.locator("table").first).not_to_contain_text("No results match your selection.")
 
-        if writable:
-            page.goto(url + "/betting-manager")
-            settle_page(page)
-            amount = page.get_by_role("spinbutton", name="Set bankroll (USD)", exact=True)
-            amount.fill("1200")
-            amount.press("Enter")
-            expect(page.locator(".save-confirmation")).to_have_text("Bankroll updated.")
-            assert context.request.get(url + "/api/bankroll").json()["current_bankroll"] == 1200
-            amount.fill("1000")
-            amount.press("Enter")
-            expect(page.locator(".save-confirmation")).to_have_text("Bankroll updated.")
-            page.locator(".tabs button").filter(has_text="Log Bet").click()
-            page.get_by_label("Horse name", exact=True).fill("Migration Smoke Horse")
-            page.get_by_label("Market decimal odds").fill("3")
-            page.get_by_label("Stake $").fill("10")
-            page.get_by_role("button", name="Log Bet", exact=True).click()
-            expect(page.get_by_text("Logged bet on Migration Smoke Horse.")).to_be_visible()
-            page.locator(".tabs button").filter(has_text="P&L Tracker").click()
-            page.get_by_role("button", name="Lost", exact=True).click()
-            expect(page.get_by_role("button", name="Lost", exact=True)).to_have_count(0)
-            page.reload()
-            settle_page(page)
-            page.locator(".tabs button").filter(has_text="P&L Tracker").click()
-            expect(page.get_by_text("Migration Smoke Horse", exact=True)).to_be_visible()
-            state = context.request.get(url + "/api/bankroll").json()
-            assert state["current_bankroll"] == 990 and state["total_pnl"] == -10, state
-            print("PASS browser bet logging, settlement and reload persistence", flush=True)
+        page.goto(url + "/betting-manager")
+        expect(page).to_have_url(url + "/")
+        expect(page.get_by_role("heading", name="International Racing", exact=True)).to_be_visible()
+        assert page.get_by_role("link", name="Betting Manager", exact=False).count() == 0
+        print("PASS Betting Manager link retired and bookmarked route redirected", flush=True)
 
         page.set_viewport_size({"width": 390, "height": 844})
-        for route in ["/", "/us-racing", "/data-explorer", "/trainer-stats", "/jockey-stats", "/betting-manager", "/backtest"]:
+        for route in ["/", "/us-racing", "/data-explorer", "/trainer-stats", "/jockey-stats", "/backtest"]:
             page.goto(url + route)
             settle_page(page)
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), f"Mobile overflow: {route}"
@@ -196,8 +171,6 @@ def exercise(url, writable):
         fallback.goto(url + "/data-explorer")
         expect(fallback.get_by_text("showing the precomputed overview", exact=False)).to_be_visible()
         expect(fallback.locator("table tbody tr").first).to_be_visible()
-        fallback.goto(url + "/betting-manager")
-        expect(fallback.get_by_role("button", name="Retry connection")).to_be_visible()
         fallback.close()
 
         # A failed static fetch must recover through the user-visible Retry action.
@@ -255,27 +228,24 @@ def main():
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
     if args.url:
-        exercise(args.url.rstrip("/"), writable=False)
+        exercise(args.url.rstrip("/"))
         return
-    runtime = ROOT / "web" / ".runtime"
-    runtime.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="smoke-", dir=runtime) as folder:
-        api_port, web_port = free_port(), free_port()
-        env = {**os.environ, "HRP_STATE_DIR": folder, "VITE_API_PROXY_TARGET": f"http://127.0.0.1:{api_port}"}
-        flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
-        with open(OUTPUT / "servers.log", "w") as logs:
-            api = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--app-dir", "web/backend", "--port", str(api_port)], cwd=ROOT, env=env, stdout=logs, stderr=logs, creationflags=flags)
-            web = None
-            try:
-                wait_url(f"http://127.0.0.1:{api_port}/api/health", api)
-                web = subprocess.Popen(["node", "node_modules/vite/bin/vite.js", "preview", "--host", "127.0.0.1", "--port", str(web_port), "--strictPort"], cwd=ROOT / "web/frontend", env=env, stdout=logs, stderr=logs, creationflags=flags)
-                wait_url(f"http://127.0.0.1:{web_port}", web)
-                exercise(f"http://127.0.0.1:{web_port}", writable=True)
-            finally:
-                for process in (web, api):
-                    if process:
-                        process.terminate()
-                        process.wait(timeout=15)
+    api_port, web_port = free_port(), free_port()
+    env = {**os.environ, "VITE_API_PROXY_TARGET": f"http://127.0.0.1:{api_port}"}
+    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    with open(OUTPUT / "servers.log", "w") as logs:
+        api = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--app-dir", "web/backend", "--port", str(api_port)], cwd=ROOT, env=env, stdout=logs, stderr=logs, creationflags=flags)
+        web = None
+        try:
+            wait_url(f"http://127.0.0.1:{api_port}/api/health", api)
+            web = subprocess.Popen(["node", "node_modules/vite/bin/vite.js", "preview", "--host", "127.0.0.1", "--port", str(web_port), "--strictPort"], cwd=ROOT / "web/frontend", env=env, stdout=logs, stderr=logs, creationflags=flags)
+            wait_url(f"http://127.0.0.1:{web_port}", web)
+            exercise(f"http://127.0.0.1:{web_port}")
+        finally:
+            for process in (web, api):
+                if process:
+                    process.terminate()
+                    process.wait(timeout=15)
 
 
 if __name__ == "__main__":
