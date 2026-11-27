@@ -1,7 +1,7 @@
 {
   "date": "2026-11-27",
-  "generated_at_utc": "2026-11-26T16:57:49.632968+00:00",
-  "elapsed_seconds": 284.4,
+  "generated_at_utc": "2026-11-27T16:37:55.328522+00:00",
+  "elapsed_seconds": 186.7,
   "pipeline_runs": {
     "t1_all": {
       "command": "/opt/hostedtoolcache/Python/3.11.18/x64/bin/python scripts/run_t1_all_daily_pipeline.py --date 2026-11-27 --days 1",
@@ -89,7 +89,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "Just a moment...\nEnable JavaScript and cookies to continue"
+            "response_excerpt": "Attention Required! | Cloudflare\nPlease enable cookies.\nSorry, you have been blocked\nYou are unable to access\ncnty.com\nWhy have I been blocked?\nThis website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.\nWhat can I do to resolve this?\nYou can email the site owner to let them know "
           }
         ],
         "race_section_count": 0
@@ -215,11 +215,10 @@
             "url": "https://www.hollywoodpnrc.com/racing",
             "final_url": "https://www.pennentertainment.com/hollywood-grantville/racing",
             "transport": "http",
-            "status_code": 200,
-            "error_kind": null,
+            "status_code": 403,
+            "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "",
-            "card_status": "unsupported_source"
+            "response_excerpt": "Just a moment...\nEnable JavaScript and cookies to continue"
           }
         ],
         "race_section_count": 0
@@ -375,7 +374,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600095-IAD 1795711991 1151106479\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300112-BFI 1795797295 2968525452\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-01-2026?header=Y",
@@ -384,7 +383,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600087-IAD 1795711991 3160811834\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300106-BFI 1795797295 3123493238\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-07-2026?header=Y",
@@ -393,7 +392,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600098-IAD 1795711991 1370645591\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300073-BFI 1795797295 3538650611\nVarnish cache server"
           },
           {
             "url": "https://www.drf.com/race-entries/track/LA/country/USA/date/11-08-2026?header=Y",
@@ -402,7 +401,7 @@
             "status_code": 403,
             "error_kind": "blocked",
             "error": null,
-            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-iad-khef600053-IAD 1795711991 931580272\nVarnish cache server"
+            "response_excerpt": "403 Forbidden\nError 403 Forbidden\nForbidden\nError 54113\nDetails: cache-bfi-krnt7300115-BFI 1795797295 2393851209\nVarnish cache server"
           }
         ],
         "race_section_count": 0
@@ -546,29 +545,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Nfld (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf56867e50>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Nfld\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf568dec50>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
           },
           {
             "url": "https://mgmnorthfieldpark.mgmresorts.com/en/racing.html",
@@ -595,29 +578,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=ScD (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf568c0390>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=ScD\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf568d03d0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "track_not_in_current_listing"
           },
           {
             "url": "https://www.caesars.com/scioto-downs/racing",
@@ -649,29 +616,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=RcR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf568d07d0>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=RcR\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf568d9bd0>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
           },
           {
             "url": "https://www.rosecroft.com/",
@@ -694,29 +645,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=Aces (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf5469e390>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=Aces\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf54506f50>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "track_not_in_current_listing"
           },
           {
             "url": "https://runaces.com/racing/live-racing/",
@@ -739,29 +674,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=PRc (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf546f6650>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=PRc\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf5451df50>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
           },
           {
             "url": "https://www.plainridgeparkcasino.com/racing",
@@ -783,29 +702,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=CalX (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7fcf5452ec90>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=CalX\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7fcf4da3a410>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "track_not_in_current_listing"
           },
           {
             "url": "https://calxharness.com/",
@@ -992,27 +895,23 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=M (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7f8933182d90>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_link_found"
           },
           {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=M\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://harness.drf.com/entries/entryDetails/id/M/country/USA/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
+            "url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=94063",
+            "final_url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=94063",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
           }
         ],
         "race_section_count": 14
@@ -1025,29 +924,13 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=YR (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7f8933199d10>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
-          },
-          {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=YR\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://racing.ustrotting.com/default.aspx",
-            "transport": "usta-desktop",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='racing.ustrotting.com', port=443): Max retries exceeded with url: /default.aspx (Caused by ConnectTimeoutError(<HTTPSConnection(host='racing.ustrotting.com', port=443) at 0x7f8933146290>, 'Connection to racing.ustrotting.com timed out. (connect timeout=5)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_not_listed"
           },
           {
             "url": "https://empirecitycasino.mgmresorts.com/en/racing.html",
@@ -1074,27 +957,23 @@
         "pages_tried": [
           {
             "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
+            "final_url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
             "transport": "http",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "HTTPSConnectionPool(host='m.ustrotting.com', port=443): Max retries exceeded with url: /entriesandresults/tracklist.cfm?track_code=HoP (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.ustrotting.com', port=443) at 0x7f893315a090>, 'Connection to m.ustrotting.com timed out. (connect timeout=8)'))"
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "date_link_found"
           },
           {
-            "url": "https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP",
-            "transport": "browser",
-            "status_code": null,
-            "error_kind": "timeout",
-            "error": "Page.goto: Timeout 18000ms exceeded.\nCall log:\n  - navigating to \"https://m.ustrotting.com/entriesandresults/tracklist.cfm?track_code=HoP\", waiting until \"domcontentloaded\"\n"
-          },
-          {
-            "url": "https://harness.drf.com/entries/tracks/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
-          },
-          {
-            "url": "https://harness.drf.com/entries/entryDetails/id/HOO/country/USA/date/11-27-2026",
-            "transport": "drf-harness",
-            "status_code": 200
+            "url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=94079",
+            "final_url": "https://m.ustrotting.com/entriesandresults/racecardbytrack.cfm?race_card_id=94079",
+            "transport": "http",
+            "status_code": 200,
+            "error_kind": null,
+            "error": null,
+            "response_excerpt": "",
+            "card_status": "ok"
           }
         ],
         "race_section_count": 15
