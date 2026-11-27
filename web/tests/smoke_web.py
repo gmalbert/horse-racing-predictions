@@ -54,6 +54,19 @@ def settle_page(page):
     expect(page.locator(".error-box")).to_have_count(0)
 
 
+def run_explorer_query(page, action):
+    with page.expect_response(
+        lambda response: response.request.method == "POST"
+        and response.url.endswith("/api/explorer/query")
+    ) as pending:
+        action()
+    response = pending.value
+    assert response.ok, f"Explorer query returned HTTP {response.status}"
+    result = response.json()
+    settle_page(page)
+    return response.request.post_data_json, result
+
+
 def exercise(url):
     errors, failures, timings = [], [], []
     with sync_playwright() as playwright:
@@ -75,8 +88,12 @@ def exercise(url):
             buttons = page.locator(".tabs").first.locator("button")
             expect(buttons).to_have_count(tabs)
             for i in range(tabs):
-                buttons.nth(i).click()
-                settle_page(page)
+                button = buttons.nth(i)
+                if route == "/data-explorer" and i > 0:
+                    run_explorer_query(page, button.click)
+                else:
+                    button.click()
+                    settle_page(page)
             # Recharts animates bars on mount; wait for the visible bar geometry.
             bars = page.locator(".recharts-bar-rectangle path")
             if bars.count():
@@ -100,22 +117,20 @@ def exercise(url):
         page.get_by_role("checkbox", name="Ascot", exact=True).check()
         page.get_by_role("button", name="Done", exact=True).click()
         expect(page.get_by_role("button", name="Course", exact=True)).to_contain_text("Ascot")
-        with page.expect_response(lambda response: "/api/explorer/query" in response.url and response.request.method == "POST") as filtered:
-            page.get_by_role("button", name="Apply Filters", exact=True).click()
-        assert filtered.value.request.post_data_json["courses"] == ["Ascot"]
-        assert filtered.value.json()["total_rows"] > 0
-        page.get_by_role("button", name="Reset", exact=True).click()
-        settle_page(page)
+        apply = page.get_by_role("button", name="Apply Filters", exact=True)
+        reset = page.get_by_role("button", name="Reset", exact=True)
+        body, result = run_explorer_query(page, apply.click)
+        assert body["courses"] == ["Ascot"]
+        assert result["total_rows"] > 0
+        run_explorer_query(page, reset.click)
         expect(page.get_by_role("button", name="Course", exact=True)).to_contain_text("All course")
         page.get_by_label("Horse name", exact=True).fill("[")
-        page.get_by_role("button", name="Apply Filters", exact=True).click()
-        settle_page(page)
-        page.get_by_role("button", name="Reset", exact=True).click()
-        settle_page(page)
-        page.locator(".tabs button").filter(has_text="Raw Data").click()
-        settle_page(page)
-        expect(page.get_by_role("button", name="Next", exact=False)).to_be_enabled(timeout=120_000)
-        page.get_by_role("button", name="Next", exact=False).click()
+        run_explorer_query(page, apply.click)
+        run_explorer_query(page, reset.click)
+        run_explorer_query(page, page.locator(".tabs button").filter(has_text="Raw Data").click)
+        next_page = page.get_by_role("button", name="Next", exact=False)
+        expect(next_page).to_be_enabled(timeout=120_000)
+        run_explorer_query(page, next_page.click)
         expect(page.get_by_text("Page 2 of", exact=False)).to_be_visible()
 
         page.goto(url)
